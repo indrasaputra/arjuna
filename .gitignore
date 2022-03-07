@@ -4,12 +4,20 @@
 *.dll
 *.so
 *.dylib
+*.env
+
+# Unignore all dirs as default setup
+!*/
 
 # Test binary, built with `go test -c`
 *.test
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+coverage.html
+coverage/
 
 # Dependency directories (remove the comment below to include it)
-# vendor/
+vendor/
+cmd/client
+cmd/playground
