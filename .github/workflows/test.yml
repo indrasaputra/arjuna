@@ -59,7 +59,7 @@ jobs:
   go-code-linter:
     name: Lint go codes
     if: github.event_name == 'push'
-    uses: indrasaputra/arjuna/.github/workflows/reusable-go-ci.yml@init-user
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-ci.yml@main
     with:
       filters: |
         changed:

@@ -19,5 +19,5 @@ for dir in `find . -type d`; do
 done
 
 for file in `find . -name '*.proto'`; do
-    clang-format -i ${file}
+  clang-format -i ${file}
 done

@@ -18,6 +18,10 @@ lint: ## Lint proto files using buf and golang files using golangci-lint.
 lint: lint.cleancache
 	tool/lint.sh ${svc}
 
+.PHONY: pretty
+pretty: ## Prettify golang and proto files. Basically, it runs tidy, format, and lint command.
+pretty: tidy format lint
+
 .PHONY: check.import
 check.import: ## Check if import blocks are separated accordingly.
 	tool/check-import.sh
@@ -26,6 +30,10 @@ check.import: ## Check if import blocks are separated accordingly.
 .PHONY: gen.proto
 gen.proto: ## Generate golang files from proto.
 	tool/generate-proto.sh
+
+.PHONY: gen.mock
+gen.mock: ## Generate mock from all golang interfaces.
+	tool/generate-mock.sh
 
 ##@ Test
 .PHONY: test.unit

@@ -21,4 +21,3 @@ elif [[ $1 = 'test' ]]; then
     fi
     done
 fi
-
