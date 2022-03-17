@@ -1,0 +1,11 @@
+version: v1
+name: buf.build/indrasaputra/arjuna-user
+breaking:
+  use:
+    - FILE
+lint:
+  use:
+    - BASIC
+deps:
+  - buf.build/googleapis/googleapis:b66d86097dde451b8f9e39add0fa39a4
+  - buf.build/grpc-ecosystem/grpc-gateway:ff83506eb9cc4cf8972f49ce87e6ed3e
