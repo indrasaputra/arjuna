@@ -13,6 +13,61 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  import-linter:
+    name: Lint import block
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    container:
+      image: indrasaputra/protogen:2021-09-07
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+      - name: Check import blocks
+        run: |
+          make format
+          make check.import
+
+  security-checking:
+    name: Semgrep scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+      - name: Scan using Semgrep  
+        uses: returntocorp/semgrep-action@v1
+        with:
+          publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+  code-linter:
+    name: Lint all codes and file format
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+      - name: Format proto files using clang-format
+        uses: DoozyX/clang-format-lint-action@v0.11
+        with:
+          source: '.'
+          extensions: 'proto'
+          clangFormatVersion: 11
+      - name: Lint proto files
+        uses: plexsystems/protolint-action@v0.2.0
+        with:
+          configDirectory: .
+  
+  go-code-linter:
+    name: Lint go codes
+    if: github.event_name == 'push'
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-ci.yml@init-user
+    with:
+      filters: |
+        changed:
+          - .github/workflows/reusable-go-ci.yml
+          - .github/workflows/test.yml
+          - service/user/**
+      target: service/user
+
   unit-test:
     name: Unit test and coverage
     runs-on: ubuntu-latest
@@ -23,14 +78,15 @@ jobs:
           go-version: ^1.17.x
       - name: Clone repository
         uses: actions/checkout@v2
-      - uses: actions/cache@v2
+      - name: Cache vendor
+        uses: actions/cache@v2
         with:
           path: |
             ~/.cache/go-build
             ~/go/pkg/mod
-          key: go-module-${{ github.repository }}-${{ github.sha }}
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            go-module-${{ github.repository }}-${{ github.sha }}
+            ${{ runner.os }}-go-
       - name: Run unit test and coverage
         run: make test.cover
       - name: Push coverage result to Codecov

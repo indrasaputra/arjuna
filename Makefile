@@ -1,6 +1,6 @@
 include Makefile.help.mk
 
-##@ format
+##@ Format
 .PHONY: format
 format: ## Format golang and proto files.
 	tool/format.sh
@@ -16,7 +16,11 @@ lint.cleancache: ## Clean golangci-lint cache.
 .PHONY: lint
 lint: ## Lint proto files using buf and golang files using golangci-lint.
 lint: lint.cleancache
-	tool/lint.sh
+	tool/lint.sh ${svc}
+
+.PHONY: check.import
+check.import: ## Check if import blocks are separated accordingly.
+	tool/check-import.sh
 
 ##@ Generator
 .PHONY: gen.proto
