@@ -1,0 +1,146 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "User API",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Indra Saputra",
+      "url": "https://github.com/indrasaputra"
+    },
+    "license": {
+      "name": "BSD 3-Clause License",
+      "url": "https://github.com/indrasaputra/arjuna/blob/main/LICENSE"
+    }
+  },
+  "tags": [
+    {
+      "name": "UserCommandService",
+      "description": "This service provides basic command or state-changing use cases to work with user.A user is represented by an email as its unique identifier."
+    }
+  ],
+  "host": "localhost:6001",
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/register": {
+      "post": {
+        "summary": "Register a new user.",
+        "description": "This endpoint registers a new user.",
+        "operationId": "RegisterUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RegisterUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "user represents user data.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1User"
+            }
+          }
+        ],
+        "tags": [
+          "User"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1RegisterUserResponse": {
+      "type": "object",
+      "description": "RegisterUserResponse represents response from register user."
+    },
+    "v1User": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "example": "email@company.com",
+          "description": "user's email",
+          "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
+          "required": [
+            "email"
+          ]
+        },
+        "password": {
+          "type": "boolean",
+          "format": "string",
+          "description": "user's password"
+        },
+        "name": {
+          "type": "string",
+          "example": "Zlatan Ibrahimovic",
+          "description": "user's name",
+          "maxLength": 255,
+          "minLength": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "created_at represents when the user was registered.",
+          "readOnly": true
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "updated_at represents when the user was last updated.",
+          "readOnly": true
+        }
+      },
+      "description": "User represents a user data.",
+      "required": [
+        "email"
+      ]
+    }
+  }
+}
