@@ -68,7 +68,7 @@ func (ur *UserRegistrator) Register(ctx context.Context, user *entity.User) (str
 	if err := ur.repo.Insert(ctx, user); err != nil {
 		return "", err
 	}
-	return "", nil
+	return user.ID, nil
 }
 
 func validateUser(user *entity.User) error {

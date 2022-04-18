@@ -50,3 +50,40 @@ func (mr *MockRegisterUserMockRecorder) Register(ctx, user interface{}) *gomock.
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockRegisterUser)(nil).Register), ctx, user)
 }
+
+// MockRegisterUserRepository is a mock of RegisterUserRepository interface.
+type MockRegisterUserRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockRegisterUserRepositoryMockRecorder
+}
+
+// MockRegisterUserRepositoryMockRecorder is the mock recorder for MockRegisterUserRepository.
+type MockRegisterUserRepositoryMockRecorder struct {
+	mock *MockRegisterUserRepository
+}
+
+// NewMockRegisterUserRepository creates a new mock instance.
+func NewMockRegisterUserRepository(ctrl *gomock.Controller) *MockRegisterUserRepository {
+	mock := &MockRegisterUserRepository{ctrl: ctrl}
+	mock.recorder = &MockRegisterUserRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRegisterUserRepository) EXPECT() *MockRegisterUserRepositoryMockRecorder {
+	return m.recorder
+}
+
+// Insert mocks base method.
+func (m *MockRegisterUserRepository) Insert(ctx context.Context, user *entity.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Insert", ctx, user)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Insert indicates an expected call of Insert.
+func (mr *MockRegisterUserRepositoryMockRecorder) Insert(ctx, user interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockRegisterUserRepository)(nil).Insert), ctx, user)
+}
