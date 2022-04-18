@@ -22,7 +22,7 @@ require (
 	github.com/jackc/pgx/v4 v4.15.0
 )
 
-require golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
+require golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -61,6 +61,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd
 	github.com/joho/godotenv v1.4.0
+	github.com/pashagolub/pgxmock v1.4.4
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.29.0
