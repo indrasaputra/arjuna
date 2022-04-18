@@ -61,6 +61,8 @@ message RegisterUserRequest {
 
 // RegisterUserResponse represents response from register user.
 message RegisterUserResponse {
+  // data represents user.
+  User data = 1;
 }
 
 // User represents a user data.

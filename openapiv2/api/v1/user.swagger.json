@@ -98,6 +98,12 @@
     },
     "v1RegisterUserResponse": {
       "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/v1User",
+          "description": "data represents user."
+        }
+      },
       "description": "RegisterUserResponse represents response from register user."
     },
     "v1User": {

@@ -25,11 +25,11 @@ func (uc *UserCommand) RegisterUser(ctx context.Context, request *apiv1.Register
 		return nil, entity.ErrEmptyUser()
 	}
 
-	_, err := uc.registrator.Register(ctx, createUserFromRegisterUserRequest(request))
+	id, err := uc.registrator.Register(ctx, createUserFromRegisterUserRequest(request))
 	if err != nil {
 		return nil, err
 	}
-	return &apiv1.RegisterUserResponse{}, nil
+	return &apiv1.RegisterUserResponse{Data: &apiv1.User{Id: id}}, nil
 }
 
 func createUserFromRegisterUserRequest(request *apiv1.RegisterUserRequest) *entity.User {
