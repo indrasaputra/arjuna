@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:14.2-alpine
+    volumes:
+      - ${PWD}/tool/database:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_USER=postgresuser
+      - POSTGRES_PASSWORD=postgrespassword
+    ports:
+      - 5432:5432
+    networks:
+      - arjuna
+
+  sqlpad:
+    image: sqlpad/sqlpad:6.10
+    depends_on:
+      - postgres
+    environment:
+      - SQLPAD_AUTH_DISABLED=true
+      - SQLPAD_AUTH_DISABLED_DEFAULT_ROLE=admin
+      - SQLPAD_DB_IN_MEMORY=true
+      - SQLPAD_CONNECTIONS__user_postgres__name=Postgres - User
+      - SQLPAD_CONNECTIONS__user_postgres__driver=postgres
+      - SQLPAD_CONNECTIONS__user_postgres__host=postgres
+      - SQLPAD_CONNECTIONS__user_postgres__port=5432
+      - SQLPAD_CONNECTIONS__user_postgres__database=arjuna_user
+      - SQLPAD_CONNECTIONS__user_postgres__username=postgresuser
+      - SQLPAD_CONNECTIONS__user_postgres__password=postgrespassword
+    ports:
+      - 3000:3000
+    networks:
+      - arjuna
+
+volumes:
+  storage:
+
+networks:
+  arjuna:

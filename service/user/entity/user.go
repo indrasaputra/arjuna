@@ -4,6 +4,7 @@ import "time"
 
 // User defines the logical data of a user.
 type User struct {
+	ID       string
 	Name     string
 	Email    string
 	Password string

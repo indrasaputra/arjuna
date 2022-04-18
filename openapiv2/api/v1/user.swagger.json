@@ -103,6 +103,11 @@
     "v1User": {
       "type": "object",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "id represents a user's id.",
+          "readOnly": true
+        },
         "email": {
           "type": "string",
           "example": "email@company.com",
@@ -113,7 +118,7 @@
           ]
         },
         "password": {
-          "type": "boolean",
+          "type": "string",
           "format": "string",
           "description": "user's password"
         },

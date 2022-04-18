@@ -145,6 +145,11 @@ input TimestampInput {
 """
 input UserInput {
 	"""
+	 id represents a user's id.
+	
+	"""
+	id: String
+	"""
 	 email represents a user's email.
 	
 	"""
@@ -153,7 +158,7 @@ input UserInput {
 	 password represents the user's password.
 	
 	"""
-	password: Boolean
+	password: String
 	"""
 	 name represents a user's name.
 	

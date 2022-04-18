@@ -3,11 +3,11 @@ include Makefile.help.mk
 ##@ Format
 .PHONY: format
 format: ## Format golang and proto files.
-	tool/format.sh
+	tool/script/format.sh
 
 .PHONY: tidy
 tidy: ## Format golang and proto files.
-	tool/tidy.sh
+	tool/script/tidy.sh
 
 .PHONY: lint.cleancache
 lint.cleancache: ## Clean golangci-lint cache.
@@ -16,7 +16,7 @@ lint.cleancache: ## Clean golangci-lint cache.
 .PHONY: lint
 lint: ## Lint proto files using buf and golang files using golangci-lint.
 lint: lint.cleancache
-	tool/lint.sh ${svc}
+	tool/script/lint.sh ${svc}
 
 .PHONY: pretty
 pretty: ## Prettify golang and proto files. Basically, it runs tidy, format, and lint command.
@@ -24,22 +24,31 @@ pretty: tidy format lint
 
 .PHONY: check.import
 check.import: ## Check if import blocks are separated accordingly.
-	tool/check-import.sh
+	tool/script/check-import.sh
 
 ##@ Generator
 .PHONY: gen.proto
 gen.proto: ## Generate golang files from proto.
-	tool/generate-proto.sh
+	tool/script/generate-proto.sh
 
 .PHONY: gen.mock
 gen.mock: ## Generate mock from all golang interfaces.
-	tool/generate-mock.sh
+	tool/script/generate-mock.sh
 
 ##@ Test
 .PHONY: test.unit
 test.unit: ## Run unit test.
-	tool/test.sh unit
+	tool/script/test.sh unit
 
 .PHONY: test.cover
 test.cover: ## Run unit test.
-	tool/test.sh cover
+	tool/script/test.sh cover
+
+##@ Migration
+.PHONY: migration
+migration: ## Create database migration.
+	migrate create -ext sql -dir service/$(svc)/db/migrations $(name)
+
+.PHONY: migrate
+migrate: ## Run database migrations.
+	migrate -path service/$(svc)/db/migrations -database "$(url)" -verbose up
