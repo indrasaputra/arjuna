@@ -87,7 +87,6 @@ func (gs *GrpcServer) Serve() error {
 		_ = gs.server.Serve(gs.listener)
 	}()
 	return nil
-	// return gs.server.Serve(gs.listener)
 }
 
 // GracefulStop blocks the server and wait for termination signal.

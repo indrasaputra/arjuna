@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"net/mail"
 	"regexp"
 	"strings"
@@ -61,7 +60,6 @@ func (ur *UserRegistrator) Register(ctx context.Context, user *entity.User) (str
 		return "", err
 	}
 	if err := hashUserPassword(user); err != nil {
-		fmt.Println("fail hash password")
 		return "", err
 	}
 
