@@ -98,11 +98,22 @@
     },
     "v1RegisterUserResponse": {
       "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/v1User",
+          "description": "data represents user."
+        }
+      },
       "description": "RegisterUserResponse represents response from register user."
     },
     "v1User": {
       "type": "object",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "id represents a user's id.",
+          "readOnly": true
+        },
         "email": {
           "type": "string",
           "example": "email@company.com",
@@ -113,7 +124,7 @@
           ]
         },
         "password": {
-          "type": "boolean",
+          "type": "string",
           "format": "string",
           "description": "user's password"
         },

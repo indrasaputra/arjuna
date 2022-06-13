@@ -61,12 +61,17 @@ message RegisterUserRequest {
 
 // RegisterUserResponse represents response from register user.
 message RegisterUserResponse {
+  // data represents user.
+  User data = 1;
 }
 
 // User represents a user data.
 message User {
+  // id represents a user's id.
+  string id = 1 [ (google.api.field_behavior) = OUTPUT_ONLY ];
+
   // email represents a user's email.
-  string email = 1 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  string email = 2 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     required : "email",
     description : "user's email",
     pattern : "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
@@ -74,7 +79,7 @@ message User {
   } ];
 
   // password represents the user's password.
-  bool password = 2 [
+  string password = 3 [
     (google.api.field_behavior) = INPUT_ONLY,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description : "user's password",
@@ -83,7 +88,7 @@ message User {
   ];
 
   // name represents a user's name.
-  string name = 3 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  string name = 4 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description : "user's name",
     min_length : 1,
     max_length : 255,
@@ -91,9 +96,9 @@ message User {
   } ];
 
   // created_at represents when the user was registered.
-  google.protobuf.Timestamp created_at = 4 [ (google.api.field_behavior) = OUTPUT_ONLY ];
+  google.protobuf.Timestamp created_at = 5 [ (google.api.field_behavior) = OUTPUT_ONLY ];
   // updated_at represents when the user was last updated.
-  google.protobuf.Timestamp updated_at = 5 [ (google.api.field_behavior) = OUTPUT_ONLY ];
+  google.protobuf.Timestamp updated_at = 6 [ (google.api.field_behavior) = OUTPUT_ONLY ];
 }
 
 // UserError represents message for any error happening in user.
@@ -117,4 +122,11 @@ enum UserErrorCode {
   // User already exists.
   // The uniqueness of a user is represented by email.
   USER_ERROR_CODE_ALREADY_EXISTS = 3;
+
+  // User's name is invalid.
+  // Allowed characters are alphabet only.
+  USER_ERROR_CODE_INVALID_NAME = 4;
+
+  // User's email is invalid.
+  USER_ERROR_CODE_INVALID_EMAIL = 5;
 }

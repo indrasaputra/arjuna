@@ -52,6 +52,41 @@ func ErrAlreadyExists() error {
 	return res.Err()
 }
 
+// ErrInvalidName returns codes.InvalidArgument explained that the user's name is invalid.
+func ErrInvalidName() error {
+	st := status.New(codes.InvalidArgument, "")
+	br := createBadRequest(&errdetails.BadRequest_FieldViolation{
+		Field:       "name",
+		Description: "contain character outside of alphabet",
+	})
+
+	te := &apiv1.UserError{
+		ErrorCode: apiv1.UserErrorCode_USER_ERROR_CODE_INVALID_NAME,
+	}
+	res, err := st.WithDetails(br, te)
+	if err != nil {
+		return st.Err()
+	}
+	return res.Err()
+}
+
+// ErrInvalidEmail returns codes.InvalidArgument explained that the user's email is invalid.
+func ErrInvalidEmail() error {
+	st := status.New(codes.InvalidArgument, "")
+	br := createBadRequest(&errdetails.BadRequest_FieldViolation{
+		Field: "email",
+	})
+
+	te := &apiv1.UserError{
+		ErrorCode: apiv1.UserErrorCode_USER_ERROR_CODE_INVALID_EMAIL,
+	}
+	res, err := st.WithDetails(br, te)
+	if err != nil {
+		return st.Err()
+	}
+	return res.Err()
+}
+
 func createBadRequest(details ...*errdetails.BadRequest_FieldViolation) *errdetails.BadRequest {
 	return &errdetails.BadRequest{
 		FieldViolations: details,

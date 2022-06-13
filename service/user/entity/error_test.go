@@ -31,3 +31,19 @@ func TestErrAlreadyExists(t *testing.T) {
 		assert.Contains(t, err.Error(), "rpc error: code = AlreadyExists")
 	})
 }
+
+func TestErrInvalidName(t *testing.T) {
+	t.Run("success get invalid name error", func(t *testing.T) {
+		err := entity.ErrInvalidName()
+
+		assert.Contains(t, err.Error(), "rpc error: code = InvalidArgument")
+	})
+}
+
+func TestErrInvalidEmail(t *testing.T) {
+	t.Run("success get invalid email error", func(t *testing.T) {
+		err := entity.ErrInvalidEmail()
+
+		assert.Contains(t, err.Error(), "rpc error: code = InvalidArgument")
+	})
+}

@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Refer to https://www.conventionalcommits.org/en/v1.0.0/ for commit message convention.
-      - uses: amannn/action-semantic-pull-request@v3.5.0
+      - uses: amannn/action-semantic-pull-request@v4.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -59,7 +59,7 @@ jobs:
   go-code-linter:
     name: Lint go codes
     if: github.event_name == 'push'
-    uses: indrasaputra/arjuna/.github/workflows/reusable-go-ci.yml@init-user
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-ci.yml@main
     with:
       filters: |
         changed:
