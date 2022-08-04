@@ -1,4 +1,4 @@
-version: '3'
+version: '3.7'
 
 services:
   postgres:
@@ -13,6 +13,19 @@ services:
     networks:
       - arjuna
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:19.0.1
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    ports:
+      - 8080:8080
+    command: start-dev
+    networks:
+      - arjuna
+    depends_on:
+      - postgres
+
   sqlpad:
     image: sqlpad/sqlpad:6.10
     depends_on:
@@ -21,7 +34,7 @@ services:
       - SQLPAD_AUTH_DISABLED=true
       - SQLPAD_AUTH_DISABLED_DEFAULT_ROLE=admin
       - SQLPAD_DB_IN_MEMORY=true
-      - SQLPAD_CONNECTIONS__user_postgres__name=Postgres - User
+      - SQLPAD_CONNECTIONS__user_postgres__name="Postgres - User"
       - SQLPAD_CONNECTIONS__user_postgres__driver=postgres
       - SQLPAD_CONNECTIONS__user_postgres__host=postgres
       - SQLPAD_CONNECTIONS__user_postgres__port=5432
