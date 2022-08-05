@@ -1,6 +1,6 @@
 module github.com/indrasaputra/arjuna/gateway
 
-go 1.17
+go 1.18
 
 replace github.com/indrasaputra/arjuna/proto v0.0.0 => ../proto
 
