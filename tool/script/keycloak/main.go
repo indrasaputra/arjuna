@@ -3,84 +3,91 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
+	"time"
+
+	"github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
 )
 
 const (
-	KeycloakAddress       = "http://localhost:8080/"
-	ProtocolOpenidConnect = "openid-connect"
-	MasterAdminUsername   = "admin"
-	MasterAdminPassword   = "admin"
-	MasterRealm           = "master"
-	ArjunaRealm           = "arjuna"
-	ArjunaClientID        = "arjuna-client"
-	ArjunaClientName      = "Arjuna Client"
-	ArjunaClientSecret    = "arjuna-secret"
-	ArjunaClientRootURL   = "https://www.keycloak.org/app/"
-	ArjunaUserUsername    = "arjunauser"
-	ArjunaUserPassword    = "arjunapassword"
-	ArjunaUserFirstName   = "First"
-	ArjunaUserLastName    = "User"
-	ArjunaUserEmail       = "user.first@arjuna.com"
+	keycloakAddress       = "http://localhost:8080/"
+	protocolOpenidConnect = "openid-connect"
+	masterAdminUsername   = "admin"
+	masterAdminPassword   = "admin"
+	arjunaRealm           = "arjuna"
+	arjunaClientID        = "arjuna-client"
+	arjunaClientName      = "Arjuna Client"
+	arjunaClientSecret    = "arjuna-secret"
+	arjunaClientRootURL   = "https://www.keycloak.org/app/"
+	arjunaUserUsername    = "arjunauser"
+	arjunaUserPassword    = "arjunapassword"
+	arjunaUserFirstName   = "First"
+	arjunaUserLastName    = "User"
+	arjunaUserEmail       = "user.first@arjuna.com"
 )
 
 func main() {
 	ctx := context.Background()
-	client := NewKeycloakClient(KeycloakAddress)
+	httpClient := &http.Client{Timeout: time.Minute}
+	keycloakClient := keycloak.NewClient(httpClient, keycloakAddress)
 
-	token, err := client.LoginAdmin(ctx, MasterAdminUsername, MasterAdminPassword, MasterRealm)
+	token, err := keycloakClient.LoginAdmin(ctx, masterAdminUsername, masterAdminPassword)
 	if err != nil {
 		log.Fatalf("fail login admin: %v\n", err)
 	}
 
-	if err := CreateArjunaRealm(ctx, client, token); err != nil {
+	if err := CreateArjunaRealm(ctx, keycloakClient, token.AccessToken); err != nil {
 		log.Fatalf("fail create realm: %v\n", err)
 	}
 
-	if err := CreateArjunaClient(ctx, client, token); err != nil {
+	if err := CreateArjunaClient(ctx, keycloakClient, token.AccessToken); err != nil {
 		log.Fatalf("fail create client: %v\n", err)
 	}
 
-	if err := CreateArjunaUser(ctx, client, token); err != nil {
+	if err := CreateArjunaUser(ctx, keycloakClient, token.AccessToken); err != nil {
 		log.Fatalf("fail create user: %v\n", err)
 	}
 }
 
-func CreateArjunaRealm(ctx context.Context, client *KeycloakClient, token string) error {
-	realm := &RealmRepresentation{
-		ID:      ArjunaRealm,
-		Realm:   ArjunaRealm,
+// CreateArjunaRealm creates realm arjuna.
+func CreateArjunaRealm(ctx context.Context, client *keycloak.Client, token string) error {
+	realm := &keycloak.RealmRepresentation{
+		ID:      arjunaRealm,
+		Realm:   arjunaRealm,
 		Enabled: true,
 	}
 	return client.CreateRealm(ctx, token, realm)
 }
 
-func CreateArjunaClient(ctx context.Context, client *KeycloakClient, token string) error {
-	cl := &ClientRepresentation{
-		ClientID:     ArjunaClientID,
-		Name:         ArjunaClientName,
+// CreateArjunaClient creates client arjuna.
+func CreateArjunaClient(ctx context.Context, client *keycloak.Client, token string) error {
+	cl := &keycloak.ClientRepresentation{
+		ClientID:     arjunaClientID,
+		Name:         arjunaClientName,
 		Enabled:      true,
-		RootURL:      ArjunaClientRootURL,
-		Protocol:     ProtocolOpenidConnect,
+		RootURL:      arjunaClientRootURL,
+		Protocol:     protocolOpenidConnect,
 		PublicClient: false,
-		Secret:       ArjunaClientSecret,
+		Secret:       arjunaClientSecret,
 	}
-	return client.CreateClient(ctx, token, ArjunaRealm, cl)
+	return client.CreateClient(ctx, token, arjunaRealm, cl)
 }
 
-func CreateArjunaUser(ctx context.Context, client *KeycloakClient, token string) error {
-	user := &UserRepresentation{
-		Username:  ArjunaUserUsername,
-		FirstName: ArjunaUserFirstName,
-		LastName:  ArjunaUserLastName,
-		Email:     ArjunaUserEmail,
+// CreateArjunaUser creates user arjuna.
+func CreateArjunaUser(ctx context.Context, client *keycloak.Client, token string) error {
+	user := &keycloak.UserRepresentation{
+		Username:  arjunaUserUsername,
+		FirstName: arjunaUserFirstName,
+		LastName:  arjunaUserLastName,
+		Email:     arjunaUserEmail,
 		Enabled:   true,
-		Credentials: []*CredentialRepresentation{
+		Credentials: []*keycloak.CredentialRepresentation{
 			{
 				Type:      "password",
-				Value:     ArjunaUserPassword,
+				Value:     arjunaUserPassword,
 				Temporary: false,
 			},
 		},
 	}
-	return client.CreateUser(ctx, token, ArjunaRealm, user)
+	return client.CreateUser(ctx, token, arjunaRealm, user)
 }
