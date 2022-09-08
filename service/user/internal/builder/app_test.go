@@ -6,24 +6,49 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
 
+	mock_keycloak "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/keycloak"
 	"github.com/indrasaputra/arjuna/service/user/internal/builder"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
 )
 
-func TestBuildToggleCommandHandler(t *testing.T) {
-	t.Run("success create toggle command handler", func(t *testing.T) {
+func TestBuildUserCommandHandler(t *testing.T) {
+	t.Run("fail create user command handler", func(t *testing.T) {
 		dep := &builder.Dependency{
-			PgxPool: &pgxpool.Pool{},
+			PgxPool:        &pgxpool.Pool{},
+			KeycloakClient: nil,
+			Config: &config.Config{
+				Keycloak: config.Keycloak{},
+			},
 		}
 
-		handler := builder.BuildUserCommandHandler(dep)
+		handler, err := builder.BuildUserCommandHandler(dep)
 
+		assert.Error(t, err)
+		assert.Nil(t, handler)
+	})
+
+	t.Run("success create user command handler", func(t *testing.T) {
+		dep := &builder.Dependency{
+			PgxPool:        &pgxpool.Pool{},
+			KeycloakClient: &mock_keycloak.MockKeycloak{},
+			Config: &config.Config{
+				Keycloak: config.Keycloak{
+					Realm:         "realm",
+					AdminUser:     "admin",
+					AdminPassword: "admin",
+				},
+			},
+		}
+
+		handler, err := builder.BuildUserCommandHandler(dep)
+
+		assert.NoError(t, err)
 		assert.NotNil(t, handler)
 	})
 }
 
 func TestBuildPostgrePgxPool(t *testing.T) {
-	cfg := &config.Postgres{
+	cfg := config.Postgres{
 		Host:            "localhost",
 		Port:            "5432",
 		Name:            "users",

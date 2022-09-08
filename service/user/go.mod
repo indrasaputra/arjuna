@@ -26,8 +26,6 @@ require (
 	github.com/jackc/pgx/v4 v4.15.0
 )
 
-require golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871
-
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -51,6 +49,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.5.0 // indirect
 	go.uber.org/atomic v1.6.0 // indirect
 	go.uber.org/multierr v1.5.0 // indirect
+	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect

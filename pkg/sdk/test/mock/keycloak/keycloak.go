@@ -10,6 +10,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+
 	keycloak "github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
 )
 

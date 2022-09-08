@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+
 	entity "github.com/indrasaputra/arjuna/service/user/entity"
 )
 

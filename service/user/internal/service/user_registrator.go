@@ -2,14 +2,21 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
+	"math/big"
 	"net/mail"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/segmentio/ksuid"
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/indrasaputra/arjuna/service/user/entity"
+)
+
+const (
+	allowedUsernameCharacters = "abcdefghijklmnopqrstuvwxyz0123456789"
+	usernameLength            = 10
 )
 
 var (
@@ -55,13 +62,12 @@ func (ur *UserRegistrator) Register(ctx context.Context, user *entity.User) (str
 		return "", err
 	}
 	sanitizeUser(user)
+	user.Username = generateUsername(usernameLength)
 
 	if err := setUserID(user); err != nil {
 		return "", err
 	}
-	if err := hashUserPassword(user); err != nil {
-		return "", err
-	}
+	setUserAuditableProperties(user)
 
 	if err := ur.repo.Insert(ctx, user); err != nil {
 		return "", err
@@ -97,11 +103,23 @@ func setUserID(user *entity.User) error {
 	return nil
 }
 
-func hashUserPassword(user *entity.User) error {
-	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return entity.ErrInternal("fail to hash password")
+func setUserAuditableProperties(user *entity.User) {
+	user.CreatedAt = time.Now().UTC()
+	user.UpdatedAt = time.Now().UTC()
+	user.CreatedBy = user.ID
+	user.UpdatedBy = user.ID
+}
+
+func generateUsername(n int) string {
+	username := ""
+	length := len(allowedUsernameCharacters)
+	for i := 0; i < n; i++ {
+		username += string(allowedUsernameCharacters[cryptoRandSecure(int64(length))])
 	}
-	user.Password = string(hash)
-	return nil
+	return username
+}
+
+func cryptoRandSecure(max int64) int64 {
+	nBig, _ := rand.Int(rand.Reader, big.NewInt(max))
+	return nBig.Int64()
 }

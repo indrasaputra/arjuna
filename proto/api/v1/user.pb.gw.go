@@ -124,7 +124,7 @@ func RegisterUserCommandServiceHandlerFromEndpoint(ctx context.Context, mux *run
 
 // RegisterUserCommandServiceHandler registers the http handlers for service UserCommandService to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
-func RegisterUserCommandServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+func RegisterUserCommandServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
 	return RegisterUserCommandServiceHandlerClient(ctx, mux, NewUserCommandServiceClient(conn))
 }
 

@@ -75,7 +75,10 @@ func TestUserRegistrator_Register(t *testing.T) {
 		}
 
 		for _, email := range emails {
-			user := &entity.User{Name: "Zlatan Ibrahimovic", Email: email}
+			user := &entity.User{
+				Name:  "Zlatan Ibrahimovic",
+				Email: email,
+			}
 
 			id, err := exec.registrator.Register(testCtx, user)
 

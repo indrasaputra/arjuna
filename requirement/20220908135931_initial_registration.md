@@ -5,6 +5,7 @@
 - A user wants to register him/herself to Arjuna
 - A user must provide these data:
     - Full name
+    - Username
     - Email
     - Password
 
