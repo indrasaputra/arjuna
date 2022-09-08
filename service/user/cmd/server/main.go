@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -17,12 +18,14 @@ func main() {
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
 
-	postgresPool, err := builder.BuildPostgrePgxPool(&cfg.Postgres)
+	keycloakClient := builder.BuildKeycloakClient(cfg.Keycloak)
+	postgresPool, err := builder.BuildPostgrePgxPool(cfg.Postgres)
 	checkError(err)
 
 	dep := &builder.Dependency{
-		PgxPool: postgresPool,
-		Config:  cfg,
+		PgxPool:        postgresPool,
+		KeycloakClient: keycloakClient,
+		Config:         cfg,
 	}
 
 	grpcServer := server.NewGrpcServer(cfg.Port)
@@ -35,7 +38,10 @@ func main() {
 
 func registerGrpcService(grpcServer *server.GrpcServer, dep *builder.Dependency) {
 	// start register all module's gRPC handlers
-	command := builder.BuildUserCommandHandler(dep)
+	command, err := builder.BuildUserCommandHandler(dep)
+	if err != nil {
+		log.Fatalf("fail build user command handler: %v", err)
+	}
 	health := handler.NewHealth()
 
 	grpcServer.AttachService(func(server *grpc.Server) {

@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"time"
 
 	"github.com/jackc/pgconn"
 
@@ -16,11 +15,11 @@ const (
 
 // User is responsible to connect user entity with users table in PostgreSQL.
 type User struct {
-	pool PgxPoolIface
+	pool PgxPool
 }
 
 // NewUser creates an instance of User.
-func NewUser(pool PgxPoolIface) *User {
+func NewUser(pool PgxPool) *User {
 	return &User{pool: pool}
 }
 
@@ -29,20 +28,20 @@ func (u *User) Insert(ctx context.Context, user *entity.User) error {
 	if user == nil {
 		return entity.ErrEmptyUser()
 	}
-	user.CreatedAt = time.Now().UTC()
-	user.UpdatedAt = time.Now().UTC()
 
 	query := "INSERT INTO " +
-		"users (id, name, email, password, created_at, updated_at) " +
-		"VALUES ($1, $2, $3, $4, $5, $6)"
+		"users (id, name, email, username, created_at, updated_at, created_by, updated_by) " +
+		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
 
 	_, err := u.pool.Exec(ctx, query,
 		user.ID,
 		user.Name,
 		user.Email,
-		user.Password,
+		user.Username,
 		user.CreatedAt,
 		user.UpdatedAt,
+		user.CreatedBy,
+		user.UpdatedBy,
 	)
 
 	if err != nil && isUniqueViolationErr(err) {

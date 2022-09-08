@@ -2,16 +2,20 @@ module github.com/indrasaputra/arjuna/service/user
 
 go 1.18
 
-replace github.com/indrasaputra/arjuna/proto v0.0.0 => ../../proto
+replace (
+	github.com/indrasaputra/arjuna/pkg/sdk v0.0.0 => ../../pkg/sdk
+	github.com/indrasaputra/arjuna/proto v0.0.0 => ../../proto
+)
 
 require (
+	github.com/indrasaputra/arjuna/pkg/sdk v0.0.0
 	github.com/indrasaputra/arjuna/proto v0.0.0
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.8.0
 	google.golang.org/grpc v1.45.0
 )
 
 require (
-	github.com/golang/mock v1.4.4
+	github.com/golang/mock v1.6.0
 	google.golang.org/genproto v0.0.0-20220314164441-57ef72a4c106
 )
 
@@ -21,8 +25,6 @@ require (
 	github.com/jackc/pgconn v1.11.0
 	github.com/jackc/pgx/v4 v4.15.0
 )
-
-require golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -47,13 +49,14 @@ require (
 	go.opentelemetry.io/otel/trace v1.5.0 // indirect
 	go.uber.org/atomic v1.6.0 // indirect
 	go.uber.org/multierr v1.5.0 // indirect
+	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	golang.org/x/tools v0.0.0-20210106214847-113979e3529a // indirect
+	golang.org/x/tools v0.1.1 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 require (

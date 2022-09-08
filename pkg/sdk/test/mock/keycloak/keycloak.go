@@ -5,10 +5,13 @@
 package mock_keycloak
 
 import (
+	context "context"
 	http "net/http"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+
+	keycloak "github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
 )
 
 // MockDoer is a mock of Doer interface.
@@ -47,4 +50,84 @@ func (m *MockDoer) Do(arg0 *http.Request) (*http.Response, error) {
 func (mr *MockDoerMockRecorder) Do(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Do", reflect.TypeOf((*MockDoer)(nil).Do), arg0)
+}
+
+// MockKeycloak is a mock of Keycloak interface.
+type MockKeycloak struct {
+	ctrl     *gomock.Controller
+	recorder *MockKeycloakMockRecorder
+}
+
+// MockKeycloakMockRecorder is the mock recorder for MockKeycloak.
+type MockKeycloakMockRecorder struct {
+	mock *MockKeycloak
+}
+
+// NewMockKeycloak creates a new mock instance.
+func NewMockKeycloak(ctrl *gomock.Controller) *MockKeycloak {
+	mock := &MockKeycloak{ctrl: ctrl}
+	mock.recorder = &MockKeycloakMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockKeycloak) EXPECT() *MockKeycloakMockRecorder {
+	return m.recorder
+}
+
+// CreateClient mocks base method.
+func (m *MockKeycloak) CreateClient(ctx context.Context, token, realm string, client *keycloak.ClientRepresentation) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateClient", ctx, token, realm, client)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateClient indicates an expected call of CreateClient.
+func (mr *MockKeycloakMockRecorder) CreateClient(ctx, token, realm, client interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateClient", reflect.TypeOf((*MockKeycloak)(nil).CreateClient), ctx, token, realm, client)
+}
+
+// CreateRealm mocks base method.
+func (m *MockKeycloak) CreateRealm(ctx context.Context, token string, realm *keycloak.RealmRepresentation) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateRealm", ctx, token, realm)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateRealm indicates an expected call of CreateRealm.
+func (mr *MockKeycloakMockRecorder) CreateRealm(ctx, token, realm interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRealm", reflect.TypeOf((*MockKeycloak)(nil).CreateRealm), ctx, token, realm)
+}
+
+// CreateUser mocks base method.
+func (m *MockKeycloak) CreateUser(ctx context.Context, token, realm string, user *keycloak.UserRepresentation) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateUser", ctx, token, realm, user)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateUser indicates an expected call of CreateUser.
+func (mr *MockKeycloakMockRecorder) CreateUser(ctx, token, realm, user interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockKeycloak)(nil).CreateUser), ctx, token, realm, user)
+}
+
+// LoginAdmin mocks base method.
+func (m *MockKeycloak) LoginAdmin(ctx context.Context, username, password string) (*keycloak.JWT, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoginAdmin", ctx, username, password)
+	ret0, _ := ret[0].(*keycloak.JWT)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoginAdmin indicates an expected call of LoginAdmin.
+func (mr *MockKeycloakMockRecorder) LoginAdmin(ctx, username, password interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoginAdmin", reflect.TypeOf((*MockKeycloak)(nil).LoginAdmin), ctx, username, password)
 }

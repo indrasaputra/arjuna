@@ -12,9 +12,10 @@ type Config struct {
 	AppEnv      string `env:"APP_ENV,default=development"`
 	Port        string `env:"PORT,default=8080"`
 	Postgres    Postgres
+	Keycloak    Keycloak
 }
 
-// Postgres holds all configuration for PostgreSQL.
+// Postgres holds configuration for PostgreSQL.
 type Postgres struct {
 	Host            string `env:"POSTGRES_HOST,default=localhost"`
 	Port            string `env:"POSTGRES_PORT,default=5432"`
@@ -25,6 +26,15 @@ type Postgres struct {
 	MaxConnLifetime string `env:"POSTGRES_MAX_CONN_LIFETIME,default=10m"`
 	MaxIdleLifetime string `env:"POSTGRES_MAX_IDLE_LIFETIME,default=5m"`
 	SSLMode         string `env:"POSTGRES_SSL_MODE,default=disable"`
+}
+
+// Keycloak holds configuration for Keycloak.
+type Keycloak struct {
+	Address       string `env:"KEYCLOAK_HOST,default=http://localhost:8080/"`
+	Realm         string `env:"KEYCLOAK_REALM,required"`
+	AdminUser     string `env:"KEYCLOAK_ADMIN_USER,required"`
+	AdminPassword string `env:"KEYCLOAK_ADMIN_PASSWORD,required"`
+	Timeout       int    `env:"KEYCLOAK_TIMEOUT_SECONDS,default=5"`
 }
 
 // NewConfig creates an instance of Config.

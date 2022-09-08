@@ -63,7 +63,20 @@ type CredentialRepresentation struct {
 	Temporary bool   `json:"temporary"`
 }
 
+// Keycloak defines all use cases of keycloak.
+type Keycloak interface {
+	// LoginAdmin logs in as admin in Master realm.
+	LoginAdmin(ctx context.Context, username, password string) (*JWT, error)
+	// CreateRealm creates a realm. It needs admin's token.
+	CreateRealm(ctx context.Context, token string, realm *RealmRepresentation) error
+	// CreateClient creates a client. It needs admin's token.
+	CreateClient(ctx context.Context, token string, realm string, client *ClientRepresentation) error
+	// CreateUser creates a user. It needs admin's token.
+	CreateUser(ctx context.Context, token string, realm string, user *UserRepresentation) error
+}
+
 // Client is keycloak client and responsible to communicate with Keycloak server.
+// It implements Keycloak interface.
 type Client struct {
 	doer    Doer
 	baseURL string
