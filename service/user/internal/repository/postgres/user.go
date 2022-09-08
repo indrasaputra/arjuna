@@ -16,16 +16,16 @@ const (
 
 // User is responsible to connect user entity with users table in PostgreSQL.
 type User struct {
-	pool PgxPoolIface
+	pool PgxPool
 }
 
 // NewUser creates an instance of User.
-func NewUser(pool PgxPoolIface) *User {
+func NewUser(pool PgxPool) *User {
 	return &User{pool: pool}
 }
 
 // Insert inserts the user into the users table.
-func (u *User) Insert(ctx context.Context, user *entity.User) error {
+func (u *User) Insert(ctx context.Context, tx user *entity.User) error {
 	if user == nil {
 		return entity.ErrEmptyUser()
 	}
