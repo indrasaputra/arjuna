@@ -35,6 +35,10 @@ gen.proto: ## Generate golang files from proto.
 gen.mock: ## Generate mock from all golang interfaces.
 	tool/script/generate-mock.sh
 
+.PHONY: gen.req
+gen.req: ## Generate requirement document.
+	tool/script/requirement.sh $(name)
+
 ##@ Test
 .PHONY: test.unit
 test.unit: ## Run unit test.
