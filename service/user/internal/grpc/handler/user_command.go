@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"log"
 
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/user/entity"
@@ -28,8 +27,6 @@ func (uc *UserCommand) RegisterUser(ctx context.Context, request *apiv1.Register
 
 	id, err := uc.registrator.Register(ctx, createUserFromRegisterUserRequest(request))
 	if err != nil {
-		log.Printf("handler: %v", err)
-		// app.Log.Error("handler: %v", err)
 		return nil, err
 	}
 	return &apiv1.RegisterUserResponse{Data: &apiv1.User{Id: id}}, nil

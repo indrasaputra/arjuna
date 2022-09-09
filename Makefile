@@ -53,6 +53,10 @@ test.unit: ## Run unit test.
 test.cover: ## Run unit test.
 	tool/script/test.sh cover
 
+.PHONY: test.e2e
+test.e2e: ## Run e2e test using Godog.
+	tool/script/godog.sh
+
 ##@ Migration
 .PHONY: migration
 migration: ## Create database migration.

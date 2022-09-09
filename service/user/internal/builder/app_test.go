@@ -67,3 +67,14 @@ func TestBuildPostgrePgxPool(t *testing.T) {
 		assert.Nil(t, client)
 	})
 }
+
+func TestBuildKeycloakClient(t *testing.T) {
+	cfg := config.Keycloak{
+		Timeout: 5,
+	}
+
+	t.Run("success build a keycloak client", func(t *testing.T) {
+		client := builder.BuildKeycloakClient(cfg)
+		assert.NotNil(t, client)
+	})
+}

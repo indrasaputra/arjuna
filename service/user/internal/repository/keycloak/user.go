@@ -64,8 +64,9 @@ func (u *User) Insert(ctx context.Context, user *entity.User) error {
 	}
 
 	userRep := createUserRepresentation(user)
-	if err = u.config.Client.CreateUser(ctx, jwt.AccessToken, u.config.Realm, userRep); err != nil {
-		return entity.ErrInternal(err.Error())
+	err = u.config.Client.CreateUser(ctx, jwt.AccessToken, u.config.Realm, userRep)
+	if err != nil {
+		return decideError(err)
 	}
 	return nil
 }
@@ -97,5 +98,14 @@ func createUserRepresentation(user *entity.User) *kcsdk.UserRepresentation {
 				Temporary: false,
 			},
 		},
+	}
+}
+
+func decideError(err error) error {
+	switch err {
+	case kcsdk.ErrConflict:
+		return entity.ErrAlreadyExists()
+	default:
+		return entity.ErrInternal(err.Error())
 	}
 }

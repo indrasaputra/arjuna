@@ -105,6 +105,16 @@ func TestUser_Insert(t *testing.T) {
 		assert.Error(t, err)
 	})
 
+	t.Run("user already exists", func(t *testing.T) {
+		exec := createUserExecutor(ctrl)
+		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(jwt, nil)
+		exec.client.EXPECT().CreateUser(testCtx, jwt.AccessToken, exec.config.Realm, gomock.Any()).Return(kcsdk.ErrConflict)
+
+		err := exec.user.Insert(testCtx, user)
+
+		assert.Error(t, err)
+	})
+
 	t.Run("create user returns error", func(t *testing.T) {
 		exec := createUserExecutor(ctrl)
 		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(jwt, nil)

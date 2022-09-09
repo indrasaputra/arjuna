@@ -42,7 +42,7 @@ service UserCommandService {
   // This endpoint registers a new user.
   rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {
     option (google.api.http) = {
-      post : "/v1/register",
+      post : "/v1/users/register",
       body : "user"
     };
 
