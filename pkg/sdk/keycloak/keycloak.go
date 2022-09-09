@@ -4,9 +4,17 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
+)
+
+var (
+	// ErrConflict indicates error from HTTP status 409.
+	ErrConflict = errors.New("request conflict")
+	// ErrUnknown indicates undefined error. It returns HTTP status 500.
+	ErrUnknown = errors.New("unknown error")
 )
 
 // Doer is an interface to be used as HTTP call.
@@ -145,7 +153,16 @@ func (c *Client) doRequestWithJSON(ctx context.Context, token, method, url strin
 	defer func() { _ = res.Body.Close() }()
 
 	if res.StatusCode != http.StatusCreated {
-		return fmt.Errorf("got HTTP status code: %d", res.StatusCode)
+		return decideError(res.StatusCode)
 	}
 	return nil
+}
+
+func decideError(code int) error {
+	switch code {
+	case http.StatusConflict:
+		return ErrConflict
+	default:
+		return ErrUnknown
+	}
 }

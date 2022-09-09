@@ -77,7 +77,7 @@ func RegisterUserCommandServiceHandlerServer(ctx context.Context, mux *runtime.S
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.v1.UserCommandService/RegisterUser", runtime.WithHTTPPathPattern("/v1/register"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.v1.UserCommandService/RegisterUser", runtime.WithHTTPPathPattern("/v1/users/register"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -139,7 +139,7 @@ func RegisterUserCommandServiceHandlerClient(ctx context.Context, mux *runtime.S
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/api.v1.UserCommandService/RegisterUser", runtime.WithHTTPPathPattern("/v1/register"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/api.v1.UserCommandService/RegisterUser", runtime.WithHTTPPathPattern("/v1/users/register"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -159,7 +159,7 @@ func RegisterUserCommandServiceHandlerClient(ctx context.Context, mux *runtime.S
 }
 
 var (
-	pattern_UserCommandService_RegisterUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "register"}, ""))
+	pattern_UserCommandService_RegisterUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "users", "register"}, ""))
 )
 
 var (

@@ -18,7 +18,7 @@
       "description": "This service provides basic command or state-changing use cases to work with user.A user is represented by an email as its unique identifier."
     }
   ],
-  "host": "localhost:6001",
+  "host": "localhost:8000",
   "schemes": [
     "http"
   ],
@@ -29,7 +29,7 @@
     "application/json"
   ],
   "paths": {
-    "/v1/register": {
+    "/v1/users/register": {
       "post": {
         "summary": "Register a new user.",
         "description": "This endpoint registers a new user.",

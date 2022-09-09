@@ -173,6 +173,16 @@ func TestClient_CreateUser(t *testing.T) {
 		assert.Error(t, err)
 	})
 
+	t.Run("keycloak with 409 status code", func(t *testing.T) {
+		exec := createClientExecutor(ctrl)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusConflict, Body: body}, nil)
+
+		err := exec.client.CreateUser(testCtx, token, realm, user)
+
+		assert.Error(t, err)
+		assert.Equal(t, keycloak.ErrConflict, err)
+	})
+
 	t.Run("keycloak doesn't respond with 201 status code", func(t *testing.T) {
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusInternalServerError, Body: body}, nil)
@@ -180,6 +190,7 @@ func TestClient_CreateUser(t *testing.T) {
 		err := exec.client.CreateUser(testCtx, token, realm, user)
 
 		assert.Error(t, err)
+		assert.Equal(t, keycloak.ErrUnknown, err)
 	})
 
 	t.Run("successfully create a new user", func(t *testing.T) {
