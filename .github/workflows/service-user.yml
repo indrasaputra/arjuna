@@ -1,0 +1,44 @@
+name: User service - CI
+
+on:
+  push:
+    paths:
+      - '.github/workflows/reusable-go-ci.yml'
+      - '.github/workflows/service-user.yml'
+      - 'pkg/**'
+      - 'openapiv2/**'
+      - 'proto/**'
+      - 'tool/**'
+      - 'gateway/**'
+      - 'service/user/**'
+  pull_request:
+    paths:
+      - '.github/workflows/reusable-go-ci.yml'
+      - '.github/workflows/service-user.yml'
+      - 'pkg/**'
+      - 'openapiv2/**'
+      - 'proto/**'
+      - 'tool/**'
+      - 'gateway/**'
+      - 'service/user/**'
+
+jobs:
+  general-quality-check:
+    name: General Quality Check
+    uses: indrasaputra/arjuna/.github/workflows/reusable-general-ci.yml@cicd-pipeline
+
+  go-code-quality:
+    name: Code Quality
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-ci.yml@cicd-pipeline
+    with:
+      filters: |
+        changed:
+          - '.github/workflows/reusable-go-ci.yml'
+          - '.github/workflows/service-user.yml'
+          - 'pkg/**'
+          - 'openapiv2/**'
+          - 'proto/**'
+          - 'tool/**'
+          - 'gateway/**'
+          - 'service/user/**'
+      target: service/user
