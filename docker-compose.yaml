@@ -46,6 +46,13 @@ services:
     networks:
       - arjuna
 
+  elements:
+    image: indrasaputra/arjuna-elements:latest
+    ports:
+      - 4000:80
+    networks:
+      - arjuna
+
 volumes:
   storage:
 

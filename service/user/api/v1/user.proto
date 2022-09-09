@@ -23,7 +23,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
       url : "https://github.com/indrasaputra/arjuna/blob/main/LICENSE",
     },
   },
-  host : "localhost:6001",
+  host : "localhost:8000",
   schemes : HTTP,
   consumes : "application/json",
   produces : "application/json",

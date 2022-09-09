@@ -39,6 +39,11 @@ gen.mock: ## Generate mock from all golang interfaces.
 gen.req: ## Generate requirement document.
 	tool/script/requirement.sh $(name)
 
+##@ Build
+.PHONY: build.elements
+build.elements: ## Build docker elements.
+	docker build --no-cache -t indrasaputra/arjuna-elements:latest -f dockerfile/elements.dockerfile .
+
 ##@ Test
 .PHONY: test.unit
 test.unit: ## Run unit test.
