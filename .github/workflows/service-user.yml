@@ -25,9 +25,9 @@ on:
       - 'service/user/**'
 
 jobs:
-  # general-quality-check:
-  #   name: General quality check
-  #   uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@cicd-pipeline
+  general-quality-check:
+    name: General quality check
+    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@cicd-pipeline
 
   go-code-quality:
     name: Go code quality check
@@ -48,8 +48,7 @@ jobs:
 
   build-push-docker:
     name: Build and push docker
-    needs: [go-code-quality]
-    # needs: [general-quality-check, go-code-quality]
+    needs: [general-quality-check, go-code-quality]
     uses: indrasaputra/arjuna/.github/workflows/reusable-go-build-ci.yml@cicd-pipeline
     with:
       filters: |
