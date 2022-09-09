@@ -25,13 +25,32 @@ on:
       - 'service/user/**'
 
 jobs:
-  general-quality-check:
-    name: General quality check
-    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@cicd-pipeline
+  # general-quality-check:
+  #   name: General quality check
+  #   uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@cicd-pipeline
 
-  go-code-quality:
-    name: Go code quality check
-    uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@cicd-pipeline
+  # go-code-quality:
+  #   name: Go code quality check
+  #   uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@cicd-pipeline
+  #   with:
+  #     filters: |
+  #       changed:
+  #         - '.github/workflows/reusable-general-ci.yml'
+  #         - '.github/workflows/reusable-go-ci.yml'
+  #         - '.github/workflows/service-user.yml'
+  #         - 'pkg/**'
+  #         - 'openapiv2/**'
+  #         - 'proto/**'
+  #         - 'tool/**'
+  #         - 'gateway/**'
+  #         - 'service/user/**'
+  #     target: service/user
+
+  build-push-docker:
+    name: Build and push docker
+    # needs: [go-code-quality]
+    # needs: [general-quality-check, go-code-quality]
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-build-ci.yml@cicd-pipeline
     with:
       filters: |
         changed:
@@ -44,25 +63,9 @@ jobs:
           - 'tool/**'
           - 'gateway/**'
           - 'service/user/**'
-      target: service/user
+      service: user
+      dockerfile: ./service/user/dockerfile/user.dockerfile
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-  go-compile-binary:
-    name: Compile app binary
-    needs: [general-quality-check, go-code-quality]
-    uses: indrasaputra/arjuna/.github/workflows/reusable-go-compile-ci.yml@cicd-pipeline
-    with:
-      filters: |
-        changed:
-          - '.github/workflows/reusable-general-ci.yml'
-          - '.github/workflows/reusable-go-ci.yml'
-          - '.github/workflows/service-user.yml'
-          - 'pkg/**'
-          - 'openapiv2/**'
-          - 'proto/**'
-          - 'tool/**'
-          - 'gateway/**'
-          - 'service/user/**'
-      target: service/user
-      svc: user
-      need_go_binary: true
-      dockerfile: ./service/user/user.dockerfile
