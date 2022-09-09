@@ -48,6 +48,10 @@ compile: ## Compile golang code to binary.
 	(cd service/$(svc) && \
 	GO111MODULE=on CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o $(OUTPUT_DIR)/$(svc) cmd/server/main.go)
 
+.PHONY: build.user
+build.user: ## Build docker user service.
+	docker build --no-cache -t indrasaputra/arjuna/user:latest -f service/user/dockerfile/user.dockerfile .
+
 .PHONY: build.elements
 build.elements: ## Build docker elements.
 	docker build --no-cache -t indrasaputra/arjuna-elements:latest -f dockerfile/elements.dockerfile .

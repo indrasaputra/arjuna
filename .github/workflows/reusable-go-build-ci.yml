@@ -1,0 +1,99 @@
+on:
+  workflow_call:
+    inputs:
+      filters:
+        description: The paths to decide if the workflow steps should run.
+        required: true
+        type: string
+      target:
+        description: The target project to run the check against.
+        required: true
+        type: string
+      svc:
+        description: The name of service.
+        required: true
+        type: string
+      output_dir:
+        description: Output directory of compiled binary.
+        required: false
+        type: string
+        default: deploy/output
+      need_go_binary:
+        description: Decide if job needs Go binary
+        required: false
+        type: boolean
+        default: false
+      dockerfile:
+        description: Path to dockerfile
+        required: true
+        type: string
+      platforms:
+        description: Platforms to build the target project
+        required: false
+        type: string
+        default: "linux/amd64, linux/arm64, linux/arm/v7"
+
+jobs:
+  compile-binary:
+    name: Compile go binary
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.17.x
+      - name: Clone repository
+        uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: go-module-${{ github.repository }}-${{ inputs.target }}-${{ github.sha }}
+          restore-keys: |
+            go-module-${{ github.repository }}-${{ inputs.target }}-${{ github.sha }}
+      - name: Compile go binary
+        run: |
+          make compile svc=${{ inputs.svc }}
+      - name: Upload go binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: go-binary-${{ inputs.target }}-${{ github.sha }}
+          path: ${{ inputs.target }}/${{ inputs.output_dir }}/${{ inputs.svc }}
+          retention-days: 1
+
+  build-push-docker:
+    name: Build & push ${{ inputs.svc }} image
+    needs: [compile-binary]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+      - name: Download go binary
+        if: ${{ inputs.need-go-binary }}
+        uses: actions/download-artifact@v2
+        with:
+          name: go-binary-${{ inputs.target }}-${{ github.sha }}
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: all
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      - name: Build and push ${{ inputs.image }}
+        uses: docker/build-push-action@v2
+        with:
+          context: ./
+          file: ${{ inputs.dockerfile }}
+          platforms: ${{ inputs.platforms }}
+          push: true
+          tags: |
+            docker.io/${{ github.repository }}/${{ inputs.image }}:${{ github.sha }}
+            docker.io/${{ github.repository }}/${{ inputs.image }}:latest

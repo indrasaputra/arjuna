@@ -64,3 +64,5 @@ jobs:
           - 'service/user/**'
       target: service/user
       svc: user
+      need_go_binary: true
+      dockerfile: ./service/user/user.dockerfile
