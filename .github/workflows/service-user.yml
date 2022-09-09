@@ -1,0 +1,72 @@
+name: User service - CI
+
+on:
+  push:
+    paths:
+      - '.github/workflows/reusable-general-ci.yml'
+      - '.github/workflows/reusable-go-ci.yml'
+      - '.github/workflows/service-user.yml'
+      - 'pkg/**'
+      - 'openapiv2/**'
+      - 'proto/**'
+      - 'tool/**'
+      - 'gateway/**'
+      - 'service/user/**'
+  pull_request:
+    paths:
+      - '.github/workflows/reusable-general-ci.yml'
+      - '.github/workflows/reusable-go-ci.yml'
+      - '.github/workflows/service-user.yml'
+      - 'pkg/**'
+      - 'openapiv2/**'
+      - 'proto/**'
+      - 'tool/**'
+      - 'gateway/**'
+      - 'service/user/**'
+
+jobs:
+  general-quality-check:
+    name: General quality check
+    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@cicd-pipeline
+
+  go-code-quality:
+    name: Go code quality check
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@cicd-pipeline
+    with:
+      filters: |
+        changed:
+          - '.github/workflows/reusable-general-ci.yml'
+          - '.github/workflows/reusable-go-ci.yml'
+          - '.github/workflows/service-user.yml'
+          - 'pkg/**'
+          - 'openapiv2/**'
+          - 'proto/**'
+          - 'tool/**'
+          - 'gateway/**'
+          - 'service/user/**'
+      target: service/user
+
+  build-push-docker:
+    name: Build and push docker
+    needs: [general-quality-check, go-code-quality]
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-build-ci.yml@cicd-pipeline
+    with:
+      filters: |
+        changed:
+          - '.github/workflows/reusable-general-ci.yml'
+          - '.github/workflows/reusable-go-ci.yml'
+          - '.github/workflows/service-user.yml'
+          - 'pkg/**'
+          - 'openapiv2/**'
+          - 'proto/**'
+          - 'tool/**'
+          - 'gateway/**'
+          - 'service/user/**'
+      target: service/user
+      service: user
+      dockerfile: ./service/user/dockerfile/user.dockerfile
+      need_go_binary: true
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+

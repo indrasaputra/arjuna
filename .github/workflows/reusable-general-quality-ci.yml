@@ -1,0 +1,31 @@
+on:
+  workflow_call:
+
+jobs:
+  pr-title-check:
+    name: Check PR title
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      # Refer to https://www.conventionalcommits.org/en/v1.0.0/ for commit message convention.
+      - uses: amannn/action-semantic-pull-request@v4.3.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  proto-lint:
+    name: Lint all proto files
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+      - name: Format proto files using clang-format
+        uses: DoozyX/clang-format-lint-action@v0.11
+        with:
+          source: '.'
+          extensions: 'proto'
+          clangFormatVersion: 11
+      - name: Lint proto files
+        uses: plexsystems/protolint-action@v0.2.0
+        with:
+          configDirectory: .

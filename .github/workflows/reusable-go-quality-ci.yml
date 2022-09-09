@@ -1,0 +1,109 @@
+on:
+  workflow_call:
+    inputs:
+      filters:
+        description: The paths to decide if the workflow steps should run.
+        required: true
+        type: string
+      target:
+        description: The target project to run the check against.
+        required: true
+        type: string
+
+jobs:
+  download-module:
+    name: Download go module
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.target }}
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.17.x
+      - name: Clone repository
+        uses: actions/checkout@v2
+      - name: Download module
+        run: go mod download
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: go-module-${{ github.repository }}-${{ inputs.target }}-${{ github.sha }}
+          restore-keys: |
+            go-module-${{ github.repository }}-${{ inputs.target }}-${{ github.sha }}
+
+  import-lint:
+    name: Lint import block
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    container:
+      image: indrasaputra/protogen:2021-09-07
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+      - name: Check import blocks
+        run: |
+          make format
+          make check.import
+
+  security-check:
+    name: Semgrep scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+      - name: Scan using Semgrep  
+        uses: returntocorp/semgrep-action@v1
+        with:
+          publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+  go-code-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+      - name: Filter paths
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          initial-fetch-depth: 10
+          filters: ${{ inputs.filters }}
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.17.x
+      - name: Lint using golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.42.1
+          args: --config=${GITHUB_WORKSPACE}/.golangci.yml
+          working-directory: ${{ inputs.target }}
+
+  unit-test-coverage:
+    name: Unit test and coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.17.x
+      - name: Clone repository
+        uses: actions/checkout@v2
+      # TODO: use proper cache based on service
+      # TODO: move this after lint
+      - name: Cache vendor
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Run unit test and coverage
+        run: make test.cover
+      - name: Push coverage result to Codecov
+        uses: codecov/codecov-action@v1.0.13
