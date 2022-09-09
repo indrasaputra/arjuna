@@ -1,0 +1,50 @@
+on:
+  workflow_call:
+    inputs:
+      filters:
+        description: The paths to decide if the workflow steps should run.
+        required: true
+        type: string
+      target:
+        description: The target project to run the check against.
+        required: true
+        type: string
+      svc:
+        description: The name of service.
+        required: true
+        type: string
+      output_dir:
+        description: Output directory of compiled binary.
+        required: false
+        type: string
+        default: deploy/output
+
+jobs:
+  compile-binary:
+    name: Compile go binary
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.17.x
+      - name: Clone repository
+        uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: go-module-${{ github.repository }}-${{ inputs.target }}-${{ github.sha }}
+          restore-keys: |
+            go-module-${{ github.repository }}-${{ inputs.target }}-${{ github.sha }}
+      - name: Compile go binary
+        run: |
+          make compile svc=${{ inputs.svc }}
+      - name: Upload go binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: go-binary-${{ inputs.target }}-${{ github.sha }}
+          path: ${{ inputs.target }}/${{ inputs.output_dir }}/${{ inputs.svc }}
+          retention-days: 1

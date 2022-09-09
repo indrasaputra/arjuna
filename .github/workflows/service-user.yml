@@ -26,12 +26,12 @@ on:
 
 jobs:
   general-quality-check:
-    name: General Quality Check
-    uses: indrasaputra/arjuna/.github/workflows/reusable-general-ci.yml@cicd-pipeline
+    name: General quality check
+    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@cicd-pipeline
 
   go-code-quality:
-    name: Go Code Quality Check
-    uses: indrasaputra/arjuna/.github/workflows/reusable-go-ci.yml@cicd-pipeline
+    name: Go code quality check
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@cicd-pipeline
     with:
       filters: |
         changed:
@@ -45,3 +45,22 @@ jobs:
           - 'gateway/**'
           - 'service/user/**'
       target: service/user
+
+  go-compile-binary:
+    name: Compile app binary
+    needs: [general-quality-check, go-code-quality]
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-compile-ci.yml@cicd-pipeline
+    with:
+      filters: |
+        changed:
+          - '.github/workflows/reusable-general-ci.yml'
+          - '.github/workflows/reusable-go-ci.yml'
+          - '.github/workflows/service-user.yml'
+          - 'pkg/**'
+          - 'openapiv2/**'
+          - 'proto/**'
+          - 'tool/**'
+          - 'gateway/**'
+          - 'service/user/**'
+      target: service/user
+      svc: user
