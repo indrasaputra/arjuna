@@ -50,7 +50,7 @@ compile: ## Compile golang code to binary.
 
 .PHONY: build.user
 build.user: ## Build docker user service.
-	docker build --no-cache -t indrasaputra/arjuna/user:latest -f service/user/dockerfile/user.dockerfile .
+	docker build --no-cache -t indrasaputra/arjuna-user:latest -f service/user/dockerfile/user.dockerfile .
 
 .PHONY: build.elements
 build.elements: ## Build docker elements.
