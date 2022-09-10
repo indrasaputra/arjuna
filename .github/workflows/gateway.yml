@@ -1,28 +1,26 @@
-name: User service - CI
+name: gRPC Gateway - CI
 
 on:
   push:
     paths:
       - '.github/workflows/reusable-general-ci.yml'
       - '.github/workflows/reusable-go-ci.yml'
-      - '.github/workflows/service-user.yml'
+      - '.github/workflows/gateway.yml'
       - 'pkg/**'
       - 'openapiv2/**'
       - 'proto/**'
       - 'tool/**'
       - 'gateway/**'
-      - 'service/user/**'
   pull_request:
     paths:
       - '.github/workflows/reusable-general-ci.yml'
       - '.github/workflows/reusable-go-ci.yml'
-      - '.github/workflows/service-user.yml'
+      - '.github/workflows/gateway.yml'
       - 'pkg/**'
       - 'openapiv2/**'
       - 'proto/**'
       - 'tool/**'
       - 'gateway/**'
-      - 'service/user/**'
 
 jobs:
   general-quality-check:
@@ -37,14 +35,13 @@ jobs:
         changed:
           - '.github/workflows/reusable-general-ci.yml'
           - '.github/workflows/reusable-go-ci.yml'
-          - '.github/workflows/service-user.yml'
+          - '.github/workflows/gateway.yml'
           - 'pkg/**'
           - 'openapiv2/**'
           - 'proto/**'
           - 'tool/**'
           - 'gateway/**'
-          - 'service/user/**'
-      target: service/user
+      target: gateway
 
   build-push-docker:
     name: Build and push docker
@@ -55,16 +52,15 @@ jobs:
         changed:
           - '.github/workflows/reusable-general-ci.yml'
           - '.github/workflows/reusable-go-ci.yml'
-          - '.github/workflows/service-user.yml'
+          - '.github/workflows/gateway.yml'
           - 'pkg/**'
           - 'openapiv2/**'
           - 'proto/**'
           - 'tool/**'
           - 'gateway/**'
-          - 'service/user/**'
-      target: service/user
-      service: user
-      dockerfile: ./service/user/dockerfile/user.dockerfile
+      target: gateway
+      service: gateway
+      dockerfile: ./gateway/dockerfile/gateway.dockerfile
       need_go_binary: true
     secrets:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
