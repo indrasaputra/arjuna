@@ -100,9 +100,9 @@ jobs:
           path: |
             ~/.cache/go-build
             ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          key: go-module-${{ github.repository }}-${{ inputs.target }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-go-
+            go-module-${{ github.repository }}-${{ inputs.target }}-${{ github.sha }}
       - name: Run unit test and coverage
         run: make test.cover
       - name: Push coverage result to Codecov

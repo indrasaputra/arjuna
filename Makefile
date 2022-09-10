@@ -43,18 +43,12 @@ gen.req: ## Generate requirement document.
 
 ##@ Build
 .PHONY: compile
-compile: ## Compile golang code to binary.
-	mkdir -p $(OUTPUT_DIR)
-	(cd service/$(svc) && \
-	GO111MODULE=on CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o $(OUTPUT_DIR)/$(svc) cmd/server/main.go)
+compile: ## Compile service.
+	tool/script/compile.sh $(svc)
 
-.PHONY: build.user
-build.user: ## Build docker user service.
-	docker build --no-cache -t indrasaputra/arjuna-user:latest -f service/user/dockerfile/user.dockerfile .
-
-.PHONY: build.elements
-build.elements: ## Build docker elements.
-	docker build --no-cache -t indrasaputra/arjuna-elements:latest -f dockerfile/elements.dockerfile .
+.PHONY: build
+build: ## Build docker for service.
+	tool/script/docker-build.sh $(svc)
 
 ##@ Test
 .PHONY: test.unit

@@ -20,13 +20,14 @@ services:
     environment:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_HEALTH_ENABLED=true
+      - KC_METRICS_ENABLED=true
     ports:
       - 8080:8080
     command: start-dev
     networks:
       - arjuna
     
-
   sqlpad:
     image: sqlpad/sqlpad:6.10
     depends_on:
@@ -47,15 +48,24 @@ services:
     networks:
       - arjuna
 
-  elements:
-    image: indrasaputra/arjuna-elements:latest
+  blueprint:
+    image: indrasaputra/arjuna-blueprint:latest
     ports:
       - 4000:80
     networks:
       - arjuna
 
+  gateway:
+    image: indrasaputra/arjuna-gateway:latest
+    depends_on:
+      - postgres
+    ports:
+      - 8000:8000
+    networks:
+      - arjuna
+
   user:
-    image: indrasaputra/arjuna/user:latest
+    image: indrasaputra/arjuna-user:latest
     depends_on:
       - postgres
       - keycloak
