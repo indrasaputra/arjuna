@@ -83,7 +83,7 @@ jobs:
           images: |
             docker.io/${{ github.repository }}-${{ inputs.service }}
           tags: |
-            type=sha,format=long
+            type=raw,value=${{ github.sha }}
             type=raw,value=latest,enable={{is_default_branch}}
       - name: Download go binary
         if: ${{ inputs.need_go_binary }}
