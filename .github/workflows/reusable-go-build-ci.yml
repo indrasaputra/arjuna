@@ -46,12 +46,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ^1.17.x
       - name: Clone repository
-        uses: actions/checkout@v2
-      - uses: actions/cache@v2
+        uses: actions/checkout@v3
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
@@ -63,7 +63,7 @@ jobs:
         run: |
           make compile svc=${{ inputs.service }}
       - name: Upload go binary
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: go-binary-${{ inputs.service }}-${{ github.sha }}
           path: ${{ inputs.target }}/${{ inputs.output_dir }}
@@ -75,32 +75,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+      - name: Docker metadata
+        id: docker-metadata
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            docker.io/${{ github.repository }}-${{ inputs.service }}
+          tags: |
+            type=raw,value=${{ github.sha }}
+            type=raw,value=latest,enable={{is_default_branch}}
       - name: Download go binary
         if: ${{ inputs.need_go_binary }}
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: go-binary-${{ inputs.service }}-${{ github.sha }}
           path: ${{ inputs.target }}/${{ inputs.output_dir }}
       - name: Setup QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
         with:
           image: tonistiigi/binfmt:latest
           platforms: all
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
       - name: Build and push ${{ inputs.service }}
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: ./
           file: ${{ inputs.dockerfile }}
           platforms: ${{ inputs.platforms }}
           push: true
-          tags: |
-            docker.io/${{ github.repository }}-${{ inputs.service }}:${{ github.sha }}
-            docker.io/${{ github.repository }}-${{ inputs.service }}:latest
+          tags: ${{ steps.docker-metadata.outputs.tags }}
