@@ -3,7 +3,7 @@ ARG SERVICE=gateway
 ARG OUTPUT_DIR=deploy/output
 WORKDIR /app
 COPY . .
-RUN if [ ! -f {SERVICE}/${OUTPUT_DIR}/${SERVICE} ] ; then make compile svc=gateway ; fi
+RUN if [ ! -f ${SERVICE}/${OUTPUT_DIR}/${SERVICE} ] ; then make compile svc=gateway ; fi
 
 FROM alpine:3.13
 ARG SERVICE=gateway
