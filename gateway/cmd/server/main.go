@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -20,6 +21,7 @@ func main() {
 	gatewayServer := server.NewGrpcGateway(cfg.Port)
 	registerGrpcGatewayService(context.Background(), gatewayServer, cfg, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
+	log.Println("running grpc gateway server...")
 	_ = gatewayServer.Serve()
 }
 
