@@ -15,7 +15,7 @@ var (
 	ErrConflict = errors.New("request conflict")
 	// ErrUnknown indicates undefined error. It returns HTTP status 500.
 	ErrUnknown = errors.New("unknown error")
-	// ErrUserNotFound indicates user not found.
+	// ErrUserNotFound indicates no user was found.
 	ErrUserNotFound = errors.New("user not found")
 )
 
@@ -129,21 +129,21 @@ func (c *Client) LoginAdmin(ctx context.Context, username, password string) (*JW
 func (c *Client) CreateRealm(ctx context.Context, token string, realm *RealmRepresentation) error {
 	url := fmt.Sprintf("%s/admin/realms", c.baseURL)
 	payload, _ := json.Marshal(realm)
-	return c.doRequestWithJSON(ctx, token, http.MethodPost, url, payload)
+	return c.doRequestWithJSON(ctx, token, http.MethodPost, url, payload, http.StatusCreated)
 }
 
 // CreateClient creates a new client in Keycloak.
 func (c *Client) CreateClient(ctx context.Context, token string, realm string, client *ClientRepresentation) error {
 	url := fmt.Sprintf("%s/admin/realms/%s/clients", c.baseURL, realm)
 	payload, _ := json.Marshal(client)
-	return c.doRequestWithJSON(ctx, token, http.MethodPost, url, payload)
+	return c.doRequestWithJSON(ctx, token, http.MethodPost, url, payload, http.StatusCreated)
 }
 
 // CreateUser creates a new user in Keycloak.
 func (c *Client) CreateUser(ctx context.Context, token string, realm string, user *UserRepresentation) error {
 	url := fmt.Sprintf("%s/admin/realms/%s/users", c.baseURL, realm)
 	payload, _ := json.Marshal(user)
-	return c.doRequestWithJSON(ctx, token, http.MethodPost, url, payload)
+	return c.doRequestWithJSON(ctx, token, http.MethodPost, url, payload, http.StatusCreated)
 }
 
 // GetUserByEmail gets a user by email.
@@ -159,6 +159,37 @@ func (c *Client) GetUserByEmail(ctx context.Context, token string, realm string,
 	return users[0], nil
 }
 
+// DeleteUser deletes a user in Keycloak.
+func (c *Client) DeleteUser(ctx context.Context, token string, realm string, email string) error {
+	url := fmt.Sprintf("%s/admin/realms/%s/users?email=%s", c.baseURL, realm, email)
+	users, err := c.doGetUsers(ctx, token, http.MethodPost, url)
+	if err != nil {
+		return err
+	}
+	if len(users) == 0 {
+		return ErrUserNotFound
+	}
+	url = fmt.Sprintf("%s/admin/realms/%s/users/%s", c.baseURL, realm, users[0].ID)
+	return c.doRequestWithJSON(ctx, token, http.MethodDelete, url, nil, http.StatusNoContent)
+}
+
+func (c *Client) doRequestWithJSON(ctx context.Context, token, method, url string, payload []byte, expectedCode int) error {
+	req, _ := http.NewRequestWithContext(ctx, method, url, bytes.NewBuffer(payload))
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := c.doer.Do(req)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = res.Body.Close() }()
+
+	if res.StatusCode != expectedCode {
+		return decideError(res.StatusCode)
+	}
+	return nil
+}
+
 func (c *Client) doGetUsers(ctx context.Context, token, method, url string) ([]*UserRepresentation, error) {
 	req, _ := http.NewRequestWithContext(ctx, method, url, nil)
 	req.Header.Add("Authorization", "Bearer "+token)
@@ -172,23 +203,6 @@ func (c *Client) doGetUsers(ctx context.Context, token, method, url string) ([]*
 	var users []*UserRepresentation
 	_ = json.NewDecoder(res.Body).Decode(&users)
 	return users, nil
-}
-
-func (c *Client) doRequestWithJSON(ctx context.Context, token, method, url string, payload []byte) error {
-	req, _ := http.NewRequestWithContext(ctx, method, url, bytes.NewBuffer(payload))
-	req.Header.Add("Authorization", "Bearer "+token)
-	req.Header.Add("Content-Type", "application/json")
-
-	res, err := c.doer.Do(req)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = res.Body.Close() }()
-
-	if res.StatusCode != http.StatusCreated {
-		return decideError(res.StatusCode)
-	}
-	return nil
 }
 
 func decideError(code int) error {
