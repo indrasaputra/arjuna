@@ -63,6 +63,39 @@
           "User"
         ]
       }
+    },
+    "/v1/users/{id}": {
+      "delete": {
+        "summary": "Delete a user.",
+        "description": "This endpoint deletes a new user.\nIt is expected to be hidden or internal use only.",
+        "operationId": "DeleteUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DeleteUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "id represents user's id.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "User"
+        ]
+      }
     }
   },
   "definitions": {
@@ -92,6 +125,10 @@
           }
         }
       }
+    },
+    "v1DeleteUserResponse": {
+      "type": "object",
+      "description": "DeleteUserResponse represents response from delete user."
     },
     "v1RegisterUserResponse": {
       "type": "object",

@@ -51,6 +51,21 @@ service UserCommandService {
       tags : "User"
     };
   };
+
+  // Delete a user.
+  //
+  // This endpoint deletes a new user.
+  // It is expected to be hidden or internal use only.
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {
+    option (google.api.http) = {
+      delete : "/v1/users/{id}"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id : "DeleteUser",
+      tags : "User"
+    };
+  };
 }
 
 // RegisterUserRequest represents request for register user.
@@ -63,6 +78,16 @@ message RegisterUserRequest {
 message RegisterUserResponse {
   // data represents user.
   User data = 1;
+}
+
+// DeleteUserRequest represents request for delete user.
+message DeleteUserRequest {
+  // id represents user's id.
+  string id = 1;
+}
+
+// DeleteUserResponse represents response from delete user.
+message DeleteUserResponse {
 }
 
 // User represents a user data.

@@ -3,6 +3,17 @@
 
 """
 directive @UserCommandService on FIELD_DEFINITION
+"""
+ DeleteUserRequest represents request for delete user.
+
+"""
+input DeleteUserRequestInput {
+	"""
+	 id represents user's id.
+	
+	"""
+	id: String
+}
 type Mutation {
 	"""
 	 Register a new user.
@@ -11,6 +22,14 @@ type Mutation {
 	
 	"""
 	userCommandServiceRegisterUser(in: RegisterUserRequestInput): RegisterUserResponse
+	"""
+	 Delete a user.
+	
+	 This endpoint deletes a new user.
+	 It is expected to be hidden or internal use only.
+	
+	"""
+	userCommandServiceDeleteUser(in: DeleteUserRequestInput): Boolean
 }
 type Query {
 	dummy: Boolean

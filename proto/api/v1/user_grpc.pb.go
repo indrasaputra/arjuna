@@ -23,6 +23,11 @@ type UserCommandServiceClient interface {
 	//
 	// This endpoint registers a new user.
 	RegisterUser(ctx context.Context, in *RegisterUserRequest, opts ...grpc.CallOption) (*RegisterUserResponse, error)
+	// Delete a user.
+	//
+	// This endpoint deletes a new user.
+	// It is expected to be hidden or internal use only.
+	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
 }
 
 type userCommandServiceClient struct {
@@ -42,6 +47,15 @@ func (c *userCommandServiceClient) RegisterUser(ctx context.Context, in *Registe
 	return out, nil
 }
 
+func (c *userCommandServiceClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
+	out := new(DeleteUserResponse)
+	err := c.cc.Invoke(ctx, "/api.v1.UserCommandService/DeleteUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserCommandServiceServer is the server API for UserCommandService service.
 // All implementations must embed UnimplementedUserCommandServiceServer
 // for forward compatibility
@@ -50,6 +64,11 @@ type UserCommandServiceServer interface {
 	//
 	// This endpoint registers a new user.
 	RegisterUser(context.Context, *RegisterUserRequest) (*RegisterUserResponse, error)
+	// Delete a user.
+	//
+	// This endpoint deletes a new user.
+	// It is expected to be hidden or internal use only.
+	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	mustEmbedUnimplementedUserCommandServiceServer()
 }
 
@@ -59,6 +78,9 @@ type UnimplementedUserCommandServiceServer struct {
 
 func (UnimplementedUserCommandServiceServer) RegisterUser(context.Context, *RegisterUserRequest) (*RegisterUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterUser not implemented")
+}
+func (UnimplementedUserCommandServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
 }
 func (UnimplementedUserCommandServiceServer) mustEmbedUnimplementedUserCommandServiceServer() {}
 
@@ -91,6 +113,24 @@ func _UserCommandService_RegisterUser_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserCommandService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserCommandServiceServer).DeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.v1.UserCommandService/DeleteUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserCommandServiceServer).DeleteUser(ctx, req.(*DeleteUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserCommandService_ServiceDesc is the grpc.ServiceDesc for UserCommandService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -101,6 +141,10 @@ var UserCommandService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RegisterUser",
 			Handler:    _UserCommandService_RegisterUser_Handler,
+		},
+		{
+			MethodName: "DeleteUser",
+			Handler:    _UserCommandService_DeleteUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
