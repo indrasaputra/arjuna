@@ -56,19 +56,19 @@ func NewUser(config *Config) (*User, error) {
 	return &User{config: config}, nil
 }
 
-// Insert inserts a new user to Keycloak.
-func (u *User) Insert(ctx context.Context, user *entity.User) error {
+// Create creates a new user to Keycloak.
+func (u *User) Create(ctx context.Context, user *entity.User) (string, error) {
 	jwt, err := u.config.Client.LoginAdmin(ctx, u.config.AdminUsername, u.config.AdminPassword)
 	if err != nil {
-		return entity.ErrInternal(err.Error())
+		return "", entity.ErrInternal(err.Error())
 	}
 
 	userRep := createUserRepresentation(user)
 	err = u.config.Client.CreateUser(ctx, jwt.AccessToken, u.config.Realm, userRep)
 	if err != nil {
-		return decideError(err)
+		return "", decideError(err)
 	}
-	return nil
+	return "", nil
 }
 
 func getFirstAndLastName(name string) (string, string) {

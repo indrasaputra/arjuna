@@ -9,6 +9,7 @@ import (
 
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository"
+	mock_repository "github.com/indrasaputra/arjuna/service/user/test/mock/repository"
 	mock_service "github.com/indrasaputra/arjuna/service/user/test/mock/service"
 )
 
@@ -18,7 +19,7 @@ var (
 
 type UserRegistratorExecutor struct {
 	registrator *repository.UserRegistrator
-	keycloak    *mock_service.MockRegisterUserRepository
+	keycloak    *mock_repository.MockCreateUserKeycloak
 	postgres    *mock_service.MockRegisterUserRepository
 }
 
@@ -49,7 +50,7 @@ func TestUserRegistrator_Insert(t *testing.T) {
 
 	t.Run("keycloak returns error", func(t *testing.T) {
 		exec := createUserRegistratorExecutor(ctrl)
-		exec.keycloak.EXPECT().Insert(testCtx, user).Return(entity.ErrInternal("error"))
+		exec.keycloak.EXPECT().Create(testCtx, user).Return("", entity.ErrInternal("error"))
 
 		err := exec.registrator.Insert(testCtx, user)
 
@@ -58,7 +59,7 @@ func TestUserRegistrator_Insert(t *testing.T) {
 
 	t.Run("postgres returns error", func(t *testing.T) {
 		exec := createUserRegistratorExecutor(ctrl)
-		exec.keycloak.EXPECT().Insert(testCtx, user).Return(nil)
+		exec.keycloak.EXPECT().Create(testCtx, user).Return("", nil)
 		exec.postgres.EXPECT().Insert(testCtx, user).Return(entity.ErrInternal("error"))
 
 		err := exec.registrator.Insert(testCtx, user)
@@ -68,7 +69,7 @@ func TestUserRegistrator_Insert(t *testing.T) {
 
 	t.Run("success insert user", func(t *testing.T) {
 		exec := createUserRegistratorExecutor(ctrl)
-		exec.keycloak.EXPECT().Insert(testCtx, user).Return(nil)
+		exec.keycloak.EXPECT().Create(testCtx, user).Return("", nil)
 		exec.postgres.EXPECT().Insert(testCtx, user).Return(nil)
 
 		err := exec.registrator.Insert(testCtx, user)
@@ -78,7 +79,7 @@ func TestUserRegistrator_Insert(t *testing.T) {
 }
 
 func createUserRegistratorExecutor(ctrl *gomock.Controller) *UserRegistratorExecutor {
-	k := mock_service.NewMockRegisterUserRepository(ctrl)
+	k := mock_repository.NewMockCreateUserKeycloak(ctrl)
 	p := mock_service.NewMockRegisterUserRepository(ctrl)
 	reg := repository.NewUserRegistrator(k, p)
 	return &UserRegistratorExecutor{

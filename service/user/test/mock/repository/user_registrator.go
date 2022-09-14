@@ -3,3 +3,49 @@
 
 // Package mock_repository is a generated GoMock package.
 package mock_repository
+
+import (
+	context "context"
+	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
+	entity "github.com/indrasaputra/arjuna/service/user/entity"
+)
+
+// MockCreateUserKeycloak is a mock of CreateUserKeycloak interface.
+type MockCreateUserKeycloak struct {
+	ctrl     *gomock.Controller
+	recorder *MockCreateUserKeycloakMockRecorder
+}
+
+// MockCreateUserKeycloakMockRecorder is the mock recorder for MockCreateUserKeycloak.
+type MockCreateUserKeycloakMockRecorder struct {
+	mock *MockCreateUserKeycloak
+}
+
+// NewMockCreateUserKeycloak creates a new mock instance.
+func NewMockCreateUserKeycloak(ctrl *gomock.Controller) *MockCreateUserKeycloak {
+	mock := &MockCreateUserKeycloak{ctrl: ctrl}
+	mock.recorder = &MockCreateUserKeycloakMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockCreateUserKeycloak) EXPECT() *MockCreateUserKeycloakMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockCreateUserKeycloak) Create(ctx context.Context, user *entity.User) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, user)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockCreateUserKeycloakMockRecorder) Create(ctx, user interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockCreateUserKeycloak)(nil).Create), ctx, user)
+}

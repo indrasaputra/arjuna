@@ -40,6 +40,7 @@ type RegisterUser interface {
 type RegisterUserRepository interface {
 	// Insert inserts the user into the repository.
 	// It also validates if the user's email is unique.
+	// It returns the ID of the created user.
 	Insert(ctx context.Context, user *entity.User) error
 }
 
@@ -62,6 +63,9 @@ func (ur *UserRegistrator) Register(ctx context.Context, user *entity.User) (str
 		return "", err
 	}
 	sanitizeUser(user)
+
+	// username is mandatory for Keycloak, but not for business.
+	// hence, generating a random username is fine.
 	user.Username = generateUsername(usernameLength)
 
 	if err := setUserID(user); err != nil {
