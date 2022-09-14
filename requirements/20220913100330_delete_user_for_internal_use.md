@@ -1,15 +1,15 @@
 ## A user can be deleted
 
-### Given
+#### Given
 
-- System wants to delete user
-- System provide user's email
+- System wants to delete user.
+- System provide user's email.
 
-### When
+#### When
 
-- System deletes user
-- And it only applies for internal use
+- System deletes user.
+- And it only applies for internal use.
 
-### Then
+#### Then
 
-- A record of user is being hard-deleted
+- A record of user is being hard-deleted.

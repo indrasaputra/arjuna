@@ -1,53 +1,82 @@
-package handler
+package handler_test
 
-// import (
-// 	"context"
+import (
+	"testing"
 
-// 	"google.golang.org/protobuf/types/known/timestamppb"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 
-// 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
-// 	"github.com/indrasaputra/arjuna/service/user/entity"
-// 	"github.com/indrasaputra/arjuna/service/user/internal/service"
-// )
+	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
+	"github.com/indrasaputra/arjuna/service/user/entity"
+	"github.com/indrasaputra/arjuna/service/user/internal/grpc/handler"
+	mock_service "github.com/indrasaputra/arjuna/service/user/test/mock/service"
+)
 
-// // UserQuery handles HTTP/2 gRPC request for retrieving user.
-// type UserQuery struct {
-// 	apiv1.UnimplementedUserQueryServiceServer
-// 	getter service.GetUser
-// }
+const (
+	defaultLimit = uint(10)
+)
 
-// // NewUserQuery creates an instance of UserQuery.
-// func NewUserQuery(getter service.GetUser) *UserQuery {
-// 	return &UserQuery{getter: getter}
-// }
+var (
+	testUser = &entity.User{}
+)
 
-// // GetAllUsers handles HTTP/2 gRPC request similar to GET in HTTP/1.1.
-// func (uc *UserQuery) GetAllUsers(ctx context.Context, request *apiv1.GetAllUsersRequest) (*apiv1.GetAllUsersResponse, error) {
-// 	if request == nil {
-// 		return nil, entity.ErrEmptyUser()
-// 	}
+type UserQueryExecutor struct {
+	handler *handler.UserQuery
+	getter  *mock_service.MockGetUser
+}
 
-// 	users, err := uc.getter.GetAll(ctx, uint(request.GetLimit()))
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return createGetAllUsersResponse(users), nil
-// }
+func TestNewUserQuery(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-// func createGetAllUsersResponse(users []*entity.User) *apiv1.GetAllUsersResponse {
-// 	resp := &apiv1.GetAllUsersResponse{}
-// 	for _, user := range users {
-// 		resp.Data = append(resp.Data, createProtoUser(user))
-// 	}
-// 	return resp
-// }
+	t.Run("successful create an instance of UserQuery", func(t *testing.T) {
+		exec := createUserQueryExecutor(ctrl)
+		assert.NotNil(t, exec.handler)
+	})
+}
 
-// func createProtoUser(user *entity.User) *apiv1.User {
-// 	return &apiv1.User{
-// 		Id:        user.ID,
-// 		Email:     user.Email,
-// 		Name:      user.Name,
-// 		CreatedAt: timestamppb.New(user.CreatedAt),
-// 		UpdatedAt: timestamppb.New(user.UpdatedAt),
-// 	}
-// }
+func TestUserQuery_GetAllUsers(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	t.Run("nil request is prohibited", func(t *testing.T) {
+		exec := createUserQueryExecutor(ctrl)
+
+		res, err := exec.handler.GetAllUsers(testCtx, nil)
+
+		assert.Error(t, err)
+		assert.Equal(t, entity.ErrEmptyUser(), err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("user service returns error", func(t *testing.T) {
+		exec := createUserQueryExecutor(ctrl)
+		exec.getter.EXPECT().GetAll(testCtx, defaultLimit).Return([]*entity.User{}, entity.ErrInternal(""))
+
+		res, err := exec.handler.GetAllUsers(testCtx, &apiv1.GetAllUsersRequest{Limit: uint32(defaultLimit)})
+
+		assert.Error(t, err)
+		assert.Equal(t, entity.ErrInternal(""), err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("success get all users", func(t *testing.T) {
+		exec := createUserQueryExecutor(ctrl)
+		exec.getter.EXPECT().GetAll(testCtx, defaultLimit).Return([]*entity.User{testUser, testUser}, nil)
+
+		res, err := exec.handler.GetAllUsers(testCtx, &apiv1.GetAllUsersRequest{Limit: uint32(defaultLimit)})
+
+		assert.NoError(t, err)
+		assert.NotEmpty(t, res.Data)
+		assert.Equal(t, 2, len(res.Data))
+	})
+}
+
+func createUserQueryExecutor(ctrl *gomock.Controller) *UserQueryExecutor {
+	g := mock_service.NewMockGetUser(ctrl)
+	h := handler.NewUserQuery(g)
+	return &UserQueryExecutor{
+		handler: h,
+		getter:  g,
+	}
+}

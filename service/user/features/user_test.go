@@ -1,4 +1,4 @@
-package toggle_test
+package user_test
 
 import (
 	"context"

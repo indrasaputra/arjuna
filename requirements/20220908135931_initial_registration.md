@@ -1,17 +1,17 @@
 ## A user can register to Arjuna
 
-### Given
+#### Given
 
-- A user wants to register him/herself to Arjuna
+- A user wants to register him/herself to Arjuna.
 - A user must provide these data:
     - Full name
     - Email
     - Password
 
-### When
+#### When
 
-- The user agrees to register
+- The user agrees to register.
 
-### Then
+#### Then
 
-- A record of user is being stored in Arjuna
+- A record of user is being stored in Arjuna.

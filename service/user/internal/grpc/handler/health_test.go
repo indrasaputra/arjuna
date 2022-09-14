@@ -12,7 +12,7 @@ import (
 
 var (
 	testCtx                = context.Background()
-	testHealthCheckRequest = &grpc_health_v1.HealthCheckRequest{Service: "toggle"}
+	testHealthCheckRequest = &grpc_health_v1.HealthCheckRequest{Service: "user"}
 )
 
 func TestNewHealth(t *testing.T) {
