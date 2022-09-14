@@ -18,9 +18,9 @@ import (
 )
 
 var (
-	ctx     = context.Background()
-	client  = http.DefaultClient
-	userURL = "http://localhost:8000/v1/users"
+	ctx         = context.Background()
+	client      = http.DefaultClient
+	userURLHTTP = "http://localhost:8000/v1/users"
 
 	httpStatus int
 	httpBody   []byte
@@ -47,7 +47,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	_ = godotenv.Load()
 	url := os.Getenv("SERVER_URL")
 	if url != "" {
-		userURL = url
+		userURLHTTP = url
 	}
 
 	ctx.Before(restoreDefaultState)
@@ -66,7 +66,7 @@ func theUserIsEmpty() error {
 func iRegisterUserWithBody(requests *godog.Table) error {
 	for _, row := range requests.Rows {
 		body := strings.NewReader(row.Cells[0].Value)
-		if err := callEndpoint(http.MethodPost, userURL+"/register", body); err != nil {
+		if err := callEndpoint(http.MethodPost, userURLHTTP+"/register", body); err != nil {
 			return err
 		}
 	}
@@ -83,6 +83,36 @@ func responseStatusCodeMustBe(code int) error {
 func responseMustMatchJSON(want *godog.DocString) error {
 	return deepCompareJSON([]byte(want.Content), httpBody)
 }
+
+// func deleteAllUsers() error {
+// 	toggles, err := getAllUsers()
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	for _, toggle := range toggles {
+// 		if err = callEndpoint(http.MethodPut, fmt.Sprintf("%s/%s/disable", toggleURL, toggle.Key), nil); err != nil {
+// 			return err
+// 		}
+// 		if err = callEndpoint(http.MethodDelete, fmt.Sprintf("%s/%s", toggleURL, toggle.Key), nil); err != nil {
+// 			return err
+// 		}
+// 	}
+// 	return nil
+// }
+
+// func getAllUsers() {
+// 	if err := callEndpoint(http.MethodGet, toggleURL, nil); err != nil {
+// 		return nil, err
+// 	}
+
+// 	var resp GetAllResponse
+// 	if err := json.Unmarshal(httpBody, &resp); err != nil {
+// 		return nil, err
+// 	}
+
+// 	return resp.Toggles, nil
+// }
 
 func callEndpoint(method, url string, body io.Reader) error {
 	req, err := http.NewRequestWithContext(ctx, method, url, body)

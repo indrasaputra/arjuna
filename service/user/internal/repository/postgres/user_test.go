@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"testing"
+	"time"
 
 	"github.com/jackc/pgconn"
 	"github.com/pashagolub/pgxmock"
@@ -18,6 +19,11 @@ var (
 	testCtx             = context.Background()
 	testUser            = &entity.User{Name: "Zlatan Ibrahimovic", Email: "zlatan@ibrahimovic.com"}
 	errPostgresInternal = errors.New("error")
+	columns             = []string{"id", "name", "email", "username", "created_at", "updated_at", "created_by", "updated_by"}
+	testUserID          = "1"
+	testUserName        = "Zlatan Ibrahimovic"
+	testUserEmail       = "zlatan@ibrahimovic.com"
+	testUserUsername    = "zlatanibrahimovic"
 )
 
 type UserExecutor struct {
@@ -33,7 +39,7 @@ func TestNewUser(t *testing.T) {
 }
 
 func TestUser_Insert(t *testing.T) {
-	t.Run("nil toggle is prohibited", func(t *testing.T) {
+	t.Run("nil user is prohibited", func(t *testing.T) {
 		exec := createUserExecutor()
 
 		err := exec.user.Insert(testCtx, nil)
@@ -76,6 +82,71 @@ func TestUser_Insert(t *testing.T) {
 		err := exec.user.Insert(testCtx, testUser)
 
 		assert.NoError(t, err)
+	})
+}
+
+func TestToggle_GetAll(t *testing.T) {
+	query := `SELECT id, name, email, username, created_at, updated_at, created_by, updated_by FROM users`
+
+	t.Run("select all query returns error", func(t *testing.T) {
+		exec := createUserExecutor()
+		exec.pgx.
+			ExpectQuery(query).
+			WillReturnError(errPostgresInternal)
+
+		res, err := exec.user.GetAll(testCtx)
+
+		assert.Error(t, err)
+		assert.Empty(t, res)
+	})
+
+	t.Run("select all rows scan returns error", func(t *testing.T) {
+		exec := createUserExecutor()
+		exec.pgx.
+			ExpectQuery(query).
+			WillReturnRows(pgxmock.
+				NewRows(columns).
+				AddRow(testUserID, testUserName, testUserEmail, testUserUsername, time.Now(), time.Now(), testUserID, testUserID).
+				AddRow(testUserID, testUserName, testUserEmail, testUserUsername, "time.Now()", "time.Now()", testUserID, testUserID),
+			)
+
+		res, err := exec.user.GetAll(testCtx)
+
+		assert.Nil(t, err)
+		assert.Equal(t, 1, len(res))
+	})
+
+	t.Run("select all rows error occurs after scanning", func(t *testing.T) {
+		exec := createUserExecutor()
+		exec.pgx.
+			ExpectQuery(query).
+			WillReturnRows(pgxmock.
+				NewRows(columns).
+				AddRow(testUserID, testUserName, testUserEmail, testUserUsername, time.Now(), time.Now(), testUserID, testUserID).
+				AddRow(testUserID, testUserName, testUserEmail, testUserUsername, "time.Now()", "time.Now()", testUserID, testUserID).
+				RowError(2, errPostgresInternal),
+			)
+
+		res, err := exec.user.GetAll(testCtx)
+
+		assert.Error(t, err)
+		assert.Empty(t, res)
+	})
+
+	t.Run("successfully retrieve all rows", func(t *testing.T) {
+		exec := createUserExecutor()
+		exec.pgx.
+			ExpectQuery(query).
+			WillReturnRows(pgxmock.
+				NewRows(columns).
+				AddRow(testUserID, testUserName, testUserEmail, testUserUsername, time.Now(), time.Now(), testUserID, testUserID).
+				AddRow(testUserID, testUserName, testUserEmail, testUserUsername, time.Now(), time.Now(), testUserID, testUserID),
+			)
+
+		res, err := exec.user.GetAll(testCtx)
+
+		assert.Nil(t, err)
+		assert.Equal(t, 2, len(res))
 	})
 }
 

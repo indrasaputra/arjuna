@@ -51,6 +51,13 @@ service UserCommandService {
       tags : "User"
     };
   };
+}
+
+// UserCommandInternalService provides state-change service for user. It should be internal use only.
+service UserCommandInternalService {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+    description : "It is the same as UserCommand but should be used internally and not exposed to public."
+  };
 
   // Delete a user.
   //

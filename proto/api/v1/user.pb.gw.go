@@ -65,7 +65,7 @@ func local_request_UserCommandService_RegisterUser_0(ctx context.Context, marsha
 
 }
 
-func request_UserCommandService_DeleteUser_0(ctx context.Context, marshaler runtime.Marshaler, client UserCommandServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_UserCommandInternalService_DeleteUser_0(ctx context.Context, marshaler runtime.Marshaler, client UserCommandInternalServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq DeleteUserRequest
 	var metadata runtime.ServerMetadata
 
@@ -91,7 +91,7 @@ func request_UserCommandService_DeleteUser_0(ctx context.Context, marshaler runt
 
 }
 
-func local_request_UserCommandService_DeleteUser_0(ctx context.Context, marshaler runtime.Marshaler, server UserCommandServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_UserCommandInternalService_DeleteUser_0(ctx context.Context, marshaler runtime.Marshaler, server UserCommandInternalServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq DeleteUserRequest
 	var metadata runtime.ServerMetadata
 
@@ -146,18 +146,27 @@ func RegisterUserCommandServiceHandlerServer(ctx context.Context, mux *runtime.S
 
 	})
 
-	mux.Handle("DELETE", pattern_UserCommandService_DeleteUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	return nil
+}
+
+// RegisterUserCommandInternalServiceHandlerServer registers the http handlers for service UserCommandInternalService to "mux".
+// UnaryRPC     :call UserCommandInternalServiceServer directly.
+// StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
+// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterUserCommandInternalServiceHandlerFromEndpoint instead.
+func RegisterUserCommandInternalServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server UserCommandInternalServiceServer) error {
+
+	mux.Handle("DELETE", pattern_UserCommandInternalService_DeleteUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.v1.UserCommandService/DeleteUser", runtime.WithHTTPPathPattern("/v1/users/{id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.v1.UserCommandInternalService/DeleteUser", runtime.WithHTTPPathPattern("/v1/users/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_UserCommandService_DeleteUser_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_UserCommandInternalService_DeleteUser_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -165,7 +174,7 @@ func RegisterUserCommandServiceHandlerServer(ctx context.Context, mux *runtime.S
 			return
 		}
 
-		forward_UserCommandService_DeleteUser_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_UserCommandInternalService_DeleteUser_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -230,23 +239,72 @@ func RegisterUserCommandServiceHandlerClient(ctx context.Context, mux *runtime.S
 
 	})
 
-	mux.Handle("DELETE", pattern_UserCommandService_DeleteUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	return nil
+}
+
+var (
+	pattern_UserCommandService_RegisterUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "users", "register"}, ""))
+)
+
+var (
+	forward_UserCommandService_RegisterUser_0 = runtime.ForwardResponseMessage
+)
+
+// RegisterUserCommandInternalServiceHandlerFromEndpoint is same as RegisterUserCommandInternalServiceHandler but
+// automatically dials to "endpoint" and closes the connection when "ctx" gets done.
+func RegisterUserCommandInternalServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+	conn, err := grpc.Dial(endpoint, opts...)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if cerr := conn.Close(); cerr != nil {
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+			}
+			return
+		}
+		go func() {
+			<-ctx.Done()
+			if cerr := conn.Close(); cerr != nil {
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+			}
+		}()
+	}()
+
+	return RegisterUserCommandInternalServiceHandler(ctx, mux, conn)
+}
+
+// RegisterUserCommandInternalServiceHandler registers the http handlers for service UserCommandInternalService to "mux".
+// The handlers forward requests to the grpc endpoint over "conn".
+func RegisterUserCommandInternalServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+	return RegisterUserCommandInternalServiceHandlerClient(ctx, mux, NewUserCommandInternalServiceClient(conn))
+}
+
+// RegisterUserCommandInternalServiceHandlerClient registers the http handlers for service UserCommandInternalService
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "UserCommandInternalServiceClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "UserCommandInternalServiceClient"
+// doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
+// "UserCommandInternalServiceClient" to call the correct interceptors.
+func RegisterUserCommandInternalServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client UserCommandInternalServiceClient) error {
+
+	mux.Handle("DELETE", pattern_UserCommandInternalService_DeleteUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/api.v1.UserCommandService/DeleteUser", runtime.WithHTTPPathPattern("/v1/users/{id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/api.v1.UserCommandInternalService/DeleteUser", runtime.WithHTTPPathPattern("/v1/users/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_UserCommandService_DeleteUser_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_UserCommandInternalService_DeleteUser_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_UserCommandService_DeleteUser_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_UserCommandInternalService_DeleteUser_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -254,13 +312,9 @@ func RegisterUserCommandServiceHandlerClient(ctx context.Context, mux *runtime.S
 }
 
 var (
-	pattern_UserCommandService_RegisterUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "users", "register"}, ""))
-
-	pattern_UserCommandService_DeleteUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "users", "id"}, ""))
+	pattern_UserCommandInternalService_DeleteUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "users", "id"}, ""))
 )
 
 var (
-	forward_UserCommandService_RegisterUser_0 = runtime.ForwardResponseMessage
-
-	forward_UserCommandService_DeleteUser_0 = runtime.ForwardResponseMessage
+	forward_UserCommandInternalService_DeleteUser_0 = runtime.ForwardResponseMessage
 )

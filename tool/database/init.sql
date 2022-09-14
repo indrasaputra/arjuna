@@ -1,1 +1,2 @@
 CREATE DATABASE arjuna_user;
+CREATE DATABASE keycloak;

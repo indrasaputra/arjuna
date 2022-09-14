@@ -1,4 +1,9 @@
 """
+ UserCommandInternalService provides state-change service for user. It should be internal use only.
+
+"""
+directive @UserCommandInternalService on FIELD_DEFINITION
+"""
  UserCommandService provides state-change service for user.
 
 """
@@ -29,7 +34,7 @@ type Mutation {
 	 It is expected to be hidden or internal use only.
 	
 	"""
-	userCommandServiceDeleteUser(in: DeleteUserRequestInput): Boolean
+	userCommandInternalServiceDeleteUser(in: DeleteUserRequestInput): Boolean
 }
 type Query {
 	dummy: Boolean

@@ -8,7 +8,7 @@ import (
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
 )
 
-// UserCommand handles HTTP/2 gRPC request for state-changing user .
+// UserCommand handles HTTP/2 gRPC request for state-changing user.
 type UserCommand struct {
 	apiv1.UnimplementedUserCommandServiceServer
 	registrator service.RegisterUser

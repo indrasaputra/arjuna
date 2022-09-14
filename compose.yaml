@@ -15,11 +15,17 @@ services:
     image: quay.io/keycloak/keycloak:19.0.1
     depends_on:
       - postgres
+      - sqlpad
     environment:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=admin
       - KC_HEALTH_ENABLED=true
       - KC_METRICS_ENABLED=true
+      - KC_DB_USERNAME=postgresuser
+      - KC_DB_PASSWORD=postgrespassword
+      - KC_DB_URL_HOST=postgres
+      - KC_DB_URL_PORT=5432
+      - KC_DB=postgres
     ports:
       - 8080:8080
     command: start-dev
@@ -34,13 +40,20 @@ services:
       - SQLPAD_AUTH_DISABLED=true
       - SQLPAD_AUTH_DISABLED_DEFAULT_ROLE=admin
       - SQLPAD_DB_IN_MEMORY=true
-      - SQLPAD_CONNECTIONS__user_postgres__name="Postgres - User"
+      - SQLPAD_CONNECTIONS__user_postgres__name=Postgres - User
       - SQLPAD_CONNECTIONS__user_postgres__driver=postgres
       - SQLPAD_CONNECTIONS__user_postgres__host=postgres
       - SQLPAD_CONNECTIONS__user_postgres__port=5432
       - SQLPAD_CONNECTIONS__user_postgres__database=arjuna_user
       - SQLPAD_CONNECTIONS__user_postgres__username=postgresuser
       - SQLPAD_CONNECTIONS__user_postgres__password=postgrespassword
+      - SQLPAD_CONNECTIONS__keycloak_postgres__name=Postgres - Keycloak
+      - SQLPAD_CONNECTIONS__keycloak_postgres__driver=postgres
+      - SQLPAD_CONNECTIONS__keycloak_postgres__host=postgres
+      - SQLPAD_CONNECTIONS__keycloak_postgres__port=5432
+      - SQLPAD_CONNECTIONS__keycloak_postgres__database=keycloak
+      - SQLPAD_CONNECTIONS__keycloak_postgres__username=postgresuser
+      - SQLPAD_CONNECTIONS__keycloak_postgres__password=postgrespassword
     ports:
       - 3000:3000
     networks:

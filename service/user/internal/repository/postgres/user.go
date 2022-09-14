@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"log"
 
 	"github.com/jackc/pgconn"
 
@@ -51,6 +52,30 @@ func (u *User) Insert(ctx context.Context, user *entity.User) error {
 		return entity.ErrInternal(err.Error())
 	}
 	return nil
+}
+
+// GetAll gets all users in users table.
+func (u *User) GetAll(ctx context.Context) ([]*entity.User, error) {
+	query := "SELECT id, name, email, username, created_at, updated_at, created_by, updated_by FROM users"
+	rows, err := u.pool.Query(ctx, query)
+	if err != nil {
+		return []*entity.User{}, entity.ErrInternal(err.Error())
+	}
+	defer rows.Close()
+
+	users := []*entity.User{}
+	for rows.Next() {
+		var tmp entity.User
+		if err := rows.Scan(&tmp.ID, &tmp.Name, &tmp.Email, &tmp.Username, &tmp.CreatedAt, &tmp.UpdatedAt, &tmp.CreatedBy, &tmp.UpdatedBy); err != nil {
+			log.Printf("[User-GetAll] postgres scan rows error: %s", err.Error())
+			continue
+		}
+		users = append(users, &tmp)
+	}
+	if rows.Err() != nil {
+		return []*entity.User{}, entity.ErrInternal(rows.Err().Error())
+	}
+	return users, nil
 }
 
 func isUniqueViolationErr(err error) bool {

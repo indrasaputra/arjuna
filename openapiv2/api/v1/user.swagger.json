@@ -16,6 +16,10 @@
     {
       "name": "UserCommandService",
       "description": "This service provides basic command or state-changing use cases to work with user.A user is represented by an email as its unique identifier."
+    },
+    {
+      "name": "UserCommandInternalService",
+      "description": "It is the same as UserCommand but should be used internally and not exposed to public."
     }
   ],
   "host": "localhost:8000",

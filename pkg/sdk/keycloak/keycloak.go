@@ -86,6 +86,10 @@ type Keycloak interface {
 	CreateUser(ctx context.Context, token string, realm string, user *UserRepresentation) error
 	// GetUserByEmail gets a user by email. It needs admin's token.
 	GetUserByEmail(ctx context.Context, token string, realm string, email string) (*UserRepresentation, error)
+	// DeleteUser deletes a user. It needs admin's token.
+	DeleteUser(ctx context.Context, token string, realm string, email string) error
+	// GetAllUsers gets all users. It needs admin's token.
+	GetAllUsers(ctx context.Context, token string, realm string) ([]*UserRepresentation, error)
 }
 
 // Client is keycloak client and responsible to communicate with Keycloak server.
@@ -162,7 +166,7 @@ func (c *Client) GetUserByEmail(ctx context.Context, token string, realm string,
 // DeleteUser deletes a user in Keycloak.
 func (c *Client) DeleteUser(ctx context.Context, token string, realm string, email string) error {
 	url := fmt.Sprintf("%s/admin/realms/%s/users?email=%s", c.baseURL, realm, email)
-	users, err := c.doGetUsers(ctx, token, http.MethodPost, url)
+	users, err := c.doGetUsers(ctx, token, http.MethodGet, url)
 	if err != nil {
 		return err
 	}
@@ -171,6 +175,12 @@ func (c *Client) DeleteUser(ctx context.Context, token string, realm string, ema
 	}
 	url = fmt.Sprintf("%s/admin/realms/%s/users/%s", c.baseURL, realm, users[0].ID)
 	return c.doRequestWithJSON(ctx, token, http.MethodDelete, url, nil, http.StatusNoContent)
+}
+
+// GetAllUsers gets all users in Keycloak.
+func (c *Client) GetAllUsers(ctx context.Context, token string, realm string) ([]*UserRepresentation, error) {
+	url := fmt.Sprintf("%s/admin/realms/%s/users", c.baseURL, realm)
+	return c.doGetUsers(ctx, token, http.MethodGet, url)
 }
 
 func (c *Client) doRequestWithJSON(ctx context.Context, token, method, url string, payload []byte, expectedCode int) error {
