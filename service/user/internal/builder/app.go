@@ -28,7 +28,7 @@ type Dependency struct {
 	KeycloakClient kcsdk.Keycloak
 }
 
-// BuildUserCommandHandler builds toggle command handler including all of its dependencies.
+// BuildUserCommandHandler builds user command handler including all of its dependencies.
 func BuildUserCommandHandler(dep *Dependency) (*handler.UserCommand, error) {
 	kcConfig := &keycloak.Config{
 		Client:        dep.KeycloakClient,
@@ -44,6 +44,13 @@ func BuildUserCommandHandler(dep *Dependency) (*handler.UserCommand, error) {
 	regRepo := repository.NewUserRegistrator(kc, pg)
 	registrator := service.NewUserRegistrator(regRepo)
 	return handler.NewUserCommand(registrator), nil
+}
+
+// BuildUserQueryHandler builds user query handler including all of its dependencies.
+func BuildUserQueryHandler(dep *Dependency) *handler.UserQuery {
+	pg := postgres.NewUser(dep.PgxPool)
+	getter := service.NewUserGetter(pg)
+	return handler.NewUserQuery(getter)
 }
 
 // BuildPostgrePgxPool builds a pool of pgx client.

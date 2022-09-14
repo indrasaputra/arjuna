@@ -7,7 +7,6 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/twilio/twilio-go/client/jwt"
 
 	kcsdk "github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
 	mock_keycloak "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/keycloak"
@@ -131,9 +130,9 @@ func TestUser_Create(t *testing.T) {
 
 	t.Run("get user id returns error", func(t *testing.T) {
 		exec := createUserExecutor(ctrl)
-		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(jwt, nil)
-		exec.client.EXPECT().CreateUser(testCtx, jwt.AccessToken, exec.config.Realm, gomock.Any()).Return(nil)
-		exec.client.EXPECT().GetUserByEmail(testCtx, jwt.AccessToken, exec.config.Realm, gomock.Any()).Return(nil, errors.New("error"))
+		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(testJWT, nil)
+		exec.client.EXPECT().CreateUser(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(nil)
+		exec.client.EXPECT().GetUserByEmail(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(nil, errors.New("error"))
 
 		id, err := exec.user.Create(testCtx, user)
 
@@ -143,9 +142,9 @@ func TestUser_Create(t *testing.T) {
 
 	t.Run("get user id returns user not found", func(t *testing.T) {
 		exec := createUserExecutor(ctrl)
-		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(jwt, nil)
-		exec.client.EXPECT().CreateUser(testCtx, jwt.AccessToken, exec.config.Realm, gomock.Any()).Return(nil)
-		exec.client.EXPECT().GetUserByEmail(testCtx, jwt.AccessToken, exec.config.Realm, gomock.Any()).Return(nil, kcsdk.ErrUserNotFound)
+		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(testJWT, nil)
+		exec.client.EXPECT().CreateUser(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(nil)
+		exec.client.EXPECT().GetUserByEmail(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(nil, kcsdk.ErrUserNotFound)
 
 		id, err := exec.user.Create(testCtx, user)
 
@@ -155,51 +154,14 @@ func TestUser_Create(t *testing.T) {
 
 	t.Run("success create a new user", func(t *testing.T) {
 		exec := createUserExecutor(ctrl)
-		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(jwt, nil)
-		exec.client.EXPECT().CreateUser(testCtx, jwt.AccessToken, exec.config.Realm, gomock.Any()).Return(nil)
-		exec.client.EXPECT().GetUserByEmail(testCtx, jwt.AccessToken, exec.config.Realm, gomock.Any()).Return(&kcsdk.UserRepresentation{ID: "id"}, nil)
+		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(testJWT, nil)
+		exec.client.EXPECT().CreateUser(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(nil)
+		exec.client.EXPECT().GetUserByEmail(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(&kcsdk.UserRepresentation{ID: "id"}, nil)
 
 		id, err := exec.user.Create(testCtx, user)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, id)
-	})
-}
-
-func TestUser_GetAll(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	t.Run("unable to login as admin to Keycloak", func(t *testing.T) {
-		exec := createUserExecutor(ctrl)
-		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(nil, errors.New("error"))
-
-		users, err := exec.user.GetAll(testCtx)
-
-		assert.Error(t, err)
-		assert.Empty(t, users)
-	})
-
-	t.Run("get all users from keycloak returns error", func(t *testing.T) {
-		exec := createUserExecutor(ctrl)
-		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(testJWT, nil)
-		exec.client.EXPECT().GetAllUsers(testCtx, testJWT.AccessToken, exec.config.Realm).Return(nil, errors.New("error"))
-
-		users, err := exec.user.GetAll(testCtx)
-
-		assert.Error(t, err)
-		assert.Empty(t, users)
-	})
-
-	t.Run("success get all users", func(t *testing.T) {
-		exec := createUserExecutor(ctrl)
-		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(testJWT, nil)
-		exec.client.EXPECT().GetAllUsers(testCtx, testJWT.AccessToken, exec.config.Realm).Return([]*kcsdk.UserRepresentation{{}}, nil)
-
-		users, err := exec.user.GetAll(testCtx)
-
-		assert.NoError(t, err)
-		assert.NotEmpty(t, users)
 	})
 }
 

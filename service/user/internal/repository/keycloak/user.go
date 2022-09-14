@@ -3,7 +3,6 @@ package keycloak
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 
 	kcsdk "github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
@@ -84,20 +83,6 @@ func (u *User) createUser(ctx context.Context, user *entity.User, accessToken st
 	return nil
 }
 
-// GetAll gets all users in Keycloak.
-func (u *User) GetAll(ctx context.Context) ([]*entity.User, error) {
-	jwt, err := u.config.Client.LoginAdmin(ctx, u.config.AdminUsername, u.config.AdminPassword)
-	if err != nil {
-		return []*entity.User{}, entity.ErrInternal(err.Error())
-	}
-
-	res, err := u.config.Client.GetAllUsers(ctx, jwt.AccessToken, u.config.Realm)
-	if err != nil {
-		return []*entity.User{}, decideError(err)
-	}
-	return convertToUsers(res), nil
-}
-
 func getFirstAndLastName(name string) (string, string) {
 	firstName := ""
 	lastName := ""
@@ -126,20 +111,6 @@ func createUserRepresentation(user *entity.User) *kcsdk.UserRepresentation {
 			},
 		},
 	}
-}
-
-func convertToUsers(reps []*kcsdk.UserRepresentation) []*entity.User {
-	users := []*entity.User{}
-	for _, rep := range reps {
-		u := &entity.User{
-			KCID:     rep.ID,
-			Email:    rep.Email,
-			Name:     fmt.Sprintf("%s %s", rep.FirstName, rep.LastName),
-			Username: rep.Username,
-		}
-		users = append(users, u)
-	}
-	return users
 }
 
 func decideError(err error) error {

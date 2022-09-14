@@ -19,11 +19,11 @@ var (
 	testCtx             = context.Background()
 	testUser            = &entity.User{Name: "Zlatan Ibrahimovic", Email: "zlatan@ibrahimovic.com"}
 	errPostgresInternal = errors.New("error")
-	columns             = []string{"id", "name", "email", "username", "created_at", "updated_at", "created_by", "updated_by"}
+	columns             = []string{"id", "keycloak_id", "name", "email", "created_at", "updated_at", "created_by", "updated_by"}
 	testUserID          = "1"
+	testUserKeycloakID  = "1"
 	testUserName        = "Zlatan Ibrahimovic"
 	testUserEmail       = "zlatan@ibrahimovic.com"
-	testUserUsername    = "zlatanibrahimovic"
 )
 
 type UserExecutor struct {
@@ -86,7 +86,7 @@ func TestUser_Insert(t *testing.T) {
 }
 
 func TestToggle_GetAll(t *testing.T) {
-	query := `SELECT id, name, email, username, created_at, updated_at, created_by, updated_by FROM users`
+	query := `SELECT id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by FROM users LIMIT \$1`
 
 	t.Run("select all query returns error", func(t *testing.T) {
 		exec := createUserExecutor()
@@ -94,7 +94,7 @@ func TestToggle_GetAll(t *testing.T) {
 			ExpectQuery(query).
 			WillReturnError(errPostgresInternal)
 
-		res, err := exec.user.GetAll(testCtx)
+		res, err := exec.user.GetAll(testCtx, 10)
 
 		assert.Error(t, err)
 		assert.Empty(t, res)
@@ -106,11 +106,11 @@ func TestToggle_GetAll(t *testing.T) {
 			ExpectQuery(query).
 			WillReturnRows(pgxmock.
 				NewRows(columns).
-				AddRow(testUserID, testUserName, testUserEmail, testUserUsername, time.Now(), time.Now(), testUserID, testUserID).
-				AddRow(testUserID, testUserName, testUserEmail, testUserUsername, "time.Now()", "time.Now()", testUserID, testUserID),
+				AddRow(testUserID, testUserKeycloakID, testUserName, testUserEmail, time.Now(), time.Now(), testUserID, testUserID).
+				AddRow(testUserID, testUserKeycloakID, testUserName, testUserEmail, "time.Now()", "time.Now()", testUserID, testUserID),
 			)
 
-		res, err := exec.user.GetAll(testCtx)
+		res, err := exec.user.GetAll(testCtx, 10)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, len(res))
@@ -122,12 +122,12 @@ func TestToggle_GetAll(t *testing.T) {
 			ExpectQuery(query).
 			WillReturnRows(pgxmock.
 				NewRows(columns).
-				AddRow(testUserID, testUserName, testUserEmail, testUserUsername, time.Now(), time.Now(), testUserID, testUserID).
-				AddRow(testUserID, testUserName, testUserEmail, testUserUsername, "time.Now()", "time.Now()", testUserID, testUserID).
+				AddRow(testUserID, testUserKeycloakID, testUserName, testUserEmail, time.Now(), time.Now(), testUserID, testUserID).
+				AddRow(testUserID, testUserKeycloakID, testUserName, testUserEmail, "time.Now()", "time.Now()", testUserID, testUserID).
 				RowError(2, errPostgresInternal),
 			)
 
-		res, err := exec.user.GetAll(testCtx)
+		res, err := exec.user.GetAll(testCtx, 10)
 
 		assert.Error(t, err)
 		assert.Empty(t, res)
@@ -139,11 +139,11 @@ func TestToggle_GetAll(t *testing.T) {
 			ExpectQuery(query).
 			WillReturnRows(pgxmock.
 				NewRows(columns).
-				AddRow(testUserID, testUserName, testUserEmail, testUserUsername, time.Now(), time.Now(), testUserID, testUserID).
-				AddRow(testUserID, testUserName, testUserEmail, testUserUsername, time.Now(), time.Now(), testUserID, testUserID),
+				AddRow(testUserID, testUserKeycloakID, testUserName, testUserEmail, time.Now(), time.Now(), testUserID, testUserID).
+				AddRow(testUserID, testUserKeycloakID, testUserName, testUserEmail, time.Now(), time.Now(), testUserID, testUserID),
 			)
 
-		res, err := exec.user.GetAll(testCtx)
+		res, err := exec.user.GetAll(testCtx, 10)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, len(res))

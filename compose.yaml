@@ -66,29 +66,29 @@ services:
     networks:
       - arjuna
 
-  gateway:
-    image: indrasaputra/arjuna-gateway:latest
-    depends_on:
-      - postgres
-    ports:
-      - 8000:8000
-    networks:
-      - arjuna
+  # gateway:
+  #   image: indrasaputra/arjuna-gateway:latest
+  #   depends_on:
+  #     - postgres
+  #   ports:
+  #     - 8000:8000
+  #   networks:
+  #     - arjuna
 
-  user:
-    image: indrasaputra/arjuna-user:latest
-    depends_on:
-      - postgres
-      - keycloak
-    ports:
-      - 8001:8001
-    env_file:
-      - service/user/.env
-    environment:
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-    networks:
-      - arjuna
+  # user:
+  #   image: indrasaputra/arjuna-user:latest
+  #   depends_on:
+  #     - postgres
+  #     - keycloak
+  #   ports:
+  #     - 8001:8001
+  #   env_file:
+  #     - service/user/.env
+  #   environment:
+  #     - POSTGRES_HOST=postgres
+  #     - POSTGRES_PORT=5432
+  #   networks:
+  #     - arjuna
 
 volumes:
   storage:

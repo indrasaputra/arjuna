@@ -20,6 +20,10 @@
     {
       "name": "UserCommandInternalService",
       "description": "It is the same as UserCommand but should be used internally and not exposed to public."
+    },
+    {
+      "name": "UserQueryService",
+      "description": "This service provides basic query or data-retrieving use cases to work with user."
     }
   ],
   "host": "localhost:8000",
@@ -33,6 +37,40 @@
     "application/json"
   ],
   "paths": {
+    "/v1/users": {
+      "get": {
+        "summary": "Get all users.",
+        "description": "This endpoint gets all available users in the system.\nCurrently, it only retrieves 10 users at most.",
+        "operationId": "GetAllUsers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetAllUsersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "description": "limit specifies how many users to retrieve in a single call.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "User"
+        ]
+      }
+    },
     "/v1/users/register": {
       "post": {
         "summary": "Register a new user.",
@@ -133,6 +171,19 @@
     "v1DeleteUserResponse": {
       "type": "object",
       "description": "DeleteUserResponse represents response from delete user."
+    },
+    "v1GetAllUsersResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1User"
+          },
+          "description": "data represents an array of user data."
+        }
+      },
+      "description": "GetAllUsersResponse represents response from get all users."
     },
     "v1RegisterUserResponse": {
       "type": "object",

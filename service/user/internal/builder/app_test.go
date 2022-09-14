@@ -47,6 +47,18 @@ func TestBuildUserCommandHandler(t *testing.T) {
 	})
 }
 
+func TestBuildUserQueryHandler(t *testing.T) {
+	t.Run("success create user query handler", func(t *testing.T) {
+		dep := &builder.Dependency{
+			PgxPool: &pgxpool.Pool{},
+		}
+
+		handler := builder.BuildUserQueryHandler(dep)
+
+		assert.NotNil(t, handler)
+	})
+}
+
 func TestBuildPostgrePgxPool(t *testing.T) {
 	cfg := config.Postgres{
 		Host:            "localhost",

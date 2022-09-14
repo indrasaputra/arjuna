@@ -53,10 +53,12 @@ service UserCommandService {
   };
 }
 
-// UserCommandInternalService provides state-change service for user. It should be internal use only.
+// UserCommandInternalService provides state-change service for user. It should be internal use
+// only.
 service UserCommandInternalService {
   option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
-    description : "It is the same as UserCommand but should be used internally and not exposed to public."
+    description : "It is the same as UserCommand but should be used internally and not exposed to "
+                  "public."
   };
 
   // Delete a user.
@@ -73,6 +75,29 @@ service UserCommandInternalService {
       tags : "User"
     };
   };
+}
+
+// UserQueryService provides query service for user.
+service UserQueryService {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+    description : "This service provides basic query or data-retrieving use cases to work with "
+                  "user."
+  };
+
+  // Get all users.
+  //
+  // This endpoint gets all available users in the system.
+  // Currently, it only retrieves 10 users at most.
+  rpc GetAllUsers(GetAllUsersRequest) returns (GetAllUsersResponse) {
+    option (google.api.http) = {
+      get : "/v1/users",
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id : "GetAllUsers",
+      tags : "User"
+    };
+  }
 }
 
 // RegisterUserRequest represents request for register user.
@@ -95,6 +120,18 @@ message DeleteUserRequest {
 
 // DeleteUserResponse represents response from delete user.
 message DeleteUserResponse {
+}
+
+// GetAllUsersRequest represents request for get all users.
+message GetAllUsersRequest {
+  // limit specifies how many users to retrieve in a single call.
+  uint32 limit = 1;
+}
+
+// GetAllUsersResponse represents response from get all users.
+message GetAllUsersResponse {
+  // data represents an array of user data.
+  repeated User data = 1;
 }
 
 // User represents a user data.

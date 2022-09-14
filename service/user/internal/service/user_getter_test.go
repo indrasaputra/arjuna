@@ -32,9 +32,9 @@ func TestUserGetter_GetAll(t *testing.T) {
 
 	t.Run("repository returns internal error", func(t *testing.T) {
 		exec := createUserGetterExecutor(ctrl)
-		exec.repo.EXPECT().GetAll(testCtx).Return([]*entity.User{}, entity.ErrInternal(""))
+		exec.repo.EXPECT().GetAll(testCtx, service.DefaultGetAllUsersLimit).Return([]*entity.User{}, entity.ErrInternal(""))
 
-		res, err := exec.getter.GetAll(testCtx)
+		res, err := exec.getter.GetAll(testCtx, service.DefaultGetAllUsersLimit)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrInternal(""), err)
@@ -43,9 +43,9 @@ func TestUserGetter_GetAll(t *testing.T) {
 
 	t.Run("repository returns empty list", func(t *testing.T) {
 		exec := createUserGetterExecutor(ctrl)
-		exec.repo.EXPECT().GetAll(testCtx).Return([]*entity.User{}, nil)
+		exec.repo.EXPECT().GetAll(testCtx, service.DefaultGetAllUsersLimit).Return([]*entity.User{}, nil)
 
-		res, err := exec.getter.GetAll(testCtx)
+		res, err := exec.getter.GetAll(testCtx, service.DefaultGetAllUsersLimit)
 
 		assert.Nil(t, err)
 		assert.Empty(t, res)
@@ -53,9 +53,29 @@ func TestUserGetter_GetAll(t *testing.T) {
 
 	t.Run("successfully all users", func(t *testing.T) {
 		exec := createUserGetterExecutor(ctrl)
-		exec.repo.EXPECT().GetAll(testCtx).Return([]*entity.User{{}}, nil)
+		exec.repo.EXPECT().GetAll(testCtx, service.DefaultGetAllUsersLimit).Return([]*entity.User{{}}, nil)
 
-		res, err := exec.getter.GetAll(testCtx)
+		res, err := exec.getter.GetAll(testCtx, service.DefaultGetAllUsersLimit)
+
+		assert.Nil(t, err)
+		assert.NotEmpty(t, res)
+	})
+
+	t.Run("successfully all users with limit = 0", func(t *testing.T) {
+		exec := createUserGetterExecutor(ctrl)
+		exec.repo.EXPECT().GetAll(testCtx, service.DefaultGetAllUsersLimit).Return([]*entity.User{{}}, nil)
+
+		res, err := exec.getter.GetAll(testCtx, 0)
+
+		assert.Nil(t, err)
+		assert.NotEmpty(t, res)
+	})
+
+	t.Run("successfully all users with limit > 10", func(t *testing.T) {
+		exec := createUserGetterExecutor(ctrl)
+		exec.repo.EXPECT().GetAll(testCtx, service.DefaultGetAllUsersLimit).Return([]*entity.User{{}}, nil)
+
+		res, err := exec.getter.GetAll(testCtx, 100)
 
 		assert.Nil(t, err)
 		assert.NotEmpty(t, res)

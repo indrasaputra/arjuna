@@ -1,5 +1,6 @@
 """
- UserCommandInternalService provides state-change service for user. It should be internal use only.
+ UserCommandInternalService provides state-change service for user. It should be internal use
+ only.
 
 """
 directive @UserCommandInternalService on FIELD_DEFINITION
@@ -8,6 +9,11 @@ directive @UserCommandInternalService on FIELD_DEFINITION
 
 """
 directive @UserCommandService on FIELD_DEFINITION
+"""
+ UserQueryService provides query service for user.
+
+"""
+directive @UserQueryService on FIELD_DEFINITION
 """
  DeleteUserRequest represents request for delete user.
 
@@ -18,6 +24,28 @@ input DeleteUserRequestInput {
 	
 	"""
 	id: String
+}
+"""
+ GetAllUsersRequest represents request for get all users.
+
+"""
+input GetAllUsersRequestInput {
+	"""
+	 limit specifies how many users to retrieve in a single call.
+	
+	"""
+	limit: Int
+}
+"""
+ GetAllUsersResponse represents response from get all users.
+
+"""
+type GetAllUsersResponse {
+	"""
+	 data represents an array of user data.
+	
+	"""
+	data: [User!]
 }
 type Mutation {
 	"""
@@ -35,6 +63,14 @@ type Mutation {
 	
 	"""
 	userCommandInternalServiceDeleteUser(in: DeleteUserRequestInput): Boolean
+	"""
+	 Get all users.
+	
+	 This endpoint gets all available users in the system.
+	 Currently, it only retrieves 10 users at most.
+	
+	"""
+	userQueryServiceGetAllUsers(in: GetAllUsersRequestInput): GetAllUsersResponse
 }
 type Query {
 	dummy: Boolean

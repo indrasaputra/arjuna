@@ -37,18 +37,18 @@ func (m *MockGetUser) EXPECT() *MockGetUserMockRecorder {
 }
 
 // GetAll mocks base method.
-func (m *MockGetUser) GetAll(ctx context.Context) ([]*entity.User, error) {
+func (m *MockGetUser) GetAll(ctx context.Context, limit uint) ([]*entity.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll", ctx)
+	ret := m.ctrl.Call(m, "GetAll", ctx, limit)
 	ret0, _ := ret[0].([]*entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockGetUserMockRecorder) GetAll(ctx interface{}) *gomock.Call {
+func (mr *MockGetUserMockRecorder) GetAll(ctx, limit interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockGetUser)(nil).GetAll), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockGetUser)(nil).GetAll), ctx, limit)
 }
 
 // MockGetUserRepository is a mock of GetUserRepository interface.
@@ -75,16 +75,16 @@ func (m *MockGetUserRepository) EXPECT() *MockGetUserRepositoryMockRecorder {
 }
 
 // GetAll mocks base method.
-func (m *MockGetUserRepository) GetAll(ctx context.Context) ([]*entity.User, error) {
+func (m *MockGetUserRepository) GetAll(ctx context.Context, limit uint) ([]*entity.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll", ctx)
+	ret := m.ctrl.Call(m, "GetAll", ctx, limit)
 	ret0, _ := ret[0].([]*entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockGetUserRepositoryMockRecorder) GetAll(ctx interface{}) *gomock.Call {
+func (mr *MockGetUserRepositoryMockRecorder) GetAll(ctx, limit interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockGetUserRepository)(nil).GetAll), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockGetUserRepository)(nil).GetAll), ctx, limit)
 }

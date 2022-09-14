@@ -55,9 +55,9 @@ func (u *User) Insert(ctx context.Context, user *entity.User) error {
 }
 
 // GetAll gets all users in users table.
-func (u *User) GetAll(ctx context.Context) ([]*entity.User, error) {
-	query := "SELECT id, name, email, username, created_at, updated_at, created_by, updated_by FROM users"
-	rows, err := u.pool.Query(ctx, query)
+func (u *User) GetAll(ctx context.Context, limit uint) ([]*entity.User, error) {
+	query := "SELECT id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by FROM users LIMIT $1"
+	rows, err := u.pool.Query(ctx, query, limit)
 	if err != nil {
 		return []*entity.User{}, entity.ErrInternal(err.Error())
 	}
@@ -66,7 +66,7 @@ func (u *User) GetAll(ctx context.Context) ([]*entity.User, error) {
 	users := []*entity.User{}
 	for rows.Next() {
 		var tmp entity.User
-		if err := rows.Scan(&tmp.ID, &tmp.Name, &tmp.Email, &tmp.Username, &tmp.CreatedAt, &tmp.UpdatedAt, &tmp.CreatedBy, &tmp.UpdatedBy); err != nil {
+		if err := rows.Scan(&tmp.ID, &tmp.KeycloakID, &tmp.Name, &tmp.Email, &tmp.CreatedAt, &tmp.UpdatedAt, &tmp.CreatedBy, &tmp.UpdatedBy); err != nil {
 			log.Printf("[User-GetAll] postgres scan rows error: %s", err.Error())
 			continue
 		}
