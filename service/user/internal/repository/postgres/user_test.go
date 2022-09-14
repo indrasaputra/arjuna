@@ -42,7 +42,7 @@ func TestUser_Insert(t *testing.T) {
 		assert.Equal(t, entity.ErrEmptyUser(), err)
 	})
 
-	query := `INSERT INTO users \(id, name, email, username, created_at, updated_at, created_by, updated_by\) VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8\)`
+	query := `INSERT INTO users \(id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by\) VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8\)`
 
 	t.Run("insert duplicate user", func(t *testing.T) {
 		exec := createUserExecutor()

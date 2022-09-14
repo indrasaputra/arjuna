@@ -63,12 +63,24 @@ func (u *User) Create(ctx context.Context, user *entity.User) (string, error) {
 		return "", entity.ErrInternal(err.Error())
 	}
 
-	userRep := createUserRepresentation(user)
-	err = u.config.Client.CreateUser(ctx, jwt.AccessToken, u.config.Realm, userRep)
+	if err = u.createUser(ctx, user, jwt.AccessToken); err != nil {
+		return "", err
+	}
+	// TODO: if get user somehow error, need to rollback user.
+	res, err := u.config.Client.GetUserByEmail(ctx, jwt.AccessToken, u.config.Realm, user.Email)
 	if err != nil {
 		return "", decideError(err)
 	}
-	return "", nil
+	return res.ID, nil
+}
+
+func (u *User) createUser(ctx context.Context, user *entity.User, accessToken string) error {
+	userRep := createUserRepresentation(user)
+	err := u.config.Client.CreateUser(ctx, accessToken, u.config.Realm, userRep)
+	if err != nil {
+		return decideError(err)
+	}
+	return nil
 }
 
 func getFirstAndLastName(name string) (string, string) {
@@ -105,6 +117,8 @@ func decideError(err error) error {
 	switch err {
 	case kcsdk.ErrConflict:
 		return entity.ErrAlreadyExists()
+	case kcsdk.ErrUserNotFound:
+		return entity.ErrUserNotFound()
 	default:
 		return entity.ErrInternal(err.Error())
 	}

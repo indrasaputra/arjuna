@@ -87,6 +87,19 @@ func ErrInvalidEmail() error {
 	return res.Err()
 }
 
+// ErrUserNotFound returns codes.NotFound explained that the user is not found.
+func ErrUserNotFound() error {
+	st := status.New(codes.NotFound, "")
+	te := &apiv1.UserError{
+		ErrorCode: apiv1.UserErrorCode_USER_ERROR_CODE_USER_NOT_FOUND,
+	}
+	res, err := st.WithDetails(te)
+	if err != nil {
+		return st.Err()
+	}
+	return res.Err()
+}
+
 func createBadRequest(details ...*errdetails.BadRequest_FieldViolation) *errdetails.BadRequest {
 	return &errdetails.BadRequest{
 		FieldViolations: details,

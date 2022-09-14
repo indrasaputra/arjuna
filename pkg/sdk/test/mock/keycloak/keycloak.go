@@ -10,6 +10,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+
 	keycloak "github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
 )
 
@@ -114,6 +115,21 @@ func (m *MockKeycloak) CreateUser(ctx context.Context, token, realm string, user
 func (mr *MockKeycloakMockRecorder) CreateUser(ctx, token, realm, user interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockKeycloak)(nil).CreateUser), ctx, token, realm, user)
+}
+
+// GetUserByEmail mocks base method.
+func (m *MockKeycloak) GetUserByEmail(ctx context.Context, token, realm, email string) (*keycloak.UserRepresentation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByEmail", ctx, token, realm, email)
+	ret0, _ := ret[0].(*keycloak.UserRepresentation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByEmail indicates an expected call of GetUserByEmail.
+func (mr *MockKeycloakMockRecorder) GetUserByEmail(ctx, token, realm, email interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockKeycloak)(nil).GetUserByEmail), ctx, token, realm, email)
 }
 
 // LoginAdmin mocks base method.

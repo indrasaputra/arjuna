@@ -18,8 +18,9 @@ import (
 )
 
 const (
-	baseURL = "http://localhost:8080/"
-	token   = "token"
+	baseURL     = "http://localhost:8080/"
+	token       = "token"
+	realmArjuna = "arjuna"
 )
 
 var (
@@ -124,7 +125,6 @@ func TestClient_CreateClient(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	realm := "arjuna"
 	client := &keycloak.ClientRepresentation{}
 	body := ioutil.NopCloser(bytes.NewReader([]byte(`{}`)))
 
@@ -132,7 +132,7 @@ func TestClient_CreateClient(t *testing.T) {
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(nil, errGeneric)
 
-		err := exec.client.CreateClient(testCtx, token, realm, client)
+		err := exec.client.CreateClient(testCtx, token, realmArjuna, client)
 
 		assert.Error(t, err)
 	})
@@ -141,7 +141,7 @@ func TestClient_CreateClient(t *testing.T) {
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusInternalServerError, Body: body}, nil)
 
-		err := exec.client.CreateClient(testCtx, token, realm, client)
+		err := exec.client.CreateClient(testCtx, token, realmArjuna, client)
 
 		assert.Error(t, err)
 	})
@@ -150,7 +150,7 @@ func TestClient_CreateClient(t *testing.T) {
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusCreated, Body: body}, nil)
 
-		err := exec.client.CreateClient(testCtx, token, realm, client)
+		err := exec.client.CreateClient(testCtx, token, realmArjuna, client)
 
 		assert.NoError(t, err)
 	})
@@ -160,7 +160,6 @@ func TestClient_CreateUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	realm := "arjuna"
 	user := &keycloak.UserRepresentation{}
 	body := ioutil.NopCloser(bytes.NewReader([]byte(`{}`)))
 
@@ -168,7 +167,7 @@ func TestClient_CreateUser(t *testing.T) {
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(nil, errGeneric)
 
-		err := exec.client.CreateUser(testCtx, token, realm, user)
+		err := exec.client.CreateUser(testCtx, token, realmArjuna, user)
 
 		assert.Error(t, err)
 	})
@@ -177,7 +176,7 @@ func TestClient_CreateUser(t *testing.T) {
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusConflict, Body: body}, nil)
 
-		err := exec.client.CreateUser(testCtx, token, realm, user)
+		err := exec.client.CreateUser(testCtx, token, realmArjuna, user)
 
 		assert.Error(t, err)
 		assert.Equal(t, keycloak.ErrConflict, err)
@@ -187,7 +186,7 @@ func TestClient_CreateUser(t *testing.T) {
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusInternalServerError, Body: body}, nil)
 
-		err := exec.client.CreateUser(testCtx, token, realm, user)
+		err := exec.client.CreateUser(testCtx, token, realmArjuna, user)
 
 		assert.Error(t, err)
 		assert.Equal(t, keycloak.ErrUnknown, err)
@@ -197,9 +196,48 @@ func TestClient_CreateUser(t *testing.T) {
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusCreated, Body: body}, nil)
 
-		err := exec.client.CreateUser(testCtx, token, realm, user)
+		err := exec.client.CreateUser(testCtx, token, realmArjuna, user)
 
 		assert.NoError(t, err)
+	})
+}
+
+func TestClient_GetUserByEmail(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	email := "arjuna@arjuna.com"
+
+	t.Run("doer returns error", func(t *testing.T) {
+		exec := createClientExecutor(ctrl)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(nil, errGeneric)
+
+		user, err := exec.client.GetUserByEmail(testCtx, token, realmArjuna, email)
+
+		assert.Error(t, err)
+		assert.Nil(t, user)
+	})
+
+	t.Run("user not found", func(t *testing.T) {
+		body := ioutil.NopCloser(bytes.NewReader([]byte(`{}`)))
+		exec := createClientExecutor(ctrl)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusOK, Body: body}, nil)
+
+		user, err := exec.client.GetUserByEmail(testCtx, token, realmArjuna, email)
+
+		assert.Error(t, err)
+		assert.Nil(t, user)
+	})
+
+	t.Run("success find user", func(t *testing.T) {
+		body := ioutil.NopCloser(bytes.NewReader([]byte(`[{"id": "abc", "email": "admin@arjuna.com"}]`)))
+		exec := createClientExecutor(ctrl)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusOK, Body: body}, nil)
+
+		user, err := exec.client.GetUserByEmail(testCtx, token, realmArjuna, email)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, user)
 	})
 }
 
