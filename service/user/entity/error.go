@@ -87,11 +87,11 @@ func ErrInvalidEmail() error {
 	return res.Err()
 }
 
-// ErrUserNotFound returns codes.NotFound explained that the user is not found.
-func ErrUserNotFound() error {
+// ErrNotFound returns codes.NotFound explained that the user is not found.
+func ErrNotFound() error {
 	st := status.New(codes.NotFound, "")
 	te := &apiv1.UserError{
-		ErrorCode: apiv1.UserErrorCode_USER_ERROR_CODE_USER_NOT_FOUND,
+		ErrorCode: apiv1.UserErrorCode_USER_ERROR_CODE_NOT_FOUND,
 	}
 	res, err := st.WithDetails(te)
 	if err != nil {

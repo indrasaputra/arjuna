@@ -165,6 +165,42 @@ func TestUser_Create(t *testing.T) {
 	})
 }
 
+func TestUser_HardDelete(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	id := "1"
+
+	t.Run("unable to login as admin to Keycloak", func(t *testing.T) {
+		exec := createUserExecutor(ctrl)
+		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(nil, errors.New("error"))
+
+		err := exec.user.HardDelete(testCtx, id)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("delete user returns error", func(t *testing.T) {
+		exec := createUserExecutor(ctrl)
+		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(testJWT, nil)
+		exec.client.EXPECT().DeleteUser(testCtx, testJWT.AccessToken, exec.config.Realm, id).Return(kcsdk.ErrUnknown)
+
+		err := exec.user.HardDelete(testCtx, id)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("success delete user", func(t *testing.T) {
+		exec := createUserExecutor(ctrl)
+		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(testJWT, nil)
+		exec.client.EXPECT().DeleteUser(testCtx, testJWT.AccessToken, exec.config.Realm, id).Return(nil)
+
+		err := exec.user.HardDelete(testCtx, id)
+
+		assert.NoError(t, err)
+	})
+}
+
 func createKeycloakConfig(ctrl *gomock.Controller) *keycloak.Config {
 	return &keycloak.Config{
 		Client:        mock_keycloak.NewMockKeycloak(ctrl),

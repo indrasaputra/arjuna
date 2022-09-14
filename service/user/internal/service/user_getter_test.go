@@ -83,10 +83,10 @@ func TestUserGetter_GetAll(t *testing.T) {
 }
 
 func createUserGetterExecutor(ctrl *gomock.Controller) *UserGetterExecutor {
-	repo := mock_service.NewMockGetUserRepository(ctrl)
-	reg := service.NewUserGetter(repo)
+	r := mock_service.NewMockGetUserRepository(ctrl)
+	g := service.NewUserGetter(r)
 	return &UserGetterExecutor{
-		getter: reg,
-		repo:   repo,
+		getter: g,
+		repo:   r,
 	}
 }

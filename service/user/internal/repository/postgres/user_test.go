@@ -10,6 +10,8 @@ import (
 	"github.com/jackc/pgconn"
 	"github.com/pashagolub/pgxmock"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
@@ -85,7 +87,7 @@ func TestUser_Insert(t *testing.T) {
 	})
 }
 
-func TestToggle_GetAll(t *testing.T) {
+func TestUser_GetAll(t *testing.T) {
 	query := `SELECT id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by FROM users LIMIT \$1`
 
 	t.Run("select all query returns error", func(t *testing.T) {
@@ -147,6 +149,33 @@ func TestToggle_GetAll(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, len(res))
+	})
+}
+
+func TestUser_HardDelete(t *testing.T) {
+	id := "1"
+
+	t.Run("postgres database returns internal error", func(t *testing.T) {
+		exec := createUserExecutor()
+		exec.pgx.
+			ExpectExec(`DELETE FROM users WHERE id = \$1`).
+			WillReturnError(errPostgresInternal)
+
+		err := exec.user.HardDelete(testCtx, id)
+
+		assert.Error(t, err)
+		assert.Equal(t, codes.Internal, status.Code(err))
+	})
+
+	t.Run("success delete a user", func(t *testing.T) {
+		exec := createUserExecutor()
+		exec.pgx.
+			ExpectExec(`DELETE FROM users WHERE id = \$1`).
+			WillReturnResult(pgxmock.NewResult("DELETE", 1))
+
+		err := exec.user.HardDelete(testCtx, id)
+
+		assert.NoError(t, err)
 	})
 }
 

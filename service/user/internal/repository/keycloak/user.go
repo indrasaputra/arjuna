@@ -74,6 +74,20 @@ func (u *User) Create(ctx context.Context, user *entity.User) (string, error) {
 	return res.ID, nil
 }
 
+// HardDelete hard-delets user from Keycloak.
+func (u *User) HardDelete(ctx context.Context, id string) error {
+	jwt, err := u.config.Client.LoginAdmin(ctx, u.config.AdminUsername, u.config.AdminPassword)
+	if err != nil {
+		return entity.ErrInternal(err.Error())
+	}
+
+	err = u.config.Client.DeleteUser(ctx, jwt.AccessToken, u.config.Realm, id)
+	if err != nil {
+		return decideError(err)
+	}
+	return nil
+}
+
 func (u *User) createUser(ctx context.Context, user *entity.User, accessToken string) error {
 	userRep := createUserRepresentation(user)
 	err := u.config.Client.CreateUser(ctx, accessToken, u.config.Realm, userRep)
@@ -118,7 +132,7 @@ func decideError(err error) error {
 	case kcsdk.ErrConflict:
 		return entity.ErrAlreadyExists()
 	case kcsdk.ErrUserNotFound:
-		return entity.ErrUserNotFound()
+		return entity.ErrNotFound()
 	default:
 		return entity.ErrInternal(err.Error())
 	}

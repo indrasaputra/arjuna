@@ -206,47 +206,23 @@ func TestClient_DeleteUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	email := "arjuna@arjuna.com"
-
-	t.Run("get users returns error", func(t *testing.T) {
-		exec := createClientExecutor(ctrl)
-		exec.doer.EXPECT().Do(gomock.Any()).Return(nil, errGeneric)
-
-		err := exec.client.DeleteUser(testCtx, token, realmArjuna, email)
-
-		assert.Error(t, err)
-	})
-
-	t.Run("user not found", func(t *testing.T) {
-		body := ioutil.NopCloser(bytes.NewReader([]byte(`{}`)))
-		exec := createClientExecutor(ctrl)
-		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusOK, Body: body}, nil)
-
-		err := exec.client.DeleteUser(testCtx, token, realmArjuna, email)
-
-		assert.Error(t, err)
-		assert.Equal(t, keycloak.ErrUserNotFound, err)
-	})
+	id := "1"
 
 	t.Run("delete api returns error", func(t *testing.T) {
-		body := ioutil.NopCloser(bytes.NewReader([]byte(`[{"id": "5c44f049-8ab2-4d0f-b41d-7b08f467e817"}]`)))
 		exec := createClientExecutor(ctrl)
-		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusOK, Body: body}, nil)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(nil, keycloak.ErrUnknown)
 
-		err := exec.client.DeleteUser(testCtx, token, realmArjuna, email)
+		err := exec.client.DeleteUser(testCtx, token, realmArjuna, id)
 
 		assert.Error(t, err)
 	})
 
 	t.Run("success delete user", func(t *testing.T) {
-		bodyGet := ioutil.NopCloser(bytes.NewReader([]byte(`[{"id": "5c44f049-8ab2-4d0f-b41d-7b08f467e817"}]`)))
-		bodyDelete := ioutil.NopCloser(bytes.NewReader([]byte(`{}`)))
+		body := ioutil.NopCloser(bytes.NewReader([]byte(`{}`)))
 		exec := createClientExecutor(ctrl)
-		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusOK, Body: bodyGet}, nil)
-		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusNoContent, Body: bodyDelete}, nil)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusNoContent, Body: body}, nil)
 
-		err := exec.client.DeleteUser(testCtx, token, realmArjuna, email)
+		err := exec.client.DeleteUser(testCtx, token, realmArjuna, id)
 
 		assert.NoError(t, err)
 	})

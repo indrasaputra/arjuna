@@ -1,5 +1,6 @@
 ## A system can get all users
 
+
 ### Retrieve users without limit
 
 #### Given

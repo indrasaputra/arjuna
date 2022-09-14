@@ -42,11 +42,16 @@ func registerGrpcService(grpcServer *server.GrpcServer, dep *builder.Dependency)
 	if err != nil {
 		log.Fatalf("fail build user command handler: %v", err)
 	}
+	commandInternal, err := builder.BuildUserCommandInternalHandler(dep)
+	if err != nil {
+		log.Fatalf("fail build user command internal handler: %v", err)
+	}
 	query := builder.BuildUserQueryHandler(dep)
 	health := handler.NewHealth()
 
 	grpcServer.AttachService(func(server *grpc.Server) {
 		apiv1.RegisterUserCommandServiceServer(server, command)
+		apiv1.RegisterUserCommandInternalServiceServer(server, commandInternal)
 		apiv1.RegisterUserQueryServiceServer(server, query)
 		grpc_health_v1.RegisterHealthServer(server, health)
 	})
