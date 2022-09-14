@@ -56,15 +56,27 @@ func NewUser(config *Config) (*User, error) {
 	return &User{config: config}, nil
 }
 
-// Insert inserts a new user to Keycloak.
-func (u *User) Insert(ctx context.Context, user *entity.User) error {
+// Create creates a new user to Keycloak.
+func (u *User) Create(ctx context.Context, user *entity.User) (string, error) {
 	jwt, err := u.config.Client.LoginAdmin(ctx, u.config.AdminUsername, u.config.AdminPassword)
 	if err != nil {
-		return entity.ErrInternal(err.Error())
+		return "", entity.ErrInternal(err.Error())
 	}
 
+	if err = u.createUser(ctx, user, jwt.AccessToken); err != nil {
+		return "", err
+	}
+	// TODO: if get user somehow error, need to rollback user.
+	res, err := u.config.Client.GetUserByEmail(ctx, jwt.AccessToken, u.config.Realm, user.Email)
+	if err != nil {
+		return "", decideError(err)
+	}
+	return res.ID, nil
+}
+
+func (u *User) createUser(ctx context.Context, user *entity.User, accessToken string) error {
 	userRep := createUserRepresentation(user)
-	err = u.config.Client.CreateUser(ctx, jwt.AccessToken, u.config.Realm, userRep)
+	err := u.config.Client.CreateUser(ctx, accessToken, u.config.Realm, userRep)
 	if err != nil {
 		return decideError(err)
 	}
@@ -105,6 +117,8 @@ func decideError(err error) error {
 	switch err {
 	case kcsdk.ErrConflict:
 		return entity.ErrAlreadyExists()
+	case kcsdk.ErrUserNotFound:
+		return entity.ErrUserNotFound()
 	default:
 		return entity.ErrInternal(err.Error())
 	}

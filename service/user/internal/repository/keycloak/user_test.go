@@ -89,7 +89,7 @@ func TestNewUser(t *testing.T) {
 	})
 }
 
-func TestUser_Insert(t *testing.T) {
+func TestUser_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -100,9 +100,10 @@ func TestUser_Insert(t *testing.T) {
 		exec := createUserExecutor(ctrl)
 		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(nil, errors.New("error"))
 
-		err := exec.user.Insert(testCtx, user)
+		id, err := exec.user.Create(testCtx, user)
 
 		assert.Error(t, err)
+		assert.Empty(t, id)
 	})
 
 	t.Run("user already exists", func(t *testing.T) {
@@ -110,9 +111,10 @@ func TestUser_Insert(t *testing.T) {
 		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(jwt, nil)
 		exec.client.EXPECT().CreateUser(testCtx, jwt.AccessToken, exec.config.Realm, gomock.Any()).Return(kcsdk.ErrConflict)
 
-		err := exec.user.Insert(testCtx, user)
+		id, err := exec.user.Create(testCtx, user)
 
 		assert.Error(t, err)
+		assert.Empty(t, id)
 	})
 
 	t.Run("create user returns error", func(t *testing.T) {
@@ -120,19 +122,46 @@ func TestUser_Insert(t *testing.T) {
 		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(jwt, nil)
 		exec.client.EXPECT().CreateUser(testCtx, jwt.AccessToken, exec.config.Realm, gomock.Any()).Return(errors.New("error"))
 
-		err := exec.user.Insert(testCtx, user)
+		id, err := exec.user.Create(testCtx, user)
 
 		assert.Error(t, err)
+		assert.Empty(t, id)
 	})
 
-	t.Run("successfully create a new user", func(t *testing.T) {
+	t.Run("get user id returns error", func(t *testing.T) {
 		exec := createUserExecutor(ctrl)
 		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(jwt, nil)
 		exec.client.EXPECT().CreateUser(testCtx, jwt.AccessToken, exec.config.Realm, gomock.Any()).Return(nil)
+		exec.client.EXPECT().GetUserByEmail(testCtx, jwt.AccessToken, exec.config.Realm, gomock.Any()).Return(nil, errors.New("error"))
 
-		err := exec.user.Insert(testCtx, user)
+		id, err := exec.user.Create(testCtx, user)
+
+		assert.Error(t, err)
+		assert.Empty(t, id)
+	})
+
+	t.Run("get user id returns user not found", func(t *testing.T) {
+		exec := createUserExecutor(ctrl)
+		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(jwt, nil)
+		exec.client.EXPECT().CreateUser(testCtx, jwt.AccessToken, exec.config.Realm, gomock.Any()).Return(nil)
+		exec.client.EXPECT().GetUserByEmail(testCtx, jwt.AccessToken, exec.config.Realm, gomock.Any()).Return(nil, kcsdk.ErrUserNotFound)
+
+		id, err := exec.user.Create(testCtx, user)
+
+		assert.Error(t, err)
+		assert.Empty(t, id)
+	})
+
+	t.Run("success create a new user", func(t *testing.T) {
+		exec := createUserExecutor(ctrl)
+		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(jwt, nil)
+		exec.client.EXPECT().CreateUser(testCtx, jwt.AccessToken, exec.config.Realm, gomock.Any()).Return(nil)
+		exec.client.EXPECT().GetUserByEmail(testCtx, jwt.AccessToken, exec.config.Realm, gomock.Any()).Return(&kcsdk.UserRepresentation{ID: "id"}, nil)
+
+		id, err := exec.user.Create(testCtx, user)
 
 		assert.NoError(t, err)
+		assert.NotEmpty(t, id)
 	})
 }
 

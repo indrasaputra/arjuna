@@ -15,6 +15,8 @@ var (
 	ErrConflict = errors.New("request conflict")
 	// ErrUnknown indicates undefined error. It returns HTTP status 500.
 	ErrUnknown = errors.New("unknown error")
+	// ErrUserNotFound indicates user not found.
+	ErrUserNotFound = errors.New("user not found")
 )
 
 // Doer is an interface to be used as HTTP call.
@@ -56,6 +58,7 @@ type ClientRepresentation struct {
 
 // UserRepresentation represents Keycloak user data structure.
 type UserRepresentation struct {
+	ID          string                      `json:"id"`
 	Username    string                      `json:"username"`
 	FirstName   string                      `json:"firstName"`
 	LastName    string                      `json:"lastName"`
@@ -81,6 +84,8 @@ type Keycloak interface {
 	CreateClient(ctx context.Context, token string, realm string, client *ClientRepresentation) error
 	// CreateUser creates a user. It needs admin's token.
 	CreateUser(ctx context.Context, token string, realm string, user *UserRepresentation) error
+	// GetUserByEmail gets a user by email. It needs admin's token.
+	GetUserByEmail(ctx context.Context, token string, realm string, email string) (*UserRepresentation, error)
 }
 
 // Client is keycloak client and responsible to communicate with Keycloak server.
@@ -139,6 +144,34 @@ func (c *Client) CreateUser(ctx context.Context, token string, realm string, use
 	url := fmt.Sprintf("%s/admin/realms/%s/users", c.baseURL, realm)
 	payload, _ := json.Marshal(user)
 	return c.doRequestWithJSON(ctx, token, http.MethodPost, url, payload)
+}
+
+// GetUserByEmail gets a user by email.
+func (c *Client) GetUserByEmail(ctx context.Context, token string, realm string, email string) (*UserRepresentation, error) {
+	url := fmt.Sprintf("%s/admin/realms/%s/users?email=%s", c.baseURL, realm, email)
+	users, err := c.doGetUsers(ctx, token, http.MethodGet, url)
+	if err != nil {
+		return nil, err
+	}
+	if len(users) == 0 {
+		return nil, ErrUserNotFound
+	}
+	return users[0], nil
+}
+
+func (c *Client) doGetUsers(ctx context.Context, token, method, url string) ([]*UserRepresentation, error) {
+	req, _ := http.NewRequestWithContext(ctx, method, url, nil)
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := c.doer.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = res.Body.Close() }()
+	var users []*UserRepresentation
+	_ = json.NewDecoder(res.Body).Decode(&users)
+	return users, nil
 }
 
 func (c *Client) doRequestWithJSON(ctx context.Context, token, method, url string, payload []byte) error {

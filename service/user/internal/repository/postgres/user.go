@@ -30,14 +30,14 @@ func (u *User) Insert(ctx context.Context, user *entity.User) error {
 	}
 
 	query := "INSERT INTO " +
-		"users (id, name, email, username, created_at, updated_at, created_by, updated_by) " +
+		"users (id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by) " +
 		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
 
 	_, err := u.pool.Exec(ctx, query,
 		user.ID,
+		user.KeycloakID,
 		user.Name,
 		user.Email,
-		user.Username,
 		user.CreatedAt,
 		user.UpdatedAt,
 		user.CreatedBy,

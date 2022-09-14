@@ -4,11 +4,12 @@ import "time"
 
 // User defines the logical data of a user.
 type User struct {
-	ID       string
-	Name     string
-	Username string
-	Email    string
-	Password string
+	ID         string
+	KeycloakID string
+	Name       string
+	Username   string
+	Email      string
+	Password   string
 	Auditable
 }
 
