@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/jackc/pgconn"
-	"github.com/jackc/pgx/v4"
+	pgx "github.com/jackc/pgx/v4"
 
 	"github.com/indrasaputra/arjuna/service/user/entity"
 )
