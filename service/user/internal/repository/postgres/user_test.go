@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgconn"
+	pgx "github.com/jackc/pgx/v4"
 	"github.com/pashagolub/pgxmock"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
@@ -18,14 +19,15 @@ import (
 )
 
 var (
-	testCtx             = context.Background()
-	testUser            = &entity.User{Name: "Zlatan Ibrahimovic", Email: "zlatan@ibrahimovic.com"}
-	errPostgresInternal = errors.New("error")
-	columns             = []string{"id", "keycloak_id", "name", "email", "created_at", "updated_at", "created_by", "updated_by"}
-	testUserID          = "1"
-	testUserKeycloakID  = "1"
-	testUserName        = "Zlatan Ibrahimovic"
-	testUserEmail       = "zlatan@ibrahimovic.com"
+	testCtx                = context.Background()
+	testUser               = &entity.User{Name: "Zlatan Ibrahimovic", Email: "zlatan@ibrahimovic.com"}
+	errPostgresInternalMsg = "error"
+	errPostgresInternal    = errors.New(errPostgresInternalMsg)
+	columns                = []string{"id", "keycloak_id", "name", "email", "created_at", "updated_at", "created_by", "updated_by"}
+	testUserID             = "1"
+	testUserKeycloakID     = "1"
+	testUserName           = "Zlatan Ibrahimovic"
+	testUserEmail          = "zlatan@ibrahimovic.com"
 )
 
 type UserExecutor struct {
@@ -84,6 +86,52 @@ func TestUser_Insert(t *testing.T) {
 		err := exec.user.Insert(testCtx, testUser)
 
 		assert.NoError(t, err)
+	})
+}
+
+func TestUser_GetByID(t *testing.T) {
+	id := "1"
+	query := `SELECT id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by FROM users WHERE id = \$1 LIMIT 1`
+
+	t.Run("select by id returns empty row", func(t *testing.T) {
+		exec := createUserExecutor()
+		exec.pgx.
+			ExpectQuery(query).
+			WillReturnError(pgx.ErrNoRows)
+
+		res, err := exec.user.GetByID(testCtx, id)
+
+		assert.NotNil(t, err)
+		assert.Equal(t, entity.ErrNotFound(), err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("select by key query returns error", func(t *testing.T) {
+		exec := createUserExecutor()
+		exec.pgx.
+			ExpectQuery(query).
+			WillReturnError(errPostgresInternal)
+
+		res, err := exec.user.GetByID(testCtx, id)
+
+		assert.NotNil(t, err)
+		assert.Equal(t, entity.ErrInternal(errPostgresInternalMsg), err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("successfully retrieve row", func(t *testing.T) {
+		exec := createUserExecutor()
+		exec.pgx.
+			ExpectQuery(query).
+			WillReturnRows(pgxmock.
+				NewRows(columns).
+				AddRow(testUserID, testUserKeycloakID, testUserName, testUserEmail, time.Now(), time.Now(), testUserID, testUserID),
+			)
+
+		res, err := exec.user.GetByID(testCtx, id)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, res)
 	})
 }
 

@@ -47,6 +47,42 @@ func TestBuildUserCommandHandler(t *testing.T) {
 	})
 }
 
+func TestBuildUserCommandInternalHandler(t *testing.T) {
+	t.Run("fail create user command internal handler", func(t *testing.T) {
+		dep := &builder.Dependency{
+			PgxPool:        &pgxpool.Pool{},
+			KeycloakClient: nil,
+			Config: &config.Config{
+				Keycloak: config.Keycloak{},
+			},
+		}
+
+		handler, err := builder.BuildUserCommandInternalHandler(dep)
+
+		assert.Error(t, err)
+		assert.Nil(t, handler)
+	})
+
+	t.Run("success create user command internal handler", func(t *testing.T) {
+		dep := &builder.Dependency{
+			PgxPool:        &pgxpool.Pool{},
+			KeycloakClient: &mock_keycloak.MockKeycloak{},
+			Config: &config.Config{
+				Keycloak: config.Keycloak{
+					Realm:         "realm",
+					AdminUser:     "admin",
+					AdminPassword: "admin",
+				},
+			},
+		}
+
+		handler, err := builder.BuildUserCommandInternalHandler(dep)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, handler)
+	})
+}
+
 func TestBuildUserQueryHandler(t *testing.T) {
 	t.Run("success create user query handler", func(t *testing.T) {
 		dep := &builder.Dependency{
