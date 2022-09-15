@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-req_dir="requirement"
+req_dir="requirements"
 timestamp=`date "+%Y%m%d%H%M%S"`
 
 mkdir -p ${req_dir}

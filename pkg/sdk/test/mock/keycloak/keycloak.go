@@ -117,6 +117,35 @@ func (mr *MockKeycloakMockRecorder) CreateUser(ctx, token, realm, user interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockKeycloak)(nil).CreateUser), ctx, token, realm, user)
 }
 
+// DeleteUser mocks base method.
+func (m *MockKeycloak) DeleteUser(ctx context.Context, token, realm, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUser", ctx, token, realm, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUser indicates an expected call of DeleteUser.
+func (mr *MockKeycloakMockRecorder) DeleteUser(ctx, token, realm, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockKeycloak)(nil).DeleteUser), ctx, token, realm, id)
+}
+
+// GetAllUsers mocks base method.
+func (m *MockKeycloak) GetAllUsers(ctx context.Context, token, realm string) ([]*keycloak.UserRepresentation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllUsers", ctx, token, realm)
+	ret0, _ := ret[0].([]*keycloak.UserRepresentation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllUsers indicates an expected call of GetAllUsers.
+func (mr *MockKeycloakMockRecorder) GetAllUsers(ctx, token, realm interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllUsers", reflect.TypeOf((*MockKeycloak)(nil).GetAllUsers), ctx, token, realm)
+}
+
 // GetUserByEmail mocks base method.
 func (m *MockKeycloak) GetUserByEmail(ctx context.Context, token, realm, email string) (*keycloak.UserRepresentation, error) {
 	m.ctrl.T.Helper()

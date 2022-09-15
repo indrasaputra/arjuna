@@ -65,6 +65,94 @@ func local_request_UserCommandService_RegisterUser_0(ctx context.Context, marsha
 
 }
 
+func request_UserCommandInternalService_DeleteUser_0(ctx context.Context, marshaler runtime.Marshaler, client UserCommandInternalServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq DeleteUserRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := client.DeleteUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_UserCommandInternalService_DeleteUser_0(ctx context.Context, marshaler runtime.Marshaler, server UserCommandInternalServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq DeleteUserRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := server.DeleteUser(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+var (
+	filter_UserQueryService_GetAllUsers_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_UserQueryService_GetAllUsers_0(ctx context.Context, marshaler runtime.Marshaler, client UserQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetAllUsersRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_UserQueryService_GetAllUsers_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.GetAllUsers(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_UserQueryService_GetAllUsers_0(ctx context.Context, marshaler runtime.Marshaler, server UserQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetAllUsersRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_UserQueryService_GetAllUsers_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.GetAllUsers(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 // RegisterUserCommandServiceHandlerServer registers the http handlers for service UserCommandService to "mux".
 // UnaryRPC     :call UserCommandServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -91,6 +179,70 @@ func RegisterUserCommandServiceHandlerServer(ctx context.Context, mux *runtime.S
 		}
 
 		forward_UserCommandService_RegisterUser_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	return nil
+}
+
+// RegisterUserCommandInternalServiceHandlerServer registers the http handlers for service UserCommandInternalService to "mux".
+// UnaryRPC     :call UserCommandInternalServiceServer directly.
+// StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
+// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterUserCommandInternalServiceHandlerFromEndpoint instead.
+func RegisterUserCommandInternalServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server UserCommandInternalServiceServer) error {
+
+	mux.Handle("DELETE", pattern_UserCommandInternalService_DeleteUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.v1.UserCommandInternalService/DeleteUser", runtime.WithHTTPPathPattern("/v1/users/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_UserCommandInternalService_DeleteUser_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_UserCommandInternalService_DeleteUser_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	return nil
+}
+
+// RegisterUserQueryServiceHandlerServer registers the http handlers for service UserQueryService to "mux".
+// UnaryRPC     :call UserQueryServiceServer directly.
+// StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
+// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterUserQueryServiceHandlerFromEndpoint instead.
+func RegisterUserQueryServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server UserQueryServiceServer) error {
+
+	mux.Handle("GET", pattern_UserQueryService_GetAllUsers_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.v1.UserQueryService/GetAllUsers", runtime.WithHTTPPathPattern("/v1/users"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_UserQueryService_GetAllUsers_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_UserQueryService_GetAllUsers_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -164,4 +316,142 @@ var (
 
 var (
 	forward_UserCommandService_RegisterUser_0 = runtime.ForwardResponseMessage
+)
+
+// RegisterUserCommandInternalServiceHandlerFromEndpoint is same as RegisterUserCommandInternalServiceHandler but
+// automatically dials to "endpoint" and closes the connection when "ctx" gets done.
+func RegisterUserCommandInternalServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+	conn, err := grpc.Dial(endpoint, opts...)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if cerr := conn.Close(); cerr != nil {
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+			}
+			return
+		}
+		go func() {
+			<-ctx.Done()
+			if cerr := conn.Close(); cerr != nil {
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+			}
+		}()
+	}()
+
+	return RegisterUserCommandInternalServiceHandler(ctx, mux, conn)
+}
+
+// RegisterUserCommandInternalServiceHandler registers the http handlers for service UserCommandInternalService to "mux".
+// The handlers forward requests to the grpc endpoint over "conn".
+func RegisterUserCommandInternalServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+	return RegisterUserCommandInternalServiceHandlerClient(ctx, mux, NewUserCommandInternalServiceClient(conn))
+}
+
+// RegisterUserCommandInternalServiceHandlerClient registers the http handlers for service UserCommandInternalService
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "UserCommandInternalServiceClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "UserCommandInternalServiceClient"
+// doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
+// "UserCommandInternalServiceClient" to call the correct interceptors.
+func RegisterUserCommandInternalServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client UserCommandInternalServiceClient) error {
+
+	mux.Handle("DELETE", pattern_UserCommandInternalService_DeleteUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/api.v1.UserCommandInternalService/DeleteUser", runtime.WithHTTPPathPattern("/v1/users/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_UserCommandInternalService_DeleteUser_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_UserCommandInternalService_DeleteUser_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	return nil
+}
+
+var (
+	pattern_UserCommandInternalService_DeleteUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "users", "id"}, ""))
+)
+
+var (
+	forward_UserCommandInternalService_DeleteUser_0 = runtime.ForwardResponseMessage
+)
+
+// RegisterUserQueryServiceHandlerFromEndpoint is same as RegisterUserQueryServiceHandler but
+// automatically dials to "endpoint" and closes the connection when "ctx" gets done.
+func RegisterUserQueryServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+	conn, err := grpc.Dial(endpoint, opts...)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if cerr := conn.Close(); cerr != nil {
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+			}
+			return
+		}
+		go func() {
+			<-ctx.Done()
+			if cerr := conn.Close(); cerr != nil {
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+			}
+		}()
+	}()
+
+	return RegisterUserQueryServiceHandler(ctx, mux, conn)
+}
+
+// RegisterUserQueryServiceHandler registers the http handlers for service UserQueryService to "mux".
+// The handlers forward requests to the grpc endpoint over "conn".
+func RegisterUserQueryServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+	return RegisterUserQueryServiceHandlerClient(ctx, mux, NewUserQueryServiceClient(conn))
+}
+
+// RegisterUserQueryServiceHandlerClient registers the http handlers for service UserQueryService
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "UserQueryServiceClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "UserQueryServiceClient"
+// doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
+// "UserQueryServiceClient" to call the correct interceptors.
+func RegisterUserQueryServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client UserQueryServiceClient) error {
+
+	mux.Handle("GET", pattern_UserQueryService_GetAllUsers_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/api.v1.UserQueryService/GetAllUsers", runtime.WithHTTPPathPattern("/v1/users"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_UserQueryService_GetAllUsers_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_UserQueryService_GetAllUsers_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	return nil
+}
+
+var (
+	pattern_UserQueryService_GetAllUsers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "users"}, ""))
+)
+
+var (
+	forward_UserQueryService_GetAllUsers_0 = runtime.ForwardResponseMessage
 )

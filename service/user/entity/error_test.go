@@ -48,9 +48,9 @@ func TestErrInvalidEmail(t *testing.T) {
 	})
 }
 
-func TestErrUserNotFound(t *testing.T) {
+func TestErrNotFound(t *testing.T) {
 	t.Run("success get user not found error", func(t *testing.T) {
-		err := entity.ErrUserNotFound()
+		err := entity.ErrNotFound()
 
 		assert.Contains(t, err.Error(), "rpc error: code = NotFound")
 	})

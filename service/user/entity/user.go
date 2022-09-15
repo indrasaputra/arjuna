@@ -7,8 +7,8 @@ type User struct {
 	ID         string
 	KeycloakID string
 	Name       string
-	Username   string
 	Email      string
+	Username   string
 	Password   string
 	Auditable
 }

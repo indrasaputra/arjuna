@@ -28,7 +28,7 @@ type Dependency struct {
 	KeycloakClient kcsdk.Keycloak
 }
 
-// BuildUserCommandHandler builds toggle command handler including all of its dependencies.
+// BuildUserCommandHandler builds user command handler including all of its dependencies.
 func BuildUserCommandHandler(dep *Dependency) (*handler.UserCommand, error) {
 	kcConfig := &keycloak.Config{
 		Client:        dep.KeycloakClient,
@@ -44,6 +44,31 @@ func BuildUserCommandHandler(dep *Dependency) (*handler.UserCommand, error) {
 	regRepo := repository.NewUserRegistrator(kc, pg)
 	registrator := service.NewUserRegistrator(regRepo)
 	return handler.NewUserCommand(registrator), nil
+}
+
+// BuildUserCommandInternalHandler builds user command handler including all of its dependencies.
+func BuildUserCommandInternalHandler(dep *Dependency) (*handler.UserCommandInternal, error) {
+	kcConfig := &keycloak.Config{
+		Client:        dep.KeycloakClient,
+		Realm:         dep.Config.Keycloak.Realm,
+		AdminUsername: dep.Config.Keycloak.AdminUser,
+		AdminPassword: dep.Config.Keycloak.AdminPassword,
+	}
+	kc, err := keycloak.NewUser(kcConfig)
+	if err != nil {
+		return nil, err
+	}
+	pg := postgres.NewUser(dep.PgxPool)
+	delRepo := repository.NewUserDeleter(kc, pg)
+	deleter := service.NewUserDeleter(delRepo)
+	return handler.NewUserCommandInternal(deleter), nil
+}
+
+// BuildUserQueryHandler builds user query handler including all of its dependencies.
+func BuildUserQueryHandler(dep *Dependency) *handler.UserQuery {
+	pg := postgres.NewUser(dep.PgxPool)
+	getter := service.NewUserGetter(pg)
+	return handler.NewUserQuery(getter)
 }
 
 // BuildPostgrePgxPool builds a pool of pgx client.

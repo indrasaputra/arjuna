@@ -202,6 +202,32 @@ func TestClient_CreateUser(t *testing.T) {
 	})
 }
 
+func TestClient_DeleteUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	id := "1"
+
+	t.Run("delete api returns error", func(t *testing.T) {
+		exec := createClientExecutor(ctrl)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(nil, keycloak.ErrUnknown)
+
+		err := exec.client.DeleteUser(testCtx, token, realmArjuna, id)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("success delete user", func(t *testing.T) {
+		body := ioutil.NopCloser(bytes.NewReader([]byte(`{}`)))
+		exec := createClientExecutor(ctrl)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusNoContent, Body: body}, nil)
+
+		err := exec.client.DeleteUser(testCtx, token, realmArjuna, id)
+
+		assert.NoError(t, err)
+	})
+}
+
 func TestClient_GetUserByEmail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -238,6 +264,32 @@ func TestClient_GetUserByEmail(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.NotNil(t, user)
+	})
+}
+
+func TestClient_GetAllUsers(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	t.Run("get users returns error", func(t *testing.T) {
+		exec := createClientExecutor(ctrl)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(nil, errGeneric)
+
+		users, err := exec.client.GetAllUsers(testCtx, token, realmArjuna)
+
+		assert.Error(t, err)
+		assert.Nil(t, users)
+	})
+
+	t.Run("success get all users", func(t *testing.T) {
+		body := ioutil.NopCloser(bytes.NewReader([]byte(`[{"id": "5c44f049-8ab2-4d0f-b41d-7b08f467e817"}]`)))
+		exec := createClientExecutor(ctrl)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusOK, Body: body}, nil)
+
+		users, err := exec.client.GetAllUsers(testCtx, token, realmArjuna)
+
+		assert.NoError(t, err)
+		assert.NotEmpty(t, users)
 	})
 }
 

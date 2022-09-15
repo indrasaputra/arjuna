@@ -53,6 +53,53 @@ service UserCommandService {
   };
 }
 
+// UserCommandInternalService provides state-change service for user. It should be internal use
+// only.
+service UserCommandInternalService {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+    description : "It is the same as UserCommand but should be used internally and not exposed to "
+                  "public."
+  };
+
+  // Delete a user.
+  //
+  // This endpoint deletes a new user.
+  // It is expected to be hidden or internal use only.
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {
+    option (google.api.http) = {
+      delete : "/v1/users/{id}"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id : "DeleteUser",
+      tags : "User"
+    };
+  };
+}
+
+// UserQueryService provides query service for user.
+service UserQueryService {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+    description : "This service provides basic query or data-retrieving use cases to work with "
+                  "user."
+  };
+
+  // Get all users.
+  //
+  // This endpoint gets all available users in the system.
+  // Currently, it only retrieves 10 users at most.
+  rpc GetAllUsers(GetAllUsersRequest) returns (GetAllUsersResponse) {
+    option (google.api.http) = {
+      get : "/v1/users",
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id : "GetAllUsers",
+      tags : "User"
+    };
+  }
+}
+
 // RegisterUserRequest represents request for register user.
 message RegisterUserRequest {
   // user represents user data.
@@ -63,6 +110,28 @@ message RegisterUserRequest {
 message RegisterUserResponse {
   // data represents user.
   User data = 1;
+}
+
+// DeleteUserRequest represents request for delete user.
+message DeleteUserRequest {
+  // id represents user's id.
+  string id = 1;
+}
+
+// DeleteUserResponse represents response from delete user.
+message DeleteUserResponse {
+}
+
+// GetAllUsersRequest represents request for get all users.
+message GetAllUsersRequest {
+  // limit specifies how many users to retrieve in a single call.
+  uint32 limit = 1;
+}
+
+// GetAllUsersResponse represents response from get all users.
+message GetAllUsersResponse {
+  // data represents an array of user data.
+  repeated User data = 1;
 }
 
 // User represents a user data.
@@ -131,5 +200,5 @@ enum UserErrorCode {
   USER_ERROR_CODE_INVALID_EMAIL = 5;
 
   // User' not found.
-  USER_ERROR_CODE_USER_NOT_FOUND = 6;
+  USER_ERROR_CODE_NOT_FOUND = 6;
 }

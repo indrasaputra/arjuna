@@ -118,10 +118,10 @@ func TestUserRegistrator_Register(t *testing.T) {
 }
 
 func createUserRegistratorExecutor(ctrl *gomock.Controller) *UserRegistratorExecutor {
-	repo := mock_service.NewMockRegisterUserRepository(ctrl)
-	reg := service.NewUserRegistrator(repo)
+	r := mock_service.NewMockRegisterUserRepository(ctrl)
+	rg := service.NewUserRegistrator(r)
 	return &UserRegistratorExecutor{
-		registrator: reg,
-		repo:        repo,
+		registrator: rg,
+		repo:        r,
 	}
 }
