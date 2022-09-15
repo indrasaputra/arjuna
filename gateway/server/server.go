@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -11,6 +12,7 @@ import (
 
 const (
 	grpcGatewayServerName = "grpc-gateway server"
+	defaultTimeout        = 3 * time.Second
 )
 
 // GrpcGateway is responsible to act as HTTP/1.1 server.
@@ -63,7 +65,12 @@ func (gg *GrpcGateway) Serve() error {
 			return err
 		}
 	}
-	return http.ListenAndServe(fmt.Sprintf(":%s", gg.port), allowCORS(gg.mux))
+	server := &http.Server{
+		Addr:        fmt.Sprintf(":%s", gg.port),
+		ReadTimeout: defaultTimeout,
+		Handler:     allowCORS(gg.mux),
+	}
+	return server.ListenAndServe()
 }
 
 // AttachService attaches service to gRPC Gateway server.

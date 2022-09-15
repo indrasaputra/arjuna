@@ -1,11 +1,11 @@
 version: v1
-name: buf.build/indrasaputra/arjuna-user
+name: buf.build/indrasaputra/arjuna-auth
 breaking:
   use:
     - FILE
 lint:
   use:
-    - BASIC
+    - DEFAULT
 deps:
   - buf.build/googleapis/googleapis
   - buf.build/grpc-ecosystem/grpc-gateway

@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -61,7 +61,7 @@ func TestClient_LoginAdmin(t *testing.T) {
 	})
 
 	t.Run("fail decode response", func(t *testing.T) {
-		body := ioutil.NopCloser(strings.NewReader("something"))
+		body := io.NopCloser(strings.NewReader("something"))
 
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{Body: body}, nil)
@@ -74,7 +74,7 @@ func TestClient_LoginAdmin(t *testing.T) {
 
 	t.Run("success login admin", func(t *testing.T) {
 		jwt, _ := json.Marshal(&keycloak.JWT{})
-		body := ioutil.NopCloser(bytes.NewReader(jwt))
+		body := io.NopCloser(bytes.NewReader(jwt))
 
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{Body: body}, nil)
@@ -91,7 +91,7 @@ func TestClient_CreateRealm(t *testing.T) {
 	defer ctrl.Finish()
 
 	realm := &keycloak.RealmRepresentation{}
-	body := ioutil.NopCloser(bytes.NewReader([]byte(`{}`)))
+	body := io.NopCloser(bytes.NewReader([]byte(`{}`)))
 
 	t.Run("doer returns error", func(t *testing.T) {
 		exec := createClientExecutor(ctrl)
@@ -126,7 +126,7 @@ func TestClient_CreateClient(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := &keycloak.ClientRepresentation{}
-	body := ioutil.NopCloser(bytes.NewReader([]byte(`{}`)))
+	body := io.NopCloser(bytes.NewReader([]byte(`{}`)))
 
 	t.Run("doer returns error", func(t *testing.T) {
 		exec := createClientExecutor(ctrl)
@@ -161,7 +161,7 @@ func TestClient_CreateUser(t *testing.T) {
 	defer ctrl.Finish()
 
 	user := &keycloak.UserRepresentation{}
-	body := ioutil.NopCloser(bytes.NewReader([]byte(`{}`)))
+	body := io.NopCloser(bytes.NewReader([]byte(`{}`)))
 
 	t.Run("doer returns error", func(t *testing.T) {
 		exec := createClientExecutor(ctrl)
@@ -218,7 +218,7 @@ func TestClient_DeleteUser(t *testing.T) {
 	})
 
 	t.Run("success delete user", func(t *testing.T) {
-		body := ioutil.NopCloser(bytes.NewReader([]byte(`{}`)))
+		body := io.NopCloser(bytes.NewReader([]byte(`{}`)))
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusNoContent, Body: body}, nil)
 
@@ -245,7 +245,7 @@ func TestClient_GetUserByEmail(t *testing.T) {
 	})
 
 	t.Run("user not found", func(t *testing.T) {
-		body := ioutil.NopCloser(bytes.NewReader([]byte(`{}`)))
+		body := io.NopCloser(bytes.NewReader([]byte(`{}`)))
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusOK, Body: body}, nil)
 
@@ -256,7 +256,7 @@ func TestClient_GetUserByEmail(t *testing.T) {
 	})
 
 	t.Run("success find user", func(t *testing.T) {
-		body := ioutil.NopCloser(bytes.NewReader([]byte(`[{"id": "abc", "email": "admin@arjuna.com"}]`)))
+		body := io.NopCloser(bytes.NewReader([]byte(`[{"id": "abc", "email": "admin@arjuna.com"}]`)))
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusOK, Body: body}, nil)
 
@@ -282,7 +282,7 @@ func TestClient_GetAllUsers(t *testing.T) {
 	})
 
 	t.Run("success get all users", func(t *testing.T) {
-		body := ioutil.NopCloser(bytes.NewReader([]byte(`[{"id": "5c44f049-8ab2-4d0f-b41d-7b08f467e817"}]`)))
+		body := io.NopCloser(bytes.NewReader([]byte(`[{"id": "5c44f049-8ab2-4d0f-b41d-7b08f467e817"}]`)))
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusOK, Body: body}, nil)
 

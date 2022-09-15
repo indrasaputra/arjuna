@@ -1,4 +1,4 @@
 FROM nginx:1.21
 
 COPY ../blueprint/index.html /usr/share/nginx/html/index.html
-COPY ../openapiv2/api/v1/user.swagger.json /usr/share/nginx/html/api/user.swagger.json
+COPY ../openapiv2/arjuna.swagger.json /usr/share/nginx/html/api/arjuna.swagger.json

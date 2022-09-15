@@ -1,0 +1,101 @@
+// auth.proto defines service for auth.
+syntax = "proto3";
+
+package api.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option go_package = "github.com/indrasaputra/arjuna/service/auth/api/v1;apiv1";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info : {
+    title : "Auth API",
+    version : "1.0.0",
+    contact : {
+      name : "Indra Saputra",
+      url : "https://github.com/indrasaputra",
+    },
+    license : {
+      name : "BSD 3-Clause License",
+      url : "https://github.com/indrasaputra/arjuna/blob/main/LICENSE",
+    },
+  },
+  host : "localhost:8000",
+  schemes : HTTP,
+  consumes : "application/json",
+  produces : "application/json",
+};
+
+// AuthService provides all use cases to work with auth.
+service AuthService {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+    description : "This service provides all use cases to work with auth."
+  };
+
+  // Login.
+  //
+  // This endpoint logs in a user.
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post : "/v1/auth/login",
+      body : "credential"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id : "Login",
+      tags : "Auth"
+    };
+  };
+}
+
+// LoginRequest represents request for login.
+message LoginRequest {
+  // credential represents credential for login.
+  Credential credential = 1;
+}
+
+// LoginResponse represents response from login.
+message LoginResponse {
+  // data represents token.
+  Token data = 1;
+}
+
+// Credential represents login credential.
+message Credential {
+  // email represents user's email.
+  string email = 1;
+  // password represents user's password.
+  string password = 2;
+}
+
+// Token represents token.
+message Token {
+  // access_token represents an access token.
+  string access_token = 1 [ (google.api.field_behavior) = OUTPUT_ONLY ];
+  // access_token_expires_in represents how many seconds left before access token expired.
+  uint32 access_token_expires_in = 2 [ (google.api.field_behavior) = OUTPUT_ONLY ];
+  // refresh_token represents an refresh token.
+  string refresh_token = 3 [ (google.api.field_behavior) = OUTPUT_ONLY ];
+  // refresh_token_expires_in represents how many seconds left before refresh token expired.
+  uint32 refresh_token_expires_in = 4 [ (google.api.field_behavior) = OUTPUT_ONLY ];
+  // token_type represents the type of token.
+  string token_type = 5 [ (google.api.field_behavior) = OUTPUT_ONLY ];
+}
+
+// AuthError represents message for any error happening in auth service.
+message AuthError {
+  // error_code represents specific and unique error code for auth.
+  AuthErrorCode error_code = 1;
+}
+
+// AuthErrorCode enumerates auth error code.
+enum AuthErrorCode {
+  // Default enum code according to
+  // https://medium.com/@akhaku/protobuf-definition-best-practices-87f281576f31.
+  AUTH_ERROR_CODE_UNSPECIFIED = 0;
+
+  // Unexpected behavior occured in system.
+  AUTH_ERROR_CODE_INTERNAL = 1;
+}

@@ -45,9 +45,9 @@ func newGrpcServer(port string, options ...grpc.ServerOption) *GrpcServer {
 // NewGrpcServer creates an instance of GrpcServer for used in development environment.
 //
 // These are list of interceptors that are attached (from innermost to outermost):
-// 	- Metrics, using Prometheus.
-// 	- Logging, using zap logger.
-// 	- Recoverer, using grpcrecovery.
+//   - Metrics, using Prometheus.
+//   - Logging, using zap logger.
+//   - Recoverer, using grpcrecovery.
 func NewGrpcServer(port string) *GrpcServer {
 	options := grpcmiddleware.WithUnaryServerChain(defaultUnaryServerInterceptors()...)
 	srv := newGrpcServer(port, options)
