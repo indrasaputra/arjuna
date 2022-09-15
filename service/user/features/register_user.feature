@@ -94,3 +94,27 @@ Feature: Create new user
             | {"email": "b@b.com", "password": "b", "name": "b"} |
             | {"email": "c@c.com", "password": "c", "name": "c"} |
         Then response status code must be 200
+
+    Scenario: Create new users but already exists
+        Given there are users with
+            | {"email": "a@a.com", "password": "a", "name": "a"} |
+            | {"email": "b@b.com", "password": "b", "name": "b"} |
+            | {"email": "c@c.com", "password": "c", "name": "c"} |
+        When I register user with body
+            | {"email": "a@a.com", "password": "a", "name": "a"} |
+            | {"email": "b@b.com", "password": "b", "name": "b"} |
+            | {"email": "c@c.com", "password": "c", "name": "c"} |
+        Then response status code must be 409
+        And response must match json
+            """
+            {
+                "code": 6,
+                "message": "",
+                "details": [
+                    {
+                        "@type": "type.googleapis.com/api.v1.UserError",
+                        "errorCode": "USER_ERROR_CODE_ALREADY_EXISTS"
+                    }
+                ]
+            }
+            """
