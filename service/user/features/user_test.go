@@ -32,7 +32,8 @@ var (
 )
 
 type User struct {
-	ID string `json:"id"`
+	ID    string `json:"id"`
+	Email string `json:"email"`
 }
 
 type GetAllUsersResponse struct {
@@ -85,8 +86,11 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^there are users with$`, thereAreUsersWith)
 	ctx.Step(`^the user is empty$`, theUserIsEmpty)
 	ctx.Step(`^I register user with body$`, iRegisterUserWithBody)
+	ctx.Step(`^I get all users$`, iGetAllUsers)
 	ctx.Step(`^response status code must be (\d+)$`, responseStatusCodeMustBe)
 	ctx.Step(`^response must match json$`, responseMustMatchJSON)
+	ctx.Step(`^email must match$`, emailMustMatch)
+	ctx.Step(`^number of users must be (\d+)$`, numberOfUsersMustBe)
 }
 
 func theUserIsEmpty() error {
@@ -107,6 +111,10 @@ func iRegisterUserWithBody(requests *godog.Table) error {
 	return nil
 }
 
+func iGetAllUsers() error {
+	return callRestEndpoint(http.MethodGet, userRestURL, nil)
+}
+
 func responseStatusCodeMustBe(code int) error {
 	if httpStatus != code {
 		return fmt.Errorf("expected HTTP status code %d, but got %d", code, httpStatus)
@@ -116,6 +124,34 @@ func responseStatusCodeMustBe(code int) error {
 
 func responseMustMatchJSON(want *godog.DocString) error {
 	return deepCompareJSON([]byte(want.Content), httpBody)
+}
+
+func emailMustMatch(emails *godog.Table) error {
+	var res *GetAllUsersResponse
+	_ = json.Unmarshal(httpBody, &res)
+
+	users := make(map[string]bool)
+	for _, u := range res.Data {
+		users[u.Email] = true
+	}
+
+	for _, row := range emails.Rows {
+		email := row.Cells[0].Value
+		if !users[email] {
+			return fmt.Errorf("expected email %s can't be found", email)
+		}
+	}
+	return nil
+}
+
+func numberOfUsersMustBe(n int) error {
+	var res *GetAllUsersResponse
+	_ = json.Unmarshal(httpBody, &res)
+
+	if len(res.Data) != n {
+		return fmt.Errorf("expected length %d, but got %d", n, len(res.Data))
+	}
+	return nil
 }
 
 func deleteAllUsers() error {
