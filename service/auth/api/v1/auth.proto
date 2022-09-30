@@ -68,6 +68,8 @@ message Credential {
   string email = 1;
   // password represents user's password.
   string password = 2;
+  // client_id represents client ID.
+  string client_id = 3;
 }
 
 // Token represents token.
@@ -98,4 +100,13 @@ enum AuthErrorCode {
 
   // Unexpected behavior occured in system.
   AUTH_ERROR_CODE_INTERNAL = 1;
+
+  // Mandatory field is empty.
+  AUTH_ERROR_CODE_EMPTY_FIELD = 2;
+
+  // Unauthorized.
+  AUTH_ERROR_CODE_UNAUTHORIZED = 3;
+
+  // Some arguments must be invalid.
+  AUTH_ERROR_CODE_INVALID_ARGUMENT = 4;
 }
