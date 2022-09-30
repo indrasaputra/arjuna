@@ -3,6 +3,7 @@ package keycloak_test
 import (
 	"context"
 	"errors"
+	"net/http"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -109,7 +110,7 @@ func TestUser_Create(t *testing.T) {
 	t.Run("user already exists", func(t *testing.T) {
 		exec := createUserExecutor(ctrl)
 		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(testJWT, nil)
-		exec.client.EXPECT().CreateUser(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(kcsdk.ErrConflict)
+		exec.client.EXPECT().CreateUser(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(kcsdk.NewError(http.StatusConflict, ""))
 
 		id, err := exec.user.Create(testCtx, user)
 
@@ -144,7 +145,7 @@ func TestUser_Create(t *testing.T) {
 		exec := createUserExecutor(ctrl)
 		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(testJWT, nil)
 		exec.client.EXPECT().CreateUser(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(nil)
-		exec.client.EXPECT().GetUserByEmail(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(nil, kcsdk.ErrUserNotFound)
+		exec.client.EXPECT().GetUserByEmail(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(nil, kcsdk.NewError(http.StatusNotFound, ""))
 
 		id, err := exec.user.Create(testCtx, user)
 
@@ -183,7 +184,7 @@ func TestUser_HardDelete(t *testing.T) {
 	t.Run("delete user returns error", func(t *testing.T) {
 		exec := createUserExecutor(ctrl)
 		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(testJWT, nil)
-		exec.client.EXPECT().DeleteUser(testCtx, testJWT.AccessToken, exec.config.Realm, id).Return(kcsdk.ErrUnknown)
+		exec.client.EXPECT().DeleteUser(testCtx, testJWT.AccessToken, exec.config.Realm, id).Return(kcsdk.NewError(http.StatusInternalServerError, ""))
 
 		err := exec.user.HardDelete(testCtx, id)
 
