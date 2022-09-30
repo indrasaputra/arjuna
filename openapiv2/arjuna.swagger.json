@@ -62,7 +62,7 @@
         },
         "parameters": [
           {
-            "name": "credential",
+            "name": "body",
             "description": "credential represents credential for login.",
             "in": "body",
             "required": true,
@@ -131,7 +131,7 @@
         },
         "parameters": [
           {
-            "name": "user",
+            "name": "body",
             "description": "user represents user data.",
             "in": "body",
             "required": true,
@@ -217,6 +217,10 @@
         "password": {
           "type": "string",
           "description": "password represents user's password."
+        },
+        "clientId": {
+          "type": "string",
+          "description": "client_id represents client ID."
         }
       },
       "description": "Credential represents login credential."
@@ -303,7 +307,10 @@
           "type": "string",
           "example": "email@company.com",
           "description": "user's email",
-          "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
+          "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
+          "required": [
+            "email"
+          ]
         },
         "password": {
           "type": "string",
