@@ -34,6 +34,9 @@ func registerGrpcGatewayService(ctx context.Context, gatewayServer *server.GrpcG
 		if err := apiv1.RegisterUserQueryServiceHandlerFromEndpoint(ctx, server, cfg.UserServiceAddress, options); err != nil {
 			return err
 		}
+		if err := apiv1.RegisterAuthServiceHandlerFromEndpoint(ctx, server, cfg.AuthServiceAddress, options); err != nil {
+			return err
+		}
 		return nil
 	})
 }
