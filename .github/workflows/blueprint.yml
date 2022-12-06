@@ -1,0 +1,37 @@
+name: Blueprint - CI
+
+on:
+  push:
+    paths:
+      - '.github/workflows/blueprint.yml'
+      - 'openapiv2/**'
+      - 'proto/**'
+      - 'blueprint/**'
+  pull_request:
+    paths:
+      - '.github/workflows/blueprint.yml'
+      - 'openapiv2/**'
+      - 'proto/**'
+      - 'blueprint/**'
+
+jobs:
+  general-quality-check:
+    name: General quality check
+    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@main
+
+  build-push-docker:
+    name: Build and push docker
+    needs: [general-quality-check]
+    uses: indrasaputra/arjuna/.github/workflows/reusable-html-build-ci.yml@ci-for-blueprint
+    with:
+      filters: |
+        changed:
+          - '.github/workflows/blueprint.yml'
+          - 'openapiv2/**'
+          - 'proto/**'
+          - 'blueprint/**'
+      service: blueprint
+      dockerfile: ./blueprint/dockerfile/blueprint.dockerfile
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
