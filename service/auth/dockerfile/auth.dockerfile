@@ -1,5 +1,5 @@
 FROM golang:1.18 AS builder
-ARG SERVICE=user
+ARG SERVICE=auth
 ARG OUTPUT_DIR=deploy/output
 WORKDIR /app
 COPY . .
@@ -12,7 +12,7 @@ RUN WAIT_FOR_VERSION=v2.1.2 && \
     chmod +x /bin/wait-for
 
 FROM alpine:3.16
-ARG SERVICE=user
+ARG SERVICE=auth
 ARG OUTPUT_DIR=deploy/output
 WORKDIR /app
 COPY --from=builder /bin/grpc_health_probe ./grpc_health_probe
@@ -21,4 +21,4 @@ COPY --from=builder /app/service/${SERVICE}/${OUTPUT_DIR}/${SERVICE} .
 COPY --from=builder /app/tool/script/start.sh ./start.sh
 RUN chmod +x /app/start.sh /app/wait-for /app/${SERVICE}
 EXPOSE 8001
-CMD ["./start.sh", "user"]
+CMD ["./start.sh", "auth"]

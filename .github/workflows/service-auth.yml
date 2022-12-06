@@ -1,0 +1,75 @@
+name: Auth service - CI
+
+on:
+  push:
+    paths:
+      - '.github/workflows/reusable-general-quality-ci.yml'
+      - '.github/workflows/reusable-go-build-ci.yml'
+      - '.github/workflows/reusable-go-quality-ci.yml'
+      - '.github/workflows/service-auth.yml'
+      - 'pkg/**'
+      - 'openapiv2/**'
+      - 'proto/**'
+      - 'tool/**'
+      - 'gateway/**'
+      - 'service/auth/**'
+  pull_request:
+    paths:
+      - '.github/workflows/reusable-general-quality-ci.yml'
+      - '.github/workflows/reusable-go-build-ci.yml'
+      - '.github/workflows/reusable-go-quality-ci.yml'
+      - '.github/workflows/service-auth.yml'
+      - 'pkg/**'
+      - 'openapiv2/**'
+      - 'proto/**'
+      - 'tool/**'
+      - 'gateway/**'
+      - 'service/auth/**'
+
+jobs:
+  general-quality-check:
+    name: General quality check
+    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@main
+
+  go-code-quality:
+    name: Go code quality check
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@main
+    with:
+      filters: |
+        changed:
+          - '.github/workflows/reusable-general-quality-ci.yml'
+          - '.github/workflows/reusable-go-build-ci.yml'
+          - '.github/workflows/reusable-go-quality-ci.yml'
+          - '.github/workflows/service-auth.yml'
+          - 'pkg/**'
+          - 'openapiv2/**'
+          - 'proto/**'
+          - 'tool/**'
+          - 'gateway/**'
+          - 'service/auth/**'
+      target: service/auth
+
+  build-push-docker:
+    name: Build and push docker
+    needs: [general-quality-check, go-code-quality]
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-build-ci.yml@main
+    with:
+      filters: |
+        changed:
+          - '.github/workflows/reusable-general-quality-ci.yml'
+          - '.github/workflows/reusable-go-build-ci.yml'
+          - '.github/workflows/reusable-go-quality-ci.yml'
+          - '.github/workflows/service-auth.yml'
+          - 'pkg/**'
+          - 'openapiv2/**'
+          - 'proto/**'
+          - 'tool/**'
+          - 'gateway/**'
+          - 'service/auth/**'
+      target: service/auth
+      service: auth
+      dockerfile: ./service/auth/dockerfile/auth.dockerfile
+      need_go_binary: true
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
