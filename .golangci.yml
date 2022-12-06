@@ -6,7 +6,7 @@ run:
 linters:
   enable:
     - bodyclose
-    - deadcode
+    # - deadcode // abandoned by owner
     - depguard
     - dogsled
     - dupl
@@ -34,15 +34,15 @@ linters:
     - nolintlint
     - prealloc
     - revive
-    - rowserrcheck
+    # - rowserrcheck // disabled due to generics
     - staticcheck
-    - structcheck
+    # - structcheck // abandoned by owner, disabled due to generics
     - stylecheck
     - typecheck
     - unconvert
     - unparam
     - unused
-    - varcheck
+    # - varcheck // abandoned by owner
     - whitespace
 
 linters-settings:

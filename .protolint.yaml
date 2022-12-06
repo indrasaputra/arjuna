@@ -16,3 +16,4 @@ lint:
     field_names_exclude_prepositions:
       excludes:
         - at
+        - in

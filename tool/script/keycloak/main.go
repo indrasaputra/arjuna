@@ -1,3 +1,4 @@
+// Server main program.
 package main
 
 import (
@@ -17,13 +18,13 @@ const (
 	arjunaRealm           = "arjuna"
 	arjunaClientID        = "arjuna-client"
 	arjunaClientName      = "Arjuna Client"
-	arjunaClientSecret    = "arjuna-secret"
-	arjunaClientRootURL   = "https://www.keycloak.org/app/"
 	arjunaUserUsername    = "arjunauser"
 	arjunaUserPassword    = "arjunapassword"
 	arjunaUserFirstName   = "First"
 	arjunaUserLastName    = "User"
 	arjunaUserEmail       = "user.first@arjuna.com"
+
+	thirtyMinutes = 1800
 )
 
 func main() {
@@ -52,9 +53,10 @@ func main() {
 // CreateArjunaRealm creates realm arjuna.
 func CreateArjunaRealm(ctx context.Context, client *keycloak.Client, token string) error {
 	realm := &keycloak.RealmRepresentation{
-		ID:      arjunaRealm,
-		Realm:   arjunaRealm,
-		Enabled: true,
+		ID:                  arjunaRealm,
+		Realm:               arjunaRealm,
+		Enabled:             true,
+		AccessTokenLifespan: thirtyMinutes,
 	}
 	return client.CreateRealm(ctx, token, realm)
 }
@@ -65,10 +67,8 @@ func CreateArjunaClient(ctx context.Context, client *keycloak.Client, token stri
 		ClientID:     arjunaClientID,
 		Name:         arjunaClientName,
 		Enabled:      true,
-		RootURL:      arjunaClientRootURL,
 		Protocol:     protocolOpenidConnect,
-		PublicClient: false,
-		Secret:       arjunaClientSecret,
+		PublicClient: true,
 	}
 	return client.CreateClient(ctx, token, arjunaRealm, cl)
 }

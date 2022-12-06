@@ -1,4 +1,4 @@
-FROM golang:1.17 AS builder
+FROM golang:1.18 AS builder
 ARG SERVICE=user
 ARG OUTPUT_DIR=deploy/output
 WORKDIR /app
@@ -11,7 +11,7 @@ RUN WAIT_FOR_VERSION=v2.1.2 && \
     wget -qO/bin/wait-for https://github.com/eficode/wait-for/releases/download/${WAIT_FOR_VERSION}/wait-for && \
     chmod +x /bin/wait-for
 
-FROM alpine:3.13
+FROM alpine:3.16
 ARG SERVICE=user
 ARG OUTPUT_DIR=deploy/output
 WORKDIR /app

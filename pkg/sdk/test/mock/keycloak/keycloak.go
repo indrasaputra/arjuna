@@ -175,3 +175,18 @@ func (mr *MockKeycloakMockRecorder) LoginAdmin(ctx, username, password interface
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoginAdmin", reflect.TypeOf((*MockKeycloak)(nil).LoginAdmin), ctx, username, password)
 }
+
+// LoginUser mocks base method.
+func (m *MockKeycloak) LoginUser(ctx context.Context, realm, clientID, email, password string) (*keycloak.JWT, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoginUser", ctx, realm, clientID, email, password)
+	ret0, _ := ret[0].(*keycloak.JWT)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoginUser indicates an expected call of LoginUser.
+func (mr *MockKeycloakMockRecorder) LoginUser(ctx, realm, clientID, email, password interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoginUser", reflect.TypeOf((*MockKeycloak)(nil).LoginUser), ctx, realm, clientID, email, password)
+}

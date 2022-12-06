@@ -3,6 +3,8 @@ package keycloak
 import (
 	"context"
 	"errors"
+	"log"
+	"net/http"
 	"strings"
 
 	kcsdk "github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
@@ -128,10 +130,16 @@ func createUserRepresentation(user *entity.User) *kcsdk.UserRepresentation {
 }
 
 func decideError(err error) error {
-	switch err {
-	case kcsdk.ErrConflict:
+	kcerr, ok := err.(*kcsdk.Error)
+	if !ok {
+		log.Printf("[UserService-Repository] unknown error from keycloak: %v\n", err)
+		return entity.ErrInternal(err.Error())
+	}
+
+	switch kcerr.Code {
+	case http.StatusConflict:
 		return entity.ErrAlreadyExists()
-	case kcsdk.ErrUserNotFound:
+	case http.StatusNotFound:
 		return entity.ErrNotFound()
 	default:
 		return entity.ErrInternal(err.Error())

@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -31,6 +31,24 @@ var (
 type ClientExecutor struct {
 	client *keycloak.Client
 	doer   *mock_keycloak.MockDoer
+}
+
+func TestNewError(t *testing.T) {
+	t.Run("success create an instance of Error", func(t *testing.T) {
+		err := keycloak.NewError(http.StatusInternalServerError, "internal server error")
+		assert.NotNil(t, err)
+	})
+}
+
+func TestError_Error(t *testing.T) {
+	t.Run("success implement error interface", func(t *testing.T) {
+		err := keycloak.NewError(http.StatusInternalServerError, "internal server error")
+
+		_, ok := interface{}(err).(error)
+
+		assert.True(t, ok)
+		assert.Equal(t, "internal server error", err.Error())
+	})
 }
 
 func TestNewClient(t *testing.T) {
@@ -60,11 +78,35 @@ func TestClient_LoginAdmin(t *testing.T) {
 		assert.Nil(t, res)
 	})
 
-	t.Run("fail decode response", func(t *testing.T) {
-		body := ioutil.NopCloser(strings.NewReader("something"))
+	t.Run("keycloak returns undecoded error", func(t *testing.T) {
+		body := io.NopCloser(strings.NewReader("error"))
 
 		exec := createClientExecutor(ctrl)
-		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{Body: body}, nil)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{Body: body, StatusCode: http.StatusBadRequest}, nil)
+
+		res, err := exec.client.LoginAdmin(testCtx, username, password)
+
+		assert.Error(t, err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("keycloak returns bad request code", func(t *testing.T) {
+		body := io.NopCloser(strings.NewReader(`{"error": "error", "error_description": "desc"}`))
+
+		exec := createClientExecutor(ctrl)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{Body: body, StatusCode: http.StatusBadRequest}, nil)
+
+		res, err := exec.client.LoginAdmin(testCtx, username, password)
+
+		assert.Error(t, err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("fail decode response", func(t *testing.T) {
+		body := io.NopCloser(strings.NewReader("something"))
+
+		exec := createClientExecutor(ctrl)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{Body: body, StatusCode: http.StatusOK}, nil)
 
 		res, err := exec.client.LoginAdmin(testCtx, username, password)
 
@@ -74,12 +116,80 @@ func TestClient_LoginAdmin(t *testing.T) {
 
 	t.Run("success login admin", func(t *testing.T) {
 		jwt, _ := json.Marshal(&keycloak.JWT{})
-		body := ioutil.NopCloser(bytes.NewReader(jwt))
+		body := io.NopCloser(bytes.NewReader(jwt))
 
 		exec := createClientExecutor(ctrl)
-		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{Body: body}, nil)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{Body: body, StatusCode: http.StatusOK}, nil)
 
 		res, err := exec.client.LoginAdmin(testCtx, username, password)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, res)
+	})
+}
+
+func TestClient_LoginUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	clientID := "clientID"
+	username := "username"
+	password := "password"
+
+	t.Run("doer returns error", func(t *testing.T) {
+		exec := createClientExecutor(ctrl)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(nil, errGeneric)
+
+		res, err := exec.client.LoginUser(testCtx, realmArjuna, clientID, username, password)
+
+		assert.Error(t, err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("keycloak returns undecoded error", func(t *testing.T) {
+		body := io.NopCloser(strings.NewReader("error"))
+
+		exec := createClientExecutor(ctrl)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{Body: body, StatusCode: http.StatusBadRequest}, nil)
+
+		res, err := exec.client.LoginUser(testCtx, realmArjuna, clientID, username, password)
+
+		assert.Error(t, err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("keycloak returns bad request code", func(t *testing.T) {
+		body := io.NopCloser(strings.NewReader(`{"error": "error", "error_description": "desc"}`))
+
+		exec := createClientExecutor(ctrl)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{Body: body, StatusCode: http.StatusBadRequest}, nil)
+
+		res, err := exec.client.LoginUser(testCtx, realmArjuna, clientID, username, password)
+
+		assert.Error(t, err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("fail decode response", func(t *testing.T) {
+		body := io.NopCloser(strings.NewReader("something"))
+
+		exec := createClientExecutor(ctrl)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{Body: body, StatusCode: http.StatusOK}, nil)
+
+		res, err := exec.client.LoginUser(testCtx, realmArjuna, clientID, username, password)
+
+		assert.Error(t, err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("success login user", func(t *testing.T) {
+		jwt, _ := json.Marshal(&keycloak.JWT{})
+		body := io.NopCloser(bytes.NewReader(jwt))
+
+		exec := createClientExecutor(ctrl)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{Body: body, StatusCode: http.StatusOK}, nil)
+
+		res, err := exec.client.LoginUser(testCtx, realmArjuna, clientID, username, password)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, res)
@@ -91,11 +201,20 @@ func TestClient_CreateRealm(t *testing.T) {
 	defer ctrl.Finish()
 
 	realm := &keycloak.RealmRepresentation{}
-	body := ioutil.NopCloser(bytes.NewReader([]byte(`{}`)))
+	body := io.NopCloser(bytes.NewReader([]byte(`{}`)))
 
 	t.Run("doer returns error", func(t *testing.T) {
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(nil, errGeneric)
+
+		err := exec.client.CreateRealm(testCtx, token, realm)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("unauthorized request", func(t *testing.T) {
+		exec := createClientExecutor(ctrl)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusUnauthorized, Body: body}, nil)
 
 		err := exec.client.CreateRealm(testCtx, token, realm)
 
@@ -126,7 +245,7 @@ func TestClient_CreateClient(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := &keycloak.ClientRepresentation{}
-	body := ioutil.NopCloser(bytes.NewReader([]byte(`{}`)))
+	body := io.NopCloser(bytes.NewReader([]byte(`{}`)))
 
 	t.Run("doer returns error", func(t *testing.T) {
 		exec := createClientExecutor(ctrl)
@@ -161,7 +280,7 @@ func TestClient_CreateUser(t *testing.T) {
 	defer ctrl.Finish()
 
 	user := &keycloak.UserRepresentation{}
-	body := ioutil.NopCloser(bytes.NewReader([]byte(`{}`)))
+	body := io.NopCloser(bytes.NewReader([]byte(`{}`)))
 
 	t.Run("doer returns error", func(t *testing.T) {
 		exec := createClientExecutor(ctrl)
@@ -179,7 +298,6 @@ func TestClient_CreateUser(t *testing.T) {
 		err := exec.client.CreateUser(testCtx, token, realmArjuna, user)
 
 		assert.Error(t, err)
-		assert.Equal(t, keycloak.ErrConflict, err)
 	})
 
 	t.Run("keycloak doesn't respond with 201 status code", func(t *testing.T) {
@@ -189,7 +307,6 @@ func TestClient_CreateUser(t *testing.T) {
 		err := exec.client.CreateUser(testCtx, token, realmArjuna, user)
 
 		assert.Error(t, err)
-		assert.Equal(t, keycloak.ErrUnknown, err)
 	})
 
 	t.Run("successfully create a new user", func(t *testing.T) {
@@ -210,7 +327,7 @@ func TestClient_DeleteUser(t *testing.T) {
 
 	t.Run("delete api returns error", func(t *testing.T) {
 		exec := createClientExecutor(ctrl)
-		exec.doer.EXPECT().Do(gomock.Any()).Return(nil, keycloak.ErrUnknown)
+		exec.doer.EXPECT().Do(gomock.Any()).Return(nil, errors.New("error"))
 
 		err := exec.client.DeleteUser(testCtx, token, realmArjuna, id)
 
@@ -218,7 +335,7 @@ func TestClient_DeleteUser(t *testing.T) {
 	})
 
 	t.Run("success delete user", func(t *testing.T) {
-		body := ioutil.NopCloser(bytes.NewReader([]byte(`{}`)))
+		body := io.NopCloser(bytes.NewReader([]byte(`{}`)))
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusNoContent, Body: body}, nil)
 
@@ -245,7 +362,7 @@ func TestClient_GetUserByEmail(t *testing.T) {
 	})
 
 	t.Run("user not found", func(t *testing.T) {
-		body := ioutil.NopCloser(bytes.NewReader([]byte(`{}`)))
+		body := io.NopCloser(bytes.NewReader([]byte(`{}`)))
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusOK, Body: body}, nil)
 
@@ -256,7 +373,7 @@ func TestClient_GetUserByEmail(t *testing.T) {
 	})
 
 	t.Run("success find user", func(t *testing.T) {
-		body := ioutil.NopCloser(bytes.NewReader([]byte(`[{"id": "abc", "email": "admin@arjuna.com"}]`)))
+		body := io.NopCloser(bytes.NewReader([]byte(`[{"id": "abc", "email": "admin@arjuna.com"}]`)))
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusOK, Body: body}, nil)
 
@@ -282,7 +399,7 @@ func TestClient_GetAllUsers(t *testing.T) {
 	})
 
 	t.Run("success get all users", func(t *testing.T) {
-		body := ioutil.NopCloser(bytes.NewReader([]byte(`[{"id": "5c44f049-8ab2-4d0f-b41d-7b08f467e817"}]`)))
+		body := io.NopCloser(bytes.NewReader([]byte(`[{"id": "5c44f049-8ab2-4d0f-b41d-7b08f467e817"}]`)))
 		exec := createClientExecutor(ctrl)
 		exec.doer.EXPECT().Do(gomock.Any()).Return(&http.Response{StatusCode: http.StatusOK, Body: body}, nil)
 

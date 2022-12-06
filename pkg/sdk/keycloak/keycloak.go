@@ -4,25 +4,40 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
-)
-
-var (
-	// ErrConflict indicates error from HTTP status 409.
-	ErrConflict = errors.New("request conflict")
-	// ErrUnknown indicates undefined error. It returns HTTP status 500.
-	ErrUnknown = errors.New("unknown error")
-	// ErrUserNotFound indicates no user was found.
-	ErrUserNotFound = errors.New("user not found")
 )
 
 // Doer is an interface to be used as HTTP call.
 type Doer interface {
 	// Do does HTTP request.
 	Do(*http.Request) (*http.Response, error)
+}
+
+// Error defines keycloak error.
+type Error struct {
+	Message string
+	Code    int
+}
+
+// Error returns error message.
+func (e *Error) Error() string {
+	return e.Message
+}
+
+// NewError creates an instance of Error.
+func NewError(code int, message string) *Error {
+	return &Error{
+		Code:    code,
+		Message: message,
+	}
+}
+
+type keycloakErrorResponse struct {
+	Error       string `json:"error"`
+	Description string `json:"error_description"`
 }
 
 // JWT represents JWT.
@@ -40,9 +55,10 @@ type JWT struct {
 
 // RealmRepresentation represents Keycloak realm data structure.
 type RealmRepresentation struct {
-	ID      string `json:"id"`
-	Realm   string `json:"realm"`
-	Enabled bool   `json:"enabled"`
+	ID                  string `json:"id"`
+	Realm               string `json:"realm"`
+	Enabled             bool   `json:"enabled"`
+	AccessTokenLifespan int    `json:"accessTokenLifespan"`
 }
 
 // ClientRepresentation represents Keycloak client data structure.
@@ -78,6 +94,8 @@ type CredentialRepresentation struct {
 type Keycloak interface {
 	// LoginAdmin logs in as admin in Master realm.
 	LoginAdmin(ctx context.Context, username, password string) (*JWT, error)
+	// LoginUser logs in as user in preferred realm.
+	LoginUser(ctx context.Context, realm, clientID, email, password string) (*JWT, error)
 	// CreateRealm creates a realm. It needs admin's token.
 	CreateRealm(ctx context.Context, token string, realm *RealmRepresentation) error
 	// CreateClient creates a client. It needs admin's token.
@@ -111,22 +129,14 @@ func NewClient(doer Doer, baseURL string) *Client {
 func (c *Client) LoginAdmin(ctx context.Context, username, password string) (*JWT, error) {
 	url := fmt.Sprintf("%s/realms/%s/protocol/openid-connect/token", c.baseURL, "master")
 	payload := strings.NewReader(fmt.Sprintf("client_id=admin-cli&username=%s&password=%s&grant_type=password", username, password))
+	return c.doLogin(ctx, url, payload)
+}
 
-	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, url, payload)
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-	res, err := c.doer.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = res.Body.Close() }()
-
-	var jwt *JWT
-	err = json.NewDecoder(res.Body).Decode(&jwt)
-	if err != nil {
-		return nil, err
-	}
-	return jwt, nil
+// LoginUser logs in user.
+func (c *Client) LoginUser(ctx context.Context, realm, clientID, username, password string) (*JWT, error) {
+	url := fmt.Sprintf("%s/realms/%s/protocol/openid-connect/token", c.baseURL, realm)
+	payload := strings.NewReader(fmt.Sprintf("client_id=%s&username=%s&password=%s&grant_type=password", clientID, username, password))
+	return c.doLogin(ctx, url, payload)
 }
 
 // CreateRealm creates a new realm in Keycloak.
@@ -158,7 +168,7 @@ func (c *Client) GetUserByEmail(ctx context.Context, token string, realm string,
 		return nil, err
 	}
 	if len(users) == 0 {
-		return nil, ErrUserNotFound
+		return nil, NewError(http.StatusNotFound, "user not found")
 	}
 	return users[0], nil
 }
@@ -175,6 +185,28 @@ func (c *Client) GetAllUsers(ctx context.Context, token string, realm string) ([
 	return c.doGetUsers(ctx, token, http.MethodGet, url)
 }
 
+func (c *Client) doLogin(ctx context.Context, url string, payload io.Reader) (*JWT, error) {
+	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, url, payload)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	res, err := c.doer.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = res.Body.Close() }()
+
+	if res.StatusCode != http.StatusOK {
+		return nil, decideError(res)
+	}
+
+	var jwt *JWT
+	err = json.NewDecoder(res.Body).Decode(&jwt)
+	if err != nil {
+		return nil, err
+	}
+	return jwt, nil
+}
+
 func (c *Client) doRequestWithJSON(ctx context.Context, token, method, url string, payload []byte, expectedCode int) error {
 	req, _ := http.NewRequestWithContext(ctx, method, url, bytes.NewBuffer(payload))
 	req.Header.Add("Authorization", "Bearer "+token)
@@ -187,7 +219,7 @@ func (c *Client) doRequestWithJSON(ctx context.Context, token, method, url strin
 	defer func() { _ = res.Body.Close() }()
 
 	if res.StatusCode != expectedCode {
-		return decideError(res.StatusCode)
+		return decideError(res)
 	}
 	return nil
 }
@@ -207,11 +239,20 @@ func (c *Client) doGetUsers(ctx context.Context, token, method, url string) ([]*
 	return users, nil
 }
 
-func decideError(code int) error {
-	switch code {
+func decideError(res *http.Response) error {
+	var body keycloakErrorResponse
+	if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
+		return NewError(http.StatusInternalServerError, "problem with decoding json")
+	}
+
+	switch res.StatusCode {
 	case http.StatusConflict:
-		return ErrConflict
+		return NewError(http.StatusConflict, body.Description)
+	case http.StatusUnauthorized:
+		return NewError(http.StatusUnauthorized, body.Description)
+	case http.StatusBadRequest:
+		return NewError(http.StatusBadRequest, body.Description)
 	default:
-		return ErrUnknown
+		return NewError(http.StatusInternalServerError, "internal server error")
 	}
 }

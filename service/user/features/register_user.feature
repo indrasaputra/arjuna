@@ -17,7 +17,7 @@ Feature: Create new user
             }
             """
     
-    Scenario: Invalid json request body (ineteger)
+    Scenario: Invalid json request body (integer)
         Given the user is empty
         When I register user with body
             | integer |

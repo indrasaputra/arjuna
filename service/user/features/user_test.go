@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"reflect"
@@ -197,7 +196,7 @@ func callRestEndpoint(method, url string, body io.Reader) error {
 	}()
 
 	httpStatus = resp.StatusCode
-	httpBody, err = ioutil.ReadAll(resp.Body)
+	httpBody, err = io.ReadAll(resp.Body)
 	return err
 }
 

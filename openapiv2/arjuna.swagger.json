@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "User API",
+    "title": "Auth API",
     "version": "1.0.0",
     "contact": {
       "name": "Indra Saputra",
@@ -13,6 +13,10 @@
     }
   },
   "tags": [
+    {
+      "name": "AuthService",
+      "description": "This service provides all use cases to work with auth."
+    },
     {
       "name": "UserCommandService",
       "description": "This service provides basic command or state-changing use cases to work with user.A user is represented by an email as its unique identifier."
@@ -37,6 +41,41 @@
     "application/json"
   ],
   "paths": {
+    "/v1/auth/login": {
+      "post": {
+        "summary": "Login.",
+        "description": "This endpoint logs in a user.",
+        "operationId": "Login",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1LoginResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "credential represents credential for login.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1Credential"
+            }
+          }
+        ],
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/v1/users": {
       "get": {
         "summary": "Get all users.",
@@ -168,6 +207,24 @@
         }
       }
     },
+    "v1Credential": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "email represents user's email."
+        },
+        "password": {
+          "type": "string",
+          "description": "password represents user's password."
+        },
+        "clientId": {
+          "type": "string",
+          "description": "client_id represents client ID."
+        }
+      },
+      "description": "Credential represents login credential."
+    },
     "v1DeleteUserResponse": {
       "type": "object",
       "description": "DeleteUserResponse represents response from delete user."
@@ -185,6 +242,16 @@
       },
       "description": "GetAllUsersResponse represents response from get all users."
     },
+    "v1LoginResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/v1Token",
+          "description": "data represents token."
+        }
+      },
+      "description": "LoginResponse represents response from login."
+    },
     "v1RegisterUserResponse": {
       "type": "object",
       "properties": {
@@ -194,6 +261,39 @@
         }
       },
       "description": "RegisterUserResponse represents response from register user."
+    },
+    "v1Token": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string",
+          "description": "access_token represents an access token.",
+          "readOnly": true
+        },
+        "accessTokenExpiresIn": {
+          "type": "integer",
+          "format": "int64",
+          "description": "access_token_expires_in represents how many seconds left before access token expired.",
+          "readOnly": true
+        },
+        "refreshToken": {
+          "type": "string",
+          "description": "refresh_token represents an refresh token.",
+          "readOnly": true
+        },
+        "refreshTokenExpiresIn": {
+          "type": "integer",
+          "format": "int64",
+          "description": "refresh_token_expires_in represents how many seconds left before refresh token expired.",
+          "readOnly": true
+        },
+        "tokenType": {
+          "type": "string",
+          "description": "token_type represents the type of token.",
+          "readOnly": true
+        }
+      },
+      "description": "Token represents token."
     },
     "v1User": {
       "type": "object",
