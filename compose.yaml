@@ -71,7 +71,75 @@ services:
     command: ["go", "run", "main.go"]
     networks:
       - arjuna
-    
+
+  elasticsearch:
+    container_name: arjuna-elasticsearch
+    environment:
+      - cluster.routing.allocation.disk.threshold_enabled=true
+      - cluster.routing.allocation.disk.watermark.low=512mb
+      - cluster.routing.allocation.disk.watermark.high=256mb
+      - cluster.routing.allocation.disk.watermark.flood_stage=128mb
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms256m -Xmx256m
+      - xpack.security.enabled=false
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.4.3
+    ports:
+      - 9200:9200
+    networks:
+      - arjuna
+
+  temporal:
+    container_name: arjuna-temporal
+    depends_on:
+      - postgres
+      - elasticsearch
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=postgresuser
+      - POSTGRES_PWD=postgrespassword
+      - POSTGRES_SEEDS=postgres
+      - ENABLE_ES=true
+      - ES_SEEDS=elasticsearch
+      - ES_VERSION=v8
+    image: temporalio/auto-setup:1.18.5
+    ports:
+      - 7233:7233
+    networks:
+      - arjuna
+
+  temporal-admin-tools:
+    container_name: arjuna-temporal-admin-tools
+    image: temporalio/admin-tools:1.18.5
+    depends_on:
+      temporal:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "tctl cluster health"]
+      interval: 10s
+      timeout: 60s
+      retries: 10
+    environment:
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    stdin_open: true
+    tty: true
+    networks:
+      - arjuna
+
+  temporal-ui:
+    container_name: arjuna-temporal-ui
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+      - TEMPORAL_NOTIFY_ON_NEW_VERSION=false
+    image: temporalio/ui:2.8.3
+    ports:
+      - 8081:8080
+    networks:
+      - arjuna
+
   sqlpad:
     image: sqlpad/sqlpad:6.10
     container_name: arjuna-sqlpad
