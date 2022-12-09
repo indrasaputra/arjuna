@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
+	"go.temporal.io/sdk/client"
 
 	kcsdk "github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
@@ -15,6 +16,7 @@ import (
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/keycloak"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
+	"github.com/indrasaputra/arjuna/service/user/internal/workflow"
 )
 
 var (
@@ -26,23 +28,25 @@ type Dependency struct {
 	Config         *config.Config
 	PgxPool        *pgxpool.Pool
 	KeycloakClient kcsdk.Keycloak
+	TemporalClient client.Client
 }
 
 // BuildUserCommandHandler builds user command handler including all of its dependencies.
 func BuildUserCommandHandler(dep *Dependency) (*handler.UserCommand, error) {
-	kcConfig := &keycloak.Config{
-		Client:        dep.KeycloakClient,
-		Realm:         dep.Config.Keycloak.Realm,
-		AdminUsername: dep.Config.Keycloak.AdminUser,
-		AdminPassword: dep.Config.Keycloak.AdminPassword,
-	}
-	kc, err := keycloak.NewUser(kcConfig)
-	if err != nil {
-		return nil, err
-	}
-	pg := postgres.NewUser(dep.PgxPool)
-	regRepo := repository.NewUserRegistrator(kc, pg)
-	registrator := service.NewUserRegistrator(regRepo)
+	// kcConfig := &keycloak.Config{
+	// 	Client:        dep.KeycloakClient,
+	// 	Realm:         dep.Config.Keycloak.Realm,
+	// 	AdminUsername: dep.Config.Keycloak.AdminUser,
+	// 	AdminPassword: dep.Config.Keycloak.AdminPassword,
+	// }
+	// kc, err := keycloak.NewUser(kcConfig)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// pg := postgres.NewUser(dep.PgxPool)
+	wf := workflow.NewRegisterUserExecutor(dep.TemporalClient)
+	// regRepo := repository.NewUserRegistrator(kc, pg)
+	registrator := service.NewUserRegistrator(wf)
 	return handler.NewUserCommand(registrator), nil
 }
 
@@ -92,4 +96,9 @@ func BuildKeycloakClient(cfg config.Keycloak) kcsdk.Keycloak {
 	hc := &http.Client{Timeout: time.Duration(cfg.Timeout) * time.Second}
 	client := kcsdk.NewClient(hc, cfg.Address)
 	return client
+}
+
+func BuildTemporalClient() client.Client {
+	c, _ := client.Dial(client.Options{})
+	return c
 }

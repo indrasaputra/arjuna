@@ -11,6 +11,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 
 	entity "github.com/indrasaputra/arjuna/service/user/entity"
+	service "github.com/indrasaputra/arjuna/service/user/internal/service"
 )
 
 // MockRegisterUser is a mock of RegisterUser interface.
@@ -51,39 +52,40 @@ func (mr *MockRegisterUserMockRecorder) Register(ctx, user interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockRegisterUser)(nil).Register), ctx, user)
 }
 
-// MockRegisterUserRepository is a mock of RegisterUserRepository interface.
-type MockRegisterUserRepository struct {
+// MockRegisterUserWorkflow is a mock of RegisterUserWorkflow interface.
+type MockRegisterUserWorkflow struct {
 	ctrl     *gomock.Controller
-	recorder *MockRegisterUserRepositoryMockRecorder
+	recorder *MockRegisterUserWorkflowMockRecorder
 }
 
-// MockRegisterUserRepositoryMockRecorder is the mock recorder for MockRegisterUserRepository.
-type MockRegisterUserRepositoryMockRecorder struct {
-	mock *MockRegisterUserRepository
+// MockRegisterUserWorkflowMockRecorder is the mock recorder for MockRegisterUserWorkflow.
+type MockRegisterUserWorkflowMockRecorder struct {
+	mock *MockRegisterUserWorkflow
 }
 
-// NewMockRegisterUserRepository creates a new mock instance.
-func NewMockRegisterUserRepository(ctrl *gomock.Controller) *MockRegisterUserRepository {
-	mock := &MockRegisterUserRepository{ctrl: ctrl}
-	mock.recorder = &MockRegisterUserRepositoryMockRecorder{mock}
+// NewMockRegisterUserWorkflow creates a new mock instance.
+func NewMockRegisterUserWorkflow(ctrl *gomock.Controller) *MockRegisterUserWorkflow {
+	mock := &MockRegisterUserWorkflow{ctrl: ctrl}
+	mock.recorder = &MockRegisterUserWorkflowMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRegisterUserRepository) EXPECT() *MockRegisterUserRepositoryMockRecorder {
+func (m *MockRegisterUserWorkflow) EXPECT() *MockRegisterUserWorkflowMockRecorder {
 	return m.recorder
 }
 
-// Insert mocks base method.
-func (m *MockRegisterUserRepository) Insert(ctx context.Context, user *entity.User) error {
+// RegisterUser mocks base method.
+func (m *MockRegisterUserWorkflow) RegisterUser(ctx context.Context, input *service.RegisterUserInput) (*service.RegisterUserOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Insert", ctx, user)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "RegisterUser", ctx, input)
+	ret0, _ := ret[0].(*service.RegisterUserOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// Insert indicates an expected call of Insert.
-func (mr *MockRegisterUserRepositoryMockRecorder) Insert(ctx, user interface{}) *gomock.Call {
+// RegisterUser indicates an expected call of RegisterUser.
+func (mr *MockRegisterUserWorkflowMockRecorder) RegisterUser(ctx, input interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockRegisterUserRepository)(nil).Insert), ctx, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterUser", reflect.TypeOf((*MockRegisterUserWorkflow)(nil).RegisterUser), ctx, input)
 }

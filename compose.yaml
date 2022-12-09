@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:14.2-alpine
+    image: postgres:14.6
     container_name: arjuna-postgres
     volumes:
       - ${PWD}/tool/database:/docker-entrypoint-initdb.d
@@ -10,7 +10,7 @@ services:
     ports:
       - 5432:5432
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready" ]
+      test: ["CMD-SHELL", "pg_isready"]
       interval: 10s
       timeout: 60s
       retries: 5
@@ -82,7 +82,7 @@ services:
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms256m -Xmx256m
       - xpack.security.enabled=false
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.4.3
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.8
     ports:
       - 9200:9200
     networks:
@@ -101,7 +101,7 @@ services:
       - POSTGRES_SEEDS=postgres
       - ENABLE_ES=true
       - ES_SEEDS=elasticsearch
-      - ES_VERSION=v8
+      - ES_VERSION=v7
     image: temporalio/auto-setup:1.18.5
     ports:
       - 7233:7233
