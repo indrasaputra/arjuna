@@ -53,20 +53,20 @@ type RegisterUserOutput struct {
 	UserID string
 }
 
-// UserRegistrator is responsible for registering a new user.
-type UserRegistrator struct {
+// UserRegistrar is responsible for registering a new user.
+type UserRegistrar struct {
 	workflow RegisterUserWorkflow
 }
 
-// NewUserRegistrator creates an instance of UserRegistrator.
-func NewUserRegistrator(workflow RegisterUserWorkflow) *UserRegistrator {
-	return &UserRegistrator{workflow: workflow}
+// NewUserRegistrar creates an instance of UserRegistrar.
+func NewUserRegistrar(workflow RegisterUserWorkflow) *UserRegistrar {
+	return &UserRegistrar{workflow: workflow}
 }
 
 // Register registers a user and store it in the storage.
 // It returns the ID of the newly created user.
 // It checks the email for duplication.
-func (ur *UserRegistrator) Register(ctx context.Context, user *entity.User) (string, error) {
+func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User) (string, error) {
 	if err := validateUser(user); err != nil {
 		return "", err
 	}

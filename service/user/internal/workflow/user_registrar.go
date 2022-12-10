@@ -117,7 +117,7 @@ func createActivityOptions(timeout time.Duration, queue string) tempoflow.Activi
 }
 
 func validateRegisterUserInput(input *service.RegisterUserInput) error {
-	if input.User == nil {
+	if input == nil || input.User == nil {
 		return entity.ErrEmptyUser()
 	}
 	return nil

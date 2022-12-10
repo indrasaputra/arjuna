@@ -45,9 +45,9 @@ func BuildUserCommandHandler(dep *Dependency) (*handler.UserCommand, error) {
 	// }
 	// pg := postgres.NewUser(dep.PgxPool)
 	wf := workflow.NewRegisterUserExecutor(dep.TemporalClient)
-	// regRepo := repository.NewUserRegistrator(kc, pg)
-	registrator := service.NewUserRegistrator(wf)
-	return handler.NewUserCommand(registrator), nil
+	// regRepo := repository.NewUserRegistrar(kc, pg)
+	rg := service.NewUserRegistrar(wf)
+	return handler.NewUserCommand(rg), nil
 }
 
 // BuildUserCommandInternalHandler builds user command handler including all of its dependencies.
