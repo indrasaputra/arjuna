@@ -12,20 +12,20 @@ import (
 )
 
 func TestBuildUserCommandHandler(t *testing.T) {
-	t.Run("fail create user command handler", func(t *testing.T) {
-		dep := &builder.Dependency{
-			PgxPool:        &pgxpool.Pool{},
-			KeycloakClient: nil,
-			Config: &config.Config{
-				Keycloak: config.Keycloak{},
-			},
-		}
+	// t.Run("fail create user command handler", func(t *testing.T) {
+	// 	dep := &builder.Dependency{
+	// 		PgxPool:        &pgxpool.Pool{},
+	// 		KeycloakClient: nil,
+	// 		Config: &config.Config{
+	// 			Keycloak: config.Keycloak{},
+	// 		},
+	// 	}
 
-		handler, err := builder.BuildUserCommandHandler(dep)
+	// 	handler, err := builder.BuildUserCommandHandler(dep)
 
-		assert.Error(t, err)
-		assert.Nil(t, handler)
-	})
+	// 	assert.Error(t, err)
+	// 	assert.Nil(t, handler)
+	// })
 
 	t.Run("success create user command handler", func(t *testing.T) {
 		dep := &builder.Dependency{

@@ -76,7 +76,7 @@ func (u *User) Create(ctx context.Context, user *entity.User) (string, error) {
 	return res.ID, nil
 }
 
-// HardDelete hard-delets user from Keycloak.
+// HardDelete hard-deletes user from Keycloak.
 func (u *User) HardDelete(ctx context.Context, id string) error {
 	jwt, err := u.config.Client.LoginAdmin(ctx, u.config.AdminUsername, u.config.AdminPassword)
 	if err != nil {

@@ -18,7 +18,7 @@ var (
 
 type UserRegistratorExecutor struct {
 	registrator *service.UserRegistrator
-	repo        *mock_service.MockRegisterUserRepository
+	workflow    *mock_service.MockRegisterUserWorkflow
 }
 
 func TestNewUserRegistrator(t *testing.T) {
@@ -49,9 +49,9 @@ func TestUserRegistrator_Register(t *testing.T) {
 		exec := createUserRegistratorExecutor(ctrl)
 		names := []string{
 			"123",
-			"Zlatan 1brahimovic",
-			"Zlatan Ibrahimovic !!!",
-			"5latan Ibrahimovic",
+			"First Us3r",
+			"First User !!!",
+			"F1rst User",
 			"!@#$%^&*()",
 		}
 
@@ -75,10 +75,8 @@ func TestUserRegistrator_Register(t *testing.T) {
 		}
 
 		for _, email := range emails {
-			user := &entity.User{
-				Name:  "Zlatan Ibrahimovic",
-				Email: email,
-			}
+			user := createTestUser()
+			user.Email = email
 
 			id, err := exec.registrator.Register(testCtx, user)
 
@@ -88,13 +86,11 @@ func TestUserRegistrator_Register(t *testing.T) {
 		}
 	})
 
-	t.Run("repo returns error", func(t *testing.T) {
+	t.Run("workflow returns error", func(t *testing.T) {
 		exec := createUserRegistratorExecutor(ctrl)
-		user := &entity.User{
-			Name:  "Zlatan Ibrahimovic",
-			Email: "zlatan@ibrahimovic.com",
-		}
-		exec.repo.EXPECT().Insert(testCtx, user).Return(entity.ErrInternal("error"))
+		user := createTestUser()
+		input := &service.RegisterUserInput{User: user}
+		exec.workflow.EXPECT().RegisterUser(testCtx, input).Return(nil, entity.ErrInternal("error"))
 
 		id, err := exec.registrator.Register(testCtx, user)
 
@@ -104,11 +100,9 @@ func TestUserRegistrator_Register(t *testing.T) {
 
 	t.Run("success register user", func(t *testing.T) {
 		exec := createUserRegistratorExecutor(ctrl)
-		user := &entity.User{
-			Name:  "Zlatan Ibrahimovic",
-			Email: "zlatan@ibrahimovic.com",
-		}
-		exec.repo.EXPECT().Insert(testCtx, user).Return(nil)
+		user := createTestUser()
+		input := &service.RegisterUserInput{User: user}
+		exec.workflow.EXPECT().RegisterUser(testCtx, input).Return(&service.RegisterUserOutput{UserID: "user-id"}, nil)
 
 		id, err := exec.registrator.Register(testCtx, user)
 
@@ -118,10 +112,17 @@ func TestUserRegistrator_Register(t *testing.T) {
 }
 
 func createUserRegistratorExecutor(ctrl *gomock.Controller) *UserRegistratorExecutor {
-	r := mock_service.NewMockRegisterUserRepository(ctrl)
+	r := mock_service.NewMockRegisterUserWorkflow(ctrl)
 	rg := service.NewUserRegistrator(r)
 	return &UserRegistratorExecutor{
 		registrator: rg,
-		repo:        r,
+		workflow:    r,
+	}
+}
+
+func createTestUser() *entity.User {
+	return &entity.User{
+		Name:  "First User",
+		Email: "first@user.com",
 	}
 }

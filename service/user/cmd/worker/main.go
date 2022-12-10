@@ -1,3 +1,4 @@
+// Worker main program
 package main
 
 import (
@@ -54,7 +55,7 @@ func main() {
 
 	err = w.Run(worker.InterruptCh())
 	if err != nil {
-		log.Fatalln("Unable to start worker", err)
+		log.Panic("Unable to start worker", err)
 	}
 }
 

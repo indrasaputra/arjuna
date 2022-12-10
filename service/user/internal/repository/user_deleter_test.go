@@ -1,6 +1,7 @@
 package repository_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -9,6 +10,10 @@ import (
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository"
 	mock_repository "github.com/indrasaputra/arjuna/service/user/test/mock/repository"
+)
+
+var (
+	testCtx = context.Background()
 )
 
 type UserDeleterExecutor struct {

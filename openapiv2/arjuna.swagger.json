@@ -319,7 +319,7 @@
         },
         "name": {
           "type": "string",
-          "example": "Zlatan Ibrahimovic",
+          "example": "First User",
           "description": "user's name",
           "maxLength": 255,
           "minLength": 1

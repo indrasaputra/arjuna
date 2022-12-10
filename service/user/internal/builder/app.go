@@ -98,6 +98,7 @@ func BuildKeycloakClient(cfg config.Keycloak) kcsdk.Keycloak {
 	return client
 }
 
+// BuildTemporalClient builds temporal client.
 func BuildTemporalClient() client.Client {
 	c, _ := client.Dial(client.Options{})
 	return c

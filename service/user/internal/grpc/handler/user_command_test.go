@@ -55,8 +55,8 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 		exec := createUserCommandExecutor(ctrl)
 		request := &apiv1.RegisterUserRequest{
 			User: &apiv1.User{
-				Name:     "Zlatan Ibrahimovic",
-				Email:    "zlatan@ibrahimovic.com",
+				Name:     "First User",
+				Email:    "first@user.com",
 				Password: "BestPlayer",
 			},
 		}
@@ -84,8 +84,8 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 		exec.registrator.EXPECT().Register(testCtx, gomock.Any()).Return("id", nil)
 		request := &apiv1.RegisterUserRequest{
 			User: &apiv1.User{
-				Name:     "Zlatan Ibrahimovic",
-				Email:    "zlatan@ibrahimovic.com",
+				Name:     "First User",
+				Email:    "first@user.com",
 				Password: "BestPlayer",
 			},
 		}

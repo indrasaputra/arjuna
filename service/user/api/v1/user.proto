@@ -144,7 +144,7 @@ message User {
     required : "email",
     description : "user's email",
     pattern : "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
-    example : "\"email@company.com\"",
+    example : "\"first@user.com\"",
   } ];
 
   // password represents the user's password.
@@ -153,6 +153,7 @@ message User {
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description : "user's password",
       format : "string",
+      example : "WEAKpassword123?",
     }
   ];
 
@@ -161,7 +162,7 @@ message User {
     description : "user's name",
     min_length : 1,
     max_length : 255,
-    example : "\"Zlatan Ibrahimovic\"",
+    example : "\"First User\"",
   } ];
 
   // created_at represents when the user was registered.
