@@ -78,7 +78,7 @@ jobs:
       - name: Lint using golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.42.1
+          version: v1.50.1
           args: --config=${GITHUB_WORKSPACE}/.golangci.yml
           working-directory: ${{ inputs.target }}
 
