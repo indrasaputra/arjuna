@@ -157,7 +157,7 @@ func TestRegisterUser(t *testing.T) {
 	t.Run("workflow is executed successfully", func(t *testing.T) {
 		st := createRegisterUserSuite()
 		input := createRegisterUserInput()
-		id := "1"
+		id := input.User.ID
 
 		st.env.OnActivity(temporal.ActivityKeycloakCreate, mock.Anything, mock.Anything).Return(id, nil)
 		st.env.OnActivity(temporal.ActivityPostgresInsert, mock.Anything, mock.Anything).Return(nil)
@@ -175,6 +175,7 @@ func TestRegisterUser(t *testing.T) {
 
 func createTestUser() *entity.User {
 	return &entity.User{
+		ID:    "first-id",
 		Name:  "First User",
 		Email: "first@user.com",
 	}
