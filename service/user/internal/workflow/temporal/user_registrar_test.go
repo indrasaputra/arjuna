@@ -1,4 +1,4 @@
-package workflow_test
+package temporal_test
 
 import (
 	"context"
@@ -15,28 +15,28 @@ import (
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/keycloak"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
-	"github.com/indrasaputra/arjuna/service/user/internal/workflow"
+	"github.com/indrasaputra/arjuna/service/user/internal/workflow/temporal"
 )
 
 var (
 	testCtx = context.Background()
 )
 
-type RegisterUserExecutorSuite struct {
-	exec   *workflow.RegisterUserExecutor
-	client *tempomock.Client
+type RegisterUserWorkflowSuite struct {
+	workflow *temporal.RegisterUserWorkflow
+	client   *tempomock.Client
 }
 
-func TestNewRegisterUserExecutor(t *testing.T) {
-	t.Run("successfully create an instance of RegisterUserExecutor", func(t *testing.T) {
-		st := createRegisterUserExecutorSuite()
-		assert.NotNil(t, st.exec)
+func TestNewRegisterUserWorkflow(t *testing.T) {
+	t.Run("successfully create an instance of RegisterUserWorkflow", func(t *testing.T) {
+		st := createRegisterUserWorkflowSuite()
+		assert.NotNil(t, st.workflow)
 	})
 }
 
-func TestRegisterUserExecutor_RegisterUser(t *testing.T) {
+func TestRegisterUserWorkflow_RegisterUser(t *testing.T) {
 	t.Run("execute workflow returns error", func(t *testing.T) {
-		st := createRegisterUserExecutorSuite()
+		st := createRegisterUserWorkflowSuite()
 		user := createTestUser()
 		input := &service.RegisterUserInput{User: user}
 
@@ -44,14 +44,14 @@ func TestRegisterUserExecutor_RegisterUser(t *testing.T) {
 			On("ExecuteWorkflow", testCtx, mock.Anything, mock.AnythingOfType("func(internal.Context, *service.RegisterUserInput) (*service.RegisterUserOutput, error)"), input).
 			Return(nil, errors.New("temporal is down"))
 
-		res, err := st.exec.RegisterUser(testCtx, input)
+		res, err := st.workflow.RegisterUser(testCtx, input)
 
 		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
 
 	t.Run("workflow run returns error", func(t *testing.T) {
-		st := createRegisterUserExecutorSuite()
+		st := createRegisterUserWorkflowSuite()
 		user := createTestUser()
 		input := &service.RegisterUserInput{User: user}
 		wr := &tempomock.WorkflowRun{}
@@ -63,14 +63,14 @@ func TestRegisterUserExecutor_RegisterUser(t *testing.T) {
 		wr.On("GetRunID").Return("")
 		wr.On("Get", testCtx, mock.Anything).Return(errors.New("workflow run error"))
 
-		res, err := st.exec.RegisterUser(testCtx, input)
+		res, err := st.workflow.RegisterUser(testCtx, input)
 
 		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
 
 	t.Run("workflow is executed successfully", func(t *testing.T) {
-		st := createRegisterUserExecutorSuite()
+		st := createRegisterUserWorkflowSuite()
 		user := createTestUser()
 		input := &service.RegisterUserInput{User: user}
 		wr := &tempomock.WorkflowRun{}
@@ -82,7 +82,7 @@ func TestRegisterUserExecutor_RegisterUser(t *testing.T) {
 		wr.On("GetRunID").Return("")
 		wr.On("Get", testCtx, mock.Anything).Return(nil)
 
-		res, err := st.exec.RegisterUser(testCtx, input)
+		res, err := st.workflow.RegisterUser(testCtx, input)
 
 		assert.NoError(t, err)
 		assert.Nil(t, res)
@@ -98,7 +98,7 @@ func TestRegisterUser(t *testing.T) {
 	t.Run("input is invalid", func(t *testing.T) {
 		st := createRegisterUserSuite()
 
-		st.env.ExecuteWorkflow(workflow.RegisterUser, nil)
+		st.env.ExecuteWorkflow(temporal.RegisterUser, nil)
 
 		assert.True(t, st.env.IsWorkflowCompleted())
 		assert.Error(t, st.env.GetWorkflowError())
@@ -109,7 +109,7 @@ func TestRegisterUser(t *testing.T) {
 
 		input := createRegisterUserInput()
 		input.User = nil
-		st.env.ExecuteWorkflow(workflow.RegisterUser, input)
+		st.env.ExecuteWorkflow(temporal.RegisterUser, input)
 
 		assert.True(t, st.env.IsWorkflowCompleted())
 		assert.Error(t, st.env.GetWorkflowError())
@@ -119,9 +119,9 @@ func TestRegisterUser(t *testing.T) {
 		st := createRegisterUserSuite()
 		input := createRegisterUserInput()
 
-		st.env.OnActivity(workflow.ActivityKeycloakCreate, mock.Anything, input.User).Return("", errors.New("keycloak error"))
+		st.env.OnActivity(temporal.ActivityKeycloakCreate, mock.Anything, input.User).Return("", errors.New("keycloak error"))
 
-		st.env.ExecuteWorkflow(workflow.RegisterUser, input)
+		st.env.ExecuteWorkflow(temporal.RegisterUser, input)
 
 		assert.True(t, st.env.IsWorkflowCompleted())
 		assert.Error(t, st.env.GetWorkflowError())
@@ -131,9 +131,9 @@ func TestRegisterUser(t *testing.T) {
 		st := createRegisterUserSuite()
 		input := createRegisterUserInput()
 
-		st.env.OnActivity(workflow.ActivityKeycloakCreate, mock.Anything, input.User).Return("", errors.New("keycloak error"))
+		st.env.OnActivity(temporal.ActivityKeycloakCreate, mock.Anything, input.User).Return("", errors.New("keycloak error"))
 
-		st.env.ExecuteWorkflow(workflow.RegisterUser, input)
+		st.env.ExecuteWorkflow(temporal.RegisterUser, input)
 
 		assert.True(t, st.env.IsWorkflowCompleted())
 		assert.Error(t, st.env.GetWorkflowError())
@@ -144,11 +144,11 @@ func TestRegisterUser(t *testing.T) {
 		input := createRegisterUserInput()
 		id := "1"
 
-		st.env.OnActivity(workflow.ActivityKeycloakCreate, mock.Anything, mock.Anything).Return(id, nil)
-		st.env.OnActivity(workflow.ActivityPostgresInsert, mock.Anything, mock.Anything).Return(errors.New("keycloak error"))
-		st.env.OnActivity(workflow.ActivityKeycloakHardDelete, mock.Anything, id).Return(nil)
+		st.env.OnActivity(temporal.ActivityKeycloakCreate, mock.Anything, mock.Anything).Return(id, nil)
+		st.env.OnActivity(temporal.ActivityPostgresInsert, mock.Anything, mock.Anything).Return(errors.New("keycloak error"))
+		st.env.OnActivity(temporal.ActivityKeycloakHardDelete, mock.Anything, id).Return(nil)
 
-		st.env.ExecuteWorkflow(workflow.RegisterUser, input)
+		st.env.ExecuteWorkflow(temporal.RegisterUser, input)
 
 		assert.True(t, st.env.IsWorkflowCompleted())
 		assert.Error(t, st.env.GetWorkflowError())
@@ -159,10 +159,10 @@ func TestRegisterUser(t *testing.T) {
 		input := createRegisterUserInput()
 		id := "1"
 
-		st.env.OnActivity(workflow.ActivityKeycloakCreate, mock.Anything, mock.Anything).Return(id, nil)
-		st.env.OnActivity(workflow.ActivityPostgresInsert, mock.Anything, mock.Anything).Return(nil)
+		st.env.OnActivity(temporal.ActivityKeycloakCreate, mock.Anything, mock.Anything).Return(id, nil)
+		st.env.OnActivity(temporal.ActivityPostgresInsert, mock.Anything, mock.Anything).Return(nil)
 
-		st.env.ExecuteWorkflow(workflow.RegisterUser, input)
+		st.env.ExecuteWorkflow(temporal.RegisterUser, input)
 
 		assert.True(t, st.env.IsWorkflowCompleted())
 		assert.NoError(t, st.env.GetWorkflowError())
@@ -186,12 +186,12 @@ func createRegisterUserInput() *service.RegisterUserInput {
 	}
 }
 
-func createRegisterUserExecutorSuite() *RegisterUserExecutorSuite {
+func createRegisterUserWorkflowSuite() *RegisterUserWorkflowSuite {
 	c := &tempomock.Client{}
-	e := workflow.NewRegisterUserExecutor(c)
-	return &RegisterUserExecutorSuite{
-		exec:   e,
-		client: c,
+	w := temporal.NewRegisterUserWorkflow(c)
+	return &RegisterUserWorkflowSuite{
+		workflow: w,
+		client:   c,
 	}
 }
 

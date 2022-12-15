@@ -1,4 +1,4 @@
-package workflow
+package temporal
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/temporal"
-	tempoflow "go.temporal.io/sdk/workflow"
+	"go.temporal.io/sdk/workflow"
 
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
@@ -41,18 +41,18 @@ const (
 	WorkflowRetryMaximumAttempts = 1
 )
 
-// RegisterUserExecutor is responsible to execute register user workflow.
-type RegisterUserExecutor struct {
+// RegisterUserWorkflow is responsible to execute register user workflow.
+type RegisterUserWorkflow struct {
 	client client.Client
 }
 
-// NewRegisterUserExecutor creates an instance of RegisterUserExecutor.
-func NewRegisterUserExecutor(client client.Client) *RegisterUserExecutor {
-	return &RegisterUserExecutor{client: client}
+// NewRegisterUserWorkflow creates an instance of RegisterUserWorkflow.
+func NewRegisterUserWorkflow(client client.Client) *RegisterUserWorkflow {
+	return &RegisterUserWorkflow{client: client}
 }
 
 // RegisterUser runs the register users workflow.
-func (r *RegisterUserExecutor) RegisterUser(ctx context.Context, input *service.RegisterUserInput) (*service.RegisterUserOutput, error) {
+func (r *RegisterUserWorkflow) RegisterUser(ctx context.Context, input *service.RegisterUserInput) (*service.RegisterUserOutput, error) {
 	opts := client.StartWorkflowOptions{
 		ID:                 fmt.Sprintf("%s-%s", WorkflowNameRegisterUser, input.User.ID),
 		TaskQueue:          TaskQueueRegisterUser,
@@ -76,36 +76,36 @@ func (r *RegisterUserExecutor) RegisterUser(ctx context.Context, input *service.
 }
 
 // RegisterUser runs the user registration workflow.
-func RegisterUser(ctx tempoflow.Context, input *service.RegisterUserInput) (*service.RegisterUserOutput, error) {
+func RegisterUser(ctx workflow.Context, input *service.RegisterUserInput) (*service.RegisterUserOutput, error) {
 	if err := validateRegisterUserInput(input); err != nil {
 		return nil, err
 	}
 
 	var id string
 	ctx = createContextWithActivityOptions(ctx, ActivityTimeoutDefault, TaskQueueRegisterUser)
-	err := tempoflow.ExecuteActivity(ctx, ActivityKeycloakCreate, input.User).Get(ctx, &id)
+	err := workflow.ExecuteActivity(ctx, ActivityKeycloakCreate, input.User).Get(ctx, &id)
 	if err != nil {
 		return nil, err
 	}
 	input.User.KeycloakID = id
 
 	ctx = createContextWithActivityOptions(ctx, ActivityTimeoutDefault, TaskQueueRegisterUser)
-	err = tempoflow.ExecuteActivity(ctx, ActivityPostgresInsert, input.User).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, ActivityPostgresInsert, input.User).Get(ctx, nil)
 	if err != nil {
 		ctx = createContextWithActivityOptions(ctx, ActivityTimeoutDefault, TaskQueueRegisterUser)
-		_ = tempoflow.ExecuteActivity(ctx, ActivityKeycloakHardDelete, id).Get(ctx, nil)
+		_ = workflow.ExecuteActivity(ctx, ActivityKeycloakHardDelete, id).Get(ctx, nil)
 		return nil, entity.ErrInternal("Something went wrong within our server. Please try again")
 	}
-	return &service.RegisterUserOutput{UserID: id}, nil
+	return &service.RegisterUserOutput{UserID: input.User.ID}, nil
 }
 
-func createContextWithActivityOptions(tctx tempoflow.Context, timeout time.Duration, queue string) tempoflow.Context {
+func createContextWithActivityOptions(tempoCtx workflow.Context, timeout time.Duration, queue string) workflow.Context {
 	opts := createActivityOptions(timeout, queue)
-	return tempoflow.WithActivityOptions(tctx, opts)
+	return workflow.WithActivityOptions(tempoCtx, opts)
 }
 
-func createActivityOptions(timeout time.Duration, queue string) tempoflow.ActivityOptions {
-	return tempoflow.ActivityOptions{
+func createActivityOptions(timeout time.Duration, queue string) workflow.ActivityOptions {
+	return workflow.ActivityOptions{
 		StartToCloseTimeout: timeout,
 		TaskQueue:           queue,
 		RetryPolicy: &temporal.RetryPolicy{

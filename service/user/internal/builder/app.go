@@ -12,11 +12,10 @@ import (
 	kcsdk "github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
 	"github.com/indrasaputra/arjuna/service/user/internal/grpc/handler"
-	"github.com/indrasaputra/arjuna/service/user/internal/repository"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/keycloak"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
-	"github.com/indrasaputra/arjuna/service/user/internal/workflow"
+	"github.com/indrasaputra/arjuna/service/user/internal/workflow/temporal"
 )
 
 var (
@@ -44,9 +43,9 @@ func BuildUserCommandHandler(dep *Dependency) (*handler.UserCommand, error) {
 	// 	return nil, err
 	// }
 	// pg := postgres.NewUser(dep.PgxPool)
-	wf := workflow.NewRegisterUserExecutor(dep.TemporalClient)
+	tp := temporal.NewRegisterUserWorkflow(dep.TemporalClient)
 	// regRepo := repository.NewUserRegistrar(kc, pg)
-	rg := service.NewUserRegistrar(wf)
+	rg := service.NewUserRegistrar(tp)
 	return handler.NewUserCommand(rg), nil
 }
 
@@ -63,8 +62,8 @@ func BuildUserCommandInternalHandler(dep *Dependency) (*handler.UserCommandInter
 		return nil, err
 	}
 	pg := postgres.NewUser(dep.PgxPool)
-	delRepo := repository.NewUserDeleter(kc, pg)
-	deleter := service.NewUserDeleter(delRepo)
+	tx := postgres.NewDatabaseTransaction(dep.PgxPool)
+	deleter := service.NewUserDeleter(pg, kc, tx)
 	return handler.NewUserCommandInternal(deleter), nil
 }
 

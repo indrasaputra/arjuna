@@ -12,7 +12,7 @@ import (
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/keycloak"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
-	"github.com/indrasaputra/arjuna/service/user/internal/workflow"
+	"github.com/indrasaputra/arjuna/service/user/internal/workflow/temporal"
 )
 
 func main() {
@@ -46,10 +46,10 @@ func main() {
 	kc, _ := keycloak.NewUser(kcConfig)
 	db := postgres.NewUser(postgresPool)
 
-	w := worker.New(c, workflow.TaskQueueRegisterUser, worker.Options{
+	w := worker.New(c, temporal.TaskQueueRegisterUser, worker.Options{
 		DisableRegistrationAliasing: true,
 	})
-	w.RegisterWorkflow(workflow.RegisterUser)
+	w.RegisterWorkflow(temporal.RegisterUser)
 	w.RegisterActivityWithOptions(kc, activity.RegisterOptions{Name: "Keycloak", SkipInvalidStructFunctions: true})
 	w.RegisterActivityWithOptions(db, activity.RegisterOptions{Name: "Postgres", SkipInvalidStructFunctions: true})
 
