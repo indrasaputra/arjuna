@@ -20,5 +20,5 @@ coverage/
 
 # Dependency directories (remove the comment below to include it)
 vendor/
-cmd/client
-cmd/playground
+**/cmd/client
+**/cmd/playground

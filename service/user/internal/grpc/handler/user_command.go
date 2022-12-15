@@ -11,12 +11,12 @@ import (
 // UserCommand handles HTTP/2 gRPC request for state-changing user.
 type UserCommand struct {
 	apiv1.UnimplementedUserCommandServiceServer
-	registrator service.RegisterUser
+	registrar service.RegisterUser
 }
 
 // NewUserCommand creates an instance of UserCommand.
-func NewUserCommand(registrator service.RegisterUser) *UserCommand {
-	return &UserCommand{registrator: registrator}
+func NewUserCommand(registrar service.RegisterUser) *UserCommand {
+	return &UserCommand{registrar: registrar}
 }
 
 // RegisterUser handles HTTP/2 gRPC request similar to POST in HTTP/1.1.
@@ -25,7 +25,7 @@ func (uc *UserCommand) RegisterUser(ctx context.Context, request *apiv1.Register
 		return nil, entity.ErrEmptyUser()
 	}
 
-	id, err := uc.registrator.Register(ctx, createUserFromRegisterUserRequest(request))
+	id, err := uc.registrar.Register(ctx, createUserFromRegisterUserRequest(request))
 	if err != nil {
 		return nil, err
 	}

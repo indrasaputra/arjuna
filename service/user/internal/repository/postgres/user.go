@@ -99,8 +99,13 @@ func (u *User) GetAll(ctx context.Context, limit uint) ([]*entity.User, error) {
 // HardDelete deletes a user from database.
 // If the user doesn't exist, it doesn't returns error.
 func (u *User) HardDelete(ctx context.Context, id string) error {
+	db := u.pool
+	if tx := extractTxFromContext(ctx); tx != nil {
+		db = tx
+	}
+
 	query := "DELETE FROM users WHERE id = $1"
-	_, err := u.pool.Exec(ctx, query, id)
+	_, err := db.Exec(ctx, query, id)
 	if err != nil {
 		return entity.ErrInternal(err.Error())
 	}

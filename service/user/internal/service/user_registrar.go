@@ -31,40 +31,48 @@ func init() {
 type RegisterUser interface {
 	// Register registers a user and store it in the storage.
 	// It returns the ID of the newly created user.
-	//
 	// It must check the uniqueness of the user.
 	Register(ctx context.Context, user *entity.User) (string, error)
 }
 
-// RegisterUserRepository defines the interface to save a user into the repository.
-type RegisterUserRepository interface {
-	// Insert inserts the user into the repository.
+// RegisterUserWorkflow defines the interface for user registration workflow.
+type RegisterUserWorkflow interface {
+	// RegisterUser registers the user into the repository or 3rd party needed.
 	// It also validates if the user's email is unique.
 	// It returns the ID of the created user.
-	Insert(ctx context.Context, user *entity.User) error
+	RegisterUser(ctx context.Context, input *RegisterUserInput) (*RegisterUserOutput, error)
 }
 
-// UserRegistrator is responsible for registering a new user.
-type UserRegistrator struct {
-	repo RegisterUserRepository
+// RegisterUserInput holds input data for register user workflow
+type RegisterUserInput struct {
+	User *entity.User
 }
 
-// NewUserRegistrator creates an instance of UserRegistrator.
-func NewUserRegistrator(repo RegisterUserRepository) *UserRegistrator {
-	return &UserRegistrator{repo: repo}
+// RegisterUserOutput holds output data for register user workflow
+type RegisterUserOutput struct {
+	UserID string
+}
+
+// UserRegistrar is responsible for registering a new user.
+type UserRegistrar struct {
+	workflow RegisterUserWorkflow
+}
+
+// NewUserRegistrar creates an instance of UserRegistrar.
+func NewUserRegistrar(workflow RegisterUserWorkflow) *UserRegistrar {
+	return &UserRegistrar{workflow: workflow}
 }
 
 // Register registers a user and store it in the storage.
 // It returns the ID of the newly created user.
-//
 // It checks the email for duplication.
-func (ur *UserRegistrator) Register(ctx context.Context, user *entity.User) (string, error) {
+func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User) (string, error) {
 	if err := validateUser(user); err != nil {
 		return "", err
 	}
 	sanitizeUser(user)
 
-	// username is mandatory for Keycloak, but not for business.
+	// username is mandatory for Keycloak, but not for this current business.
 	// hence, generating a random username is fine.
 	user.Username = generateUsername(usernameLength)
 
@@ -73,17 +81,18 @@ func (ur *UserRegistrator) Register(ctx context.Context, user *entity.User) (str
 	}
 	setUserAuditableProperties(user)
 
-	if err := ur.repo.Insert(ctx, user); err != nil {
+	input := &RegisterUserInput{User: user}
+	output, err := ur.workflow.RegisterUser(ctx, input)
+	if err != nil {
 		return "", err
 	}
-	return user.ID, nil
+	return output.UserID, nil
 }
 
 func validateUser(user *entity.User) error {
 	if user == nil {
 		return entity.ErrEmptyUser()
 	}
-
 	if !regexNameCompiler.MatchString(user.Name) {
 		return entity.ErrInvalidName()
 	}

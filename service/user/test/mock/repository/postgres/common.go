@@ -51,18 +51,6 @@ func (mr *MockPgxPoolMockRecorder) Begin(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Begin", reflect.TypeOf((*MockPgxPool)(nil).Begin), ctx)
 }
 
-// Close mocks base method.
-func (m *MockPgxPool) Close() {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Close")
-}
-
-// Close indicates an expected call of Close.
-func (mr *MockPgxPoolMockRecorder) Close() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockPgxPool)(nil).Close))
-}
-
 // Exec mocks base method.
 func (m *MockPgxPool) Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error) {
 	m.ctrl.T.Helper()
@@ -81,20 +69,6 @@ func (mr *MockPgxPoolMockRecorder) Exec(ctx, sql interface{}, arguments ...inter
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, sql}, arguments...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exec", reflect.TypeOf((*MockPgxPool)(nil).Exec), varargs...)
-}
-
-// Ping mocks base method.
-func (m *MockPgxPool) Ping(ctx context.Context) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Ping", ctx)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Ping indicates an expected call of Ping.
-func (mr *MockPgxPoolMockRecorder) Ping(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockPgxPool)(nil).Ping), ctx)
 }
 
 // Query mocks base method.
@@ -159,6 +133,21 @@ func (m *MockPgxTx) EXPECT() *MockPgxTxMockRecorder {
 	return m.recorder
 }
 
+// Begin mocks base method.
+func (m *MockPgxTx) Begin(ctx context.Context) (v4.Tx, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Begin", ctx)
+	ret0, _ := ret[0].(v4.Tx)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Begin indicates an expected call of Begin.
+func (mr *MockPgxTxMockRecorder) Begin(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Begin", reflect.TypeOf((*MockPgxTx)(nil).Begin), ctx)
+}
+
 // Commit mocks base method.
 func (m *MockPgxTx) Commit(ctx context.Context) error {
 	m.ctrl.T.Helper()
@@ -191,6 +180,45 @@ func (mr *MockPgxTxMockRecorder) Exec(ctx, sql interface{}, arguments ...interfa
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, sql}, arguments...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exec", reflect.TypeOf((*MockPgxTx)(nil).Exec), varargs...)
+}
+
+// Query mocks base method.
+func (m *MockPgxTx) Query(ctx context.Context, sql string, args ...interface{}) (v4.Rows, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, sql}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Query", varargs...)
+	ret0, _ := ret[0].(v4.Rows)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Query indicates an expected call of Query.
+func (mr *MockPgxTxMockRecorder) Query(ctx, sql interface{}, args ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, sql}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Query", reflect.TypeOf((*MockPgxTx)(nil).Query), varargs...)
+}
+
+// QueryRow mocks base method.
+func (m *MockPgxTx) QueryRow(ctx context.Context, sql string, args ...interface{}) v4.Row {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, sql}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "QueryRow", varargs...)
+	ret0, _ := ret[0].(v4.Row)
+	return ret0
+}
+
+// QueryRow indicates an expected call of QueryRow.
+func (mr *MockPgxTxMockRecorder) QueryRow(ctx, sql interface{}, args ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, sql}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueryRow", reflect.TypeOf((*MockPgxTx)(nil).QueryRow), varargs...)
 }
 
 // Rollback mocks base method.

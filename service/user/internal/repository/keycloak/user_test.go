@@ -213,8 +213,8 @@ func createKeycloakConfig(ctrl *gomock.Controller) *keycloak.Config {
 
 func createUserEntity() *entity.User {
 	return &entity.User{
-		Name:     "Zlatan Ibrahimovic",
-		Email:    "zlatan@ibrahimovic.com",
+		Name:     "First User",
+		Email:    "first@user.com",
 		Password: "strongeststrikerintheworld!",
 	}
 }

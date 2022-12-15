@@ -21,11 +21,13 @@ func main() {
 
 	keycloakClient := builder.BuildKeycloakClient(cfg.Keycloak)
 	postgresPool, err := builder.BuildPostgrePgxPool(cfg.Postgres)
+	temporalClient := builder.BuildTemporalClient()
 	checkError(err)
 
 	dep := &builder.Dependency{
 		PgxPool:        postgresPool,
 		KeycloakClient: keycloakClient,
+		TemporalClient: temporalClient,
 		Config:         cfg,
 	}
 

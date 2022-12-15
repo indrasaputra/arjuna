@@ -13,8 +13,8 @@ import (
 )
 
 type UserCommandExecutor struct {
-	handler     *handler.UserCommand
-	registrator *mock_service.MockRegisterUser
+	handler   *handler.UserCommand
+	registrar *mock_service.MockRegisterUser
 }
 
 func TestNewUserCommand(t *testing.T) {
@@ -55,8 +55,8 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 		exec := createUserCommandExecutor(ctrl)
 		request := &apiv1.RegisterUserRequest{
 			User: &apiv1.User{
-				Name:     "Zlatan Ibrahimovic",
-				Email:    "zlatan@ibrahimovic.com",
+				Name:     "First User",
+				Email:    "first@user.com",
 				Password: "BestPlayer",
 			},
 		}
@@ -69,7 +69,7 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 			entity.ErrInternal("error"),
 		}
 		for _, errRet := range errors {
-			exec.registrator.EXPECT().Register(testCtx, gomock.Any()).Return("", errRet)
+			exec.registrar.EXPECT().Register(testCtx, gomock.Any()).Return("", errRet)
 
 			res, err := exec.handler.RegisterUser(testCtx, request)
 
@@ -81,11 +81,11 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 
 	t.Run("success register user", func(t *testing.T) {
 		exec := createUserCommandExecutor(ctrl)
-		exec.registrator.EXPECT().Register(testCtx, gomock.Any()).Return("id", nil)
+		exec.registrar.EXPECT().Register(testCtx, gomock.Any()).Return("id", nil)
 		request := &apiv1.RegisterUserRequest{
 			User: &apiv1.User{
-				Name:     "Zlatan Ibrahimovic",
-				Email:    "zlatan@ibrahimovic.com",
+				Name:     "First User",
+				Email:    "first@user.com",
 				Password: "BestPlayer",
 			},
 		}
@@ -102,7 +102,7 @@ func createUserCommandExecutor(ctrl *gomock.Controller) *UserCommandExecutor {
 	r := mock_service.NewMockRegisterUser(ctrl)
 	h := handler.NewUserCommand(r)
 	return &UserCommandExecutor{
-		handler:     h,
-		registrator: r,
+		handler:   h,
+		registrar: r,
 	}
 }

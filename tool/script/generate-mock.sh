@@ -8,6 +8,8 @@ for dir in `find . -type d`; do
             if `grep -q 'interface {' ${file}`; then
                 dest=${file//internal\//}
                 dest=${dest#"$dir"}
+
+                rm -rf ${dir}/test/mock/${dest}
                 mockgen -source=${file} -destination=${dir}/test/mock/${dest}
             fi
         done

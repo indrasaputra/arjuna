@@ -62,7 +62,7 @@
         },
         "parameters": [
           {
-            "name": "body",
+            "name": "credential",
             "description": "credential represents credential for login.",
             "in": "body",
             "required": true,
@@ -131,7 +131,7 @@
         },
         "parameters": [
           {
-            "name": "body",
+            "name": "user",
             "description": "user represents user data.",
             "in": "body",
             "required": true,
@@ -305,21 +305,19 @@
         },
         "email": {
           "type": "string",
-          "example": "email@company.com",
+          "example": "first@user.com",
           "description": "user's email",
-          "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
-          "required": [
-            "email"
-          ]
+          "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
         },
         "password": {
           "type": "string",
           "format": "string",
+          "example": "WEAKpassword123?",
           "description": "user's password"
         },
         "name": {
           "type": "string",
-          "example": "Zlatan Ibrahimovic",
+          "example": "First User",
           "description": "user's name",
           "maxLength": 255,
           "minLength": 1

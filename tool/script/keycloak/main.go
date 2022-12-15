@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	keycloakAddress       = "http://localhost:8080/"
+	keycloakAddress       = "http://keycloak:8080/"
 	protocolOpenidConnect = "openid-connect"
 	masterAdminUsername   = "admin"
 	masterAdminPassword   = "admin"

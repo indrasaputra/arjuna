@@ -20,14 +20,14 @@ import (
 
 var (
 	testCtx                = context.Background()
-	testUser               = &entity.User{Name: "Zlatan Ibrahimovic", Email: "zlatan@ibrahimovic.com"}
+	testUser               = &entity.User{Name: "First User", Email: "first@user.com"}
 	errPostgresInternalMsg = "error"
 	errPostgresInternal    = errors.New(errPostgresInternalMsg)
 	columns                = []string{"id", "keycloak_id", "name", "email", "created_at", "updated_at", "created_by", "updated_by"}
 	testUserID             = "1"
 	testUserKeycloakID     = "1"
-	testUserName           = "Zlatan Ibrahimovic"
-	testUserEmail          = "zlatan@ibrahimovic.com"
+	testUserName           = "First User"
+	testUserEmail          = "first@user.com"
 )
 
 type UserExecutor struct {

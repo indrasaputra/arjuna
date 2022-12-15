@@ -73,8 +73,45 @@ func (m *MockDeleteUserRepository) EXPECT() *MockDeleteUserRepositoryMockRecorde
 	return m.recorder
 }
 
+// HardDelete mocks base method.
+func (m *MockDeleteUserRepository) HardDelete(ctx context.Context, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HardDelete", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// HardDelete indicates an expected call of HardDelete.
+func (mr *MockDeleteUserRepositoryMockRecorder) HardDelete(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HardDelete", reflect.TypeOf((*MockDeleteUserRepository)(nil).HardDelete), ctx, id)
+}
+
+// MockDeleteUserDatabase is a mock of DeleteUserDatabase interface.
+type MockDeleteUserDatabase struct {
+	ctrl     *gomock.Controller
+	recorder *MockDeleteUserDatabaseMockRecorder
+}
+
+// MockDeleteUserDatabaseMockRecorder is the mock recorder for MockDeleteUserDatabase.
+type MockDeleteUserDatabaseMockRecorder struct {
+	mock *MockDeleteUserDatabase
+}
+
+// NewMockDeleteUserDatabase creates a new mock instance.
+func NewMockDeleteUserDatabase(ctrl *gomock.Controller) *MockDeleteUserDatabase {
+	mock := &MockDeleteUserDatabase{ctrl: ctrl}
+	mock.recorder = &MockDeleteUserDatabaseMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockDeleteUserDatabase) EXPECT() *MockDeleteUserDatabaseMockRecorder {
+	return m.recorder
+}
+
 // GetByID mocks base method.
-func (m *MockDeleteUserRepository) GetByID(ctx context.Context, id string) (*entity.User, error) {
+func (m *MockDeleteUserDatabase) GetByID(ctx context.Context, id string) (*entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByID", ctx, id)
 	ret0, _ := ret[0].(*entity.User)
@@ -83,21 +120,58 @@ func (m *MockDeleteUserRepository) GetByID(ctx context.Context, id string) (*ent
 }
 
 // GetByID indicates an expected call of GetByID.
-func (mr *MockDeleteUserRepositoryMockRecorder) GetByID(ctx, id interface{}) *gomock.Call {
+func (mr *MockDeleteUserDatabaseMockRecorder) GetByID(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockDeleteUserRepository)(nil).GetByID), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockDeleteUserDatabase)(nil).GetByID), ctx, id)
 }
 
 // HardDelete mocks base method.
-func (m *MockDeleteUserRepository) HardDelete(ctx context.Context, user *entity.User) error {
+func (m *MockDeleteUserDatabase) HardDelete(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HardDelete", ctx, user)
+	ret := m.ctrl.Call(m, "HardDelete", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // HardDelete indicates an expected call of HardDelete.
-func (mr *MockDeleteUserRepositoryMockRecorder) HardDelete(ctx, user interface{}) *gomock.Call {
+func (mr *MockDeleteUserDatabaseMockRecorder) HardDelete(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HardDelete", reflect.TypeOf((*MockDeleteUserRepository)(nil).HardDelete), ctx, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HardDelete", reflect.TypeOf((*MockDeleteUserDatabase)(nil).HardDelete), ctx, id)
+}
+
+// MockTransactor is a mock of Transactor interface.
+type MockTransactor struct {
+	ctrl     *gomock.Controller
+	recorder *MockTransactorMockRecorder
+}
+
+// MockTransactorMockRecorder is the mock recorder for MockTransactor.
+type MockTransactorMockRecorder struct {
+	mock *MockTransactor
+}
+
+// NewMockTransactor creates a new mock instance.
+func NewMockTransactor(ctrl *gomock.Controller) *MockTransactor {
+	mock := &MockTransactor{ctrl: ctrl}
+	mock.recorder = &MockTransactorMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTransactor) EXPECT() *MockTransactorMockRecorder {
+	return m.recorder
+}
+
+// WithinTransaction mocks base method.
+func (m *MockTransactor) WithinTransaction(ctx context.Context, fn func(context.Context) error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithinTransaction", ctx, fn)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WithinTransaction indicates an expected call of WithinTransaction.
+func (mr *MockTransactorMockRecorder) WithinTransaction(ctx, fn interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithinTransaction", reflect.TypeOf((*MockTransactor)(nil).WithinTransaction), ctx, fn)
 }

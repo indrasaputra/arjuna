@@ -7,14 +7,15 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
+	"go.temporal.io/sdk/client"
 
 	kcsdk "github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
 	"github.com/indrasaputra/arjuna/service/user/internal/grpc/handler"
-	"github.com/indrasaputra/arjuna/service/user/internal/repository"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/keycloak"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
+	"github.com/indrasaputra/arjuna/service/user/internal/workflow/temporal"
 )
 
 var (
@@ -26,24 +27,26 @@ type Dependency struct {
 	Config         *config.Config
 	PgxPool        *pgxpool.Pool
 	KeycloakClient kcsdk.Keycloak
+	TemporalClient client.Client
 }
 
 // BuildUserCommandHandler builds user command handler including all of its dependencies.
 func BuildUserCommandHandler(dep *Dependency) (*handler.UserCommand, error) {
-	kcConfig := &keycloak.Config{
-		Client:        dep.KeycloakClient,
-		Realm:         dep.Config.Keycloak.Realm,
-		AdminUsername: dep.Config.Keycloak.AdminUser,
-		AdminPassword: dep.Config.Keycloak.AdminPassword,
-	}
-	kc, err := keycloak.NewUser(kcConfig)
-	if err != nil {
-		return nil, err
-	}
-	pg := postgres.NewUser(dep.PgxPool)
-	regRepo := repository.NewUserRegistrator(kc, pg)
-	registrator := service.NewUserRegistrator(regRepo)
-	return handler.NewUserCommand(registrator), nil
+	// kcConfig := &keycloak.Config{
+	// 	Client:        dep.KeycloakClient,
+	// 	Realm:         dep.Config.Keycloak.Realm,
+	// 	AdminUsername: dep.Config.Keycloak.AdminUser,
+	// 	AdminPassword: dep.Config.Keycloak.AdminPassword,
+	// }
+	// kc, err := keycloak.NewUser(kcConfig)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// pg := postgres.NewUser(dep.PgxPool)
+	tp := temporal.NewRegisterUserWorkflow(dep.TemporalClient)
+	// regRepo := repository.NewUserRegistrar(kc, pg)
+	rg := service.NewUserRegistrar(tp)
+	return handler.NewUserCommand(rg), nil
 }
 
 // BuildUserCommandInternalHandler builds user command handler including all of its dependencies.
@@ -59,8 +62,8 @@ func BuildUserCommandInternalHandler(dep *Dependency) (*handler.UserCommandInter
 		return nil, err
 	}
 	pg := postgres.NewUser(dep.PgxPool)
-	delRepo := repository.NewUserDeleter(kc, pg)
-	deleter := service.NewUserDeleter(delRepo)
+	tx := postgres.NewDatabaseTransaction(dep.PgxPool)
+	deleter := service.NewUserDeleter(pg, kc, tx)
 	return handler.NewUserCommandInternal(deleter), nil
 }
 
@@ -92,4 +95,10 @@ func BuildKeycloakClient(cfg config.Keycloak) kcsdk.Keycloak {
 	hc := &http.Client{Timeout: time.Duration(cfg.Timeout) * time.Second}
 	client := kcsdk.NewClient(hc, cfg.Address)
 	return client
+}
+
+// BuildTemporalClient builds temporal client.
+func BuildTemporalClient() client.Client {
+	c, _ := client.Dial(client.Options{})
+	return c
 }
