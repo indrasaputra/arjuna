@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -16,36 +17,36 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
+
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
 
 	keycloakClient := builder.BuildKeycloakClient(cfg.Keycloak)
-	postgresPool, err := builder.BuildPostgrePgxPool(cfg.Postgres)
-	temporalClient := builder.BuildTemporalClient()
+	temporalClient, err := builder.BuildTemporalClient()
+	checkError(err)
+	bunDB, err := builder.BuildBunDB(ctx, cfg.Postgres)
 	checkError(err)
 
 	dep := &builder.Dependency{
-		PgxPool:        postgresPool,
 		KeycloakClient: keycloakClient,
 		TemporalClient: temporalClient,
 		Config:         cfg,
+		DB:             bunDB,
 	}
 
 	grpcServer := server.NewGrpcServer(cfg.Port)
-	registerGrpcService(grpcServer, dep)
+	registerGrpcService(ctx, grpcServer, dep)
 
 	_ = grpcServer.Serve()
 	fmt.Println("server start.. waiting signal")
 	grpcServer.GracefulStop()
 }
 
-func registerGrpcService(grpcServer *server.GrpcServer, dep *builder.Dependency) {
+func registerGrpcService(ctx context.Context, grpcServer *server.GrpcServer, dep *builder.Dependency) {
 	// start register all module's gRPC handlers
-	command, err := builder.BuildUserCommandHandler(dep)
-	if err != nil {
-		log.Fatalf("fail build user command handler: %v", err)
-	}
-	commandInternal, err := builder.BuildUserCommandInternalHandler(dep)
+	command := builder.BuildUserCommandHandler(dep)
+	commandInternal, err := builder.BuildUserCommandInternalHandler(ctx, dep)
 	if err != nil {
 		log.Fatalf("fail build user command internal handler: %v", err)
 	}

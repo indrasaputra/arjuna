@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"go.temporal.io/sdk/activity"
@@ -16,6 +17,8 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
+
 	c, err := client.Dial(client.Options{})
 	if err != nil {
 		log.Fatalln("Unable to create client", err)
@@ -26,15 +29,16 @@ func main() {
 	checkError(err)
 
 	keycloakClient := builder.BuildKeycloakClient(cfg.Keycloak)
-	postgresPool, err := builder.BuildPostgrePgxPool(cfg.Postgres)
-	temporalClient := builder.BuildTemporalClient()
+	temporalClient, err := builder.BuildTemporalClient()
+	checkError(err)
+	bunDB, err := builder.BuildBunDB(ctx, cfg.Postgres)
 	checkError(err)
 
 	dep := &builder.Dependency{
-		PgxPool:        postgresPool,
 		KeycloakClient: keycloakClient,
 		TemporalClient: temporalClient,
 		Config:         cfg,
+		DB:             bunDB,
 	}
 
 	kcConfig := &keycloak.Config{
@@ -44,7 +48,7 @@ func main() {
 		AdminPassword: dep.Config.Keycloak.AdminPassword,
 	}
 	kc, _ := keycloak.NewUser(kcConfig)
-	db := postgres.NewUser(postgresPool)
+	db := postgres.NewUser(bunDB)
 
 	w := worker.New(c, temporal.TaskQueueRegisterUser, worker.Options{
 		DisableRegistrationAliasing: true,

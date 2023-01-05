@@ -122,7 +122,9 @@ func createUserRegistrarExecutor(ctrl *gomock.Controller) *UserRegistrarExecutor
 
 func createTestUser() *entity.User {
 	return &entity.User{
-		Name:  "First User",
-		Email: "first@user.com",
+		ID:         "1",
+		KeycloakID: "1",
+		Name:       "First User",
+		Email:      "first@user.com",
 	}
 }
