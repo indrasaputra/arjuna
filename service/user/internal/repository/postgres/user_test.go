@@ -3,48 +3,48 @@ package postgres_test
 import (
 	"context"
 	"errors"
-	"log"
 	"testing"
-	"time"
 
-	"github.com/jackc/pgconn"
-	pgx "github.com/jackc/pgx/v4"
-	"github.com/pashagolub/pgxmock"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
+	pgsdk "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
+	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
 )
 
 var (
-	testCtx                = context.Background()
-	testUser               = &entity.User{Name: "First User", Email: "first@user.com"}
-	errPostgresInternalMsg = "error"
-	errPostgresInternal    = errors.New(errPostgresInternalMsg)
-	columns                = []string{"id", "keycloak_id", "name", "email", "created_at", "updated_at", "created_by", "updated_by"}
-	testUserID             = "1"
-	testUserKeycloakID     = "1"
-	testUserName           = "First User"
-	testUserEmail          = "first@user.com"
+	testCtx             = context.Background()
+	errPostgresInternal = errors.New("error")
 )
 
 type UserExecutor struct {
 	user *postgres.User
-	pgx  pgxmock.PgxPoolIface
+	db   *mock_uow.MockDB
+	tx   *mock_uow.MockTx
 }
 
 func TestNewUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	t.Run("successfully create an instance of User", func(t *testing.T) {
-		exec := createUserExecutor()
+		exec := createUserExecutor(ctrl)
 		assert.NotNil(t, exec.user)
 	})
 }
 
 func TestUser_Insert(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	query := "INSERT INTO " +
+		"users (id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by) " +
+		"VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+
 	t.Run("nil user is prohibited", func(t *testing.T) {
-		exec := createUserExecutor()
+		exec := createUserExecutor(ctrl)
 
 		err := exec.user.Insert(testCtx, nil)
 
@@ -52,83 +52,84 @@ func TestUser_Insert(t *testing.T) {
 		assert.Equal(t, entity.ErrEmptyUser(), err)
 	})
 
-	query := `INSERT INTO users \(id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by\) VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8\)`
-
 	t.Run("insert duplicate user", func(t *testing.T) {
-		exec := createUserExecutor()
-		exec.pgx.
-			ExpectExec(query).
-			WillReturnError(&pgconn.PgError{Code: "23505"})
+		user := createTestUser()
+		exec := createUserExecutor(ctrl)
+		exec.db.EXPECT().
+			Exec(testCtx, query, user.ID, user.KeycloakID, user.Name, user.Email, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).
+			Return(int64(0), pgsdk.ErrAlreadyExist)
 
-		err := exec.user.Insert(testCtx, testUser)
+		err := exec.user.Insert(testCtx, user)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrAlreadyExists(), err)
 	})
 
-	t.Run("postgres returns error", func(t *testing.T) {
-		exec := createUserExecutor()
-		exec.pgx.
-			ExpectExec(query).
-			WillReturnError(errPostgresInternal)
+	t.Run("insert returns error", func(t *testing.T) {
+		user := createTestUser()
+		exec := createUserExecutor(ctrl)
+		exec.db.EXPECT().
+			Exec(testCtx, query, user.ID, user.KeycloakID, user.Name, user.Email, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).
+			Return(int64(0), entity.ErrInternal(""))
 
-		err := exec.user.Insert(testCtx, testUser)
+		err := exec.user.Insert(testCtx, user)
 
 		assert.Error(t, err)
 	})
 
-	t.Run("success save to postgres", func(t *testing.T) {
-		exec := createUserExecutor()
-		exec.pgx.
-			ExpectExec(query).
-			WillReturnResult(pgxmock.NewResult("INSERT", 1))
+	t.Run("success insert user", func(t *testing.T) {
+		user := createTestUser()
+		exec := createUserExecutor(ctrl)
+		exec.db.EXPECT().
+			Exec(testCtx, query, user.ID, user.KeycloakID, user.Name, user.Email, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).
+			Return(int64(1), nil)
 
-		err := exec.user.Insert(testCtx, testUser)
+		err := exec.user.Insert(testCtx, user)
 
 		assert.NoError(t, err)
 	})
 }
 
 func TestUser_GetByID(t *testing.T) {
-	id := "1"
-	query := `SELECT id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by FROM users WHERE id = \$1 LIMIT 1`
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	query := `SELECT id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by FROM users WHERE id = ? LIMIT 1`
 
 	t.Run("select by id returns empty row", func(t *testing.T) {
-		exec := createUserExecutor()
-		exec.pgx.
-			ExpectQuery(query).
-			WillReturnError(pgx.ErrNoRows)
+		user := createTestUser()
+		exec := createUserExecutor(ctrl)
+		exec.db.EXPECT().
+			Query(testCtx, gomock.Any(), query, user.ID).
+			Return(entity.ErrNotFound())
 
-		res, err := exec.user.GetByID(testCtx, id)
+		res, err := exec.user.GetByID(testCtx, user.ID)
 
-		assert.NotNil(t, err)
-		assert.Equal(t, entity.ErrNotFound(), err)
+		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
 
-	t.Run("select by key query returns error", func(t *testing.T) {
-		exec := createUserExecutor()
-		exec.pgx.
-			ExpectQuery(query).
-			WillReturnError(errPostgresInternal)
+	t.Run("select by id returns empty row", func(t *testing.T) {
+		user := createTestUser()
+		exec := createUserExecutor(ctrl)
+		exec.db.EXPECT().
+			Query(testCtx, gomock.Any(), query, user.ID).
+			Return(errPostgresInternal)
 
-		res, err := exec.user.GetByID(testCtx, id)
+		res, err := exec.user.GetByID(testCtx, user.ID)
 
-		assert.NotNil(t, err)
-		assert.Equal(t, entity.ErrInternal(errPostgresInternalMsg), err)
+		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
 
-	t.Run("successfully retrieve row", func(t *testing.T) {
-		exec := createUserExecutor()
-		exec.pgx.
-			ExpectQuery(query).
-			WillReturnRows(pgxmock.
-				NewRows(columns).
-				AddRow(testUserID, testUserKeycloakID, testUserName, testUserEmail, time.Now(), time.Now(), testUserID, testUserID),
-			)
+	t.Run("success select by id", func(t *testing.T) {
+		user := createTestUser()
+		exec := createUserExecutor(ctrl)
+		exec.db.EXPECT().
+			Query(testCtx, gomock.Any(), query, user.ID).
+			Return(nil)
 
-		res, err := exec.user.GetByID(testCtx, id)
+		res, err := exec.user.GetByID(testCtx, user.ID)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, res)
@@ -136,106 +137,96 @@ func TestUser_GetByID(t *testing.T) {
 }
 
 func TestUser_GetAll(t *testing.T) {
-	query := `SELECT id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by FROM users LIMIT \$1`
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	t.Run("select all query returns error", func(t *testing.T) {
-		exec := createUserExecutor()
-		exec.pgx.
-			ExpectQuery(query).
-			WillReturnError(errPostgresInternal)
+	query := `SELECT id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by FROM users LIMIT ?`
+	limit := uint(10)
 
-		res, err := exec.user.GetAll(testCtx, 10)
+	t.Run("get all returns error", func(t *testing.T) {
+		exec := createUserExecutor(ctrl)
+		exec.db.EXPECT().
+			Query(testCtx, gomock.Any(), query, limit).
+			Return(errPostgresInternal)
 
-		assert.Error(t, err)
-		assert.Empty(t, res)
-	})
-
-	t.Run("select all rows scan returns error", func(t *testing.T) {
-		exec := createUserExecutor()
-		exec.pgx.
-			ExpectQuery(query).
-			WillReturnRows(pgxmock.
-				NewRows(columns).
-				AddRow(testUserID, testUserKeycloakID, testUserName, testUserEmail, time.Now(), time.Now(), testUserID, testUserID).
-				AddRow(testUserID, testUserKeycloakID, testUserName, testUserEmail, "time.Now()", "time.Now()", testUserID, testUserID),
-			)
-
-		res, err := exec.user.GetAll(testCtx, 10)
-
-		assert.Nil(t, err)
-		assert.Equal(t, 1, len(res))
-	})
-
-	t.Run("select all rows error occurs after scanning", func(t *testing.T) {
-		exec := createUserExecutor()
-		exec.pgx.
-			ExpectQuery(query).
-			WillReturnRows(pgxmock.
-				NewRows(columns).
-				AddRow(testUserID, testUserKeycloakID, testUserName, testUserEmail, time.Now(), time.Now(), testUserID, testUserID).
-				AddRow(testUserID, testUserKeycloakID, testUserName, testUserEmail, "time.Now()", "time.Now()", testUserID, testUserID).
-				RowError(2, errPostgresInternal),
-			)
-
-		res, err := exec.user.GetAll(testCtx, 10)
+		res, err := exec.user.GetAll(testCtx, limit)
 
 		assert.Error(t, err)
 		assert.Empty(t, res)
 	})
 
-	t.Run("successfully retrieve all rows", func(t *testing.T) {
-		exec := createUserExecutor()
-		exec.pgx.
-			ExpectQuery(query).
-			WillReturnRows(pgxmock.
-				NewRows(columns).
-				AddRow(testUserID, testUserKeycloakID, testUserName, testUserEmail, time.Now(), time.Now(), testUserID, testUserID).
-				AddRow(testUserID, testUserKeycloakID, testUserName, testUserEmail, time.Now(), time.Now(), testUserID, testUserID),
-			)
+	t.Run("success get all", func(t *testing.T) {
+		exec := createUserExecutor(ctrl)
+		exec.db.EXPECT().
+			Query(testCtx, gomock.Any(), query, limit).
+			Return(nil)
 
-		res, err := exec.user.GetAll(testCtx, 10)
+		res, err := exec.user.GetAll(testCtx, limit)
 
-		assert.Nil(t, err)
-		assert.Equal(t, 2, len(res))
+		assert.NoError(t, err)
+		assert.Empty(t, res)
 	})
 }
 
 func TestUser_HardDelete(t *testing.T) {
-	id := "1"
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	t.Run("postgres database returns internal error", func(t *testing.T) {
-		exec := createUserExecutor()
-		exec.pgx.
-			ExpectExec(`DELETE FROM users WHERE id = \$1`).
-			WillReturnError(errPostgresInternal)
+	query := "DELETE FROM users WHERE id = ?"
 
-		err := exec.user.HardDelete(testCtx, id)
+	t.Run("tx is not set", func(t *testing.T) {
+		user := createTestUser()
+		exec := createUserExecutor(ctrl)
+		// exec.db.EXPECT().
+		// 	Exec(testCtx, query, user.ID).
+		// 	Return(0, )
+
+		err := exec.user.HardDelete(testCtx, nil, user.ID)
 
 		assert.Error(t, err)
-		assert.Equal(t, codes.Internal, status.Code(err))
 	})
 
-	t.Run("success delete a user", func(t *testing.T) {
-		exec := createUserExecutor()
-		exec.pgx.
-			ExpectExec(`DELETE FROM users WHERE id = \$1`).
-			WillReturnResult(pgxmock.NewResult("DELETE", 1))
+	t.Run("hard delete returns error", func(t *testing.T) {
+		user := createTestUser()
+		exec := createUserExecutor(ctrl)
+		exec.tx.EXPECT().
+			Exec(testCtx, query, user.ID).
+			Return(int64(0), errPostgresInternal)
 
-		err := exec.user.HardDelete(testCtx, id)
+		err := exec.user.HardDelete(testCtx, exec.tx, user.ID)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("success hard delete", func(t *testing.T) {
+		user := createTestUser()
+		exec := createUserExecutor(ctrl)
+		exec.tx.EXPECT().
+			Exec(testCtx, query, user.ID).
+			Return(int64(0), nil)
+
+		err := exec.user.HardDelete(testCtx, exec.tx, user.ID)
 
 		assert.NoError(t, err)
 	})
 }
 
-func createUserExecutor() *UserExecutor {
-	mock, err := pgxmock.NewPool(pgxmock.MonitorPingsOption(true))
-	if err != nil {
-		log.Panicf("error opening a stub database connection: %v\n", err)
+func createTestUser() *entity.User {
+	return &entity.User{
+		ID:         "1",
+		KeycloakID: "1",
+		Name:       "First User",
+		Email:      "first@user.com",
 	}
+}
 
-	user := postgres.NewUser(mock)
+func createUserExecutor(ctrl *gomock.Controller) *UserExecutor {
+	db := mock_uow.NewMockDB(ctrl)
+	tx := mock_uow.NewMockTx(ctrl)
+	user := postgres.NewUser(db)
 	return &UserExecutor{
 		user: user,
-		pgx:  mock,
+		db:   db,
+		tx:   tx,
 	}
 }

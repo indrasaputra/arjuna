@@ -4,6 +4,8 @@ import (
 	"github.com/joeshaw/envdecode"
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
+
+	pgsdk "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 )
 
 // Config holds configuration for the project.
@@ -11,21 +13,8 @@ type Config struct {
 	ServiceName string `env:"SERVICE_NAME,default=user-server"`
 	AppEnv      string `env:"APP_ENV,default=development"`
 	Port        string `env:"PORT,default=8080"`
-	Postgres    Postgres
+	Postgres    pgsdk.Config
 	Keycloak    Keycloak
-}
-
-// Postgres holds configuration for PostgreSQL.
-type Postgres struct {
-	Host            string `env:"POSTGRES_HOST,default=localhost"`
-	Port            string `env:"POSTGRES_PORT,default=5432"`
-	User            string `env:"POSTGRES_USER,required"`
-	Password        string `env:"POSTGRES_PASSWORD,required"`
-	Name            string `env:"POSTGRES_NAME,required"`
-	MaxOpenConns    string `env:"POSTGRES_MAX_OPEN_CONNS,default=5"`
-	MaxConnLifetime string `env:"POSTGRES_MAX_CONN_LIFETIME,default=10m"`
-	MaxIdleLifetime string `env:"POSTGRES_MAX_IDLE_LIFETIME,default=5m"`
-	SSLMode         string `env:"POSTGRES_SSL_MODE,default=disable"`
 }
 
 // Keycloak holds configuration for Keycloak.

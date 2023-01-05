@@ -6,20 +6,18 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
+	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
 	mock_service "github.com/indrasaputra/arjuna/service/user/test/mock/service"
 )
 
-var (
-	testUserID = "1"
-)
-
 type UserDeleterExecutor struct {
-	deleter    *service.UserDeleter
-	database   *mock_service.MockDeleteUserDatabase
-	keycloak   *mock_service.MockDeleteUserRepository
-	transactor *mock_service.MockTransactor
+	deleter  *service.UserDeleter
+	database *mock_service.MockDeleteUserRepository
+	keycloak *mock_service.MockDeleteUserProvider
+	unit     *mock_uow.MockUnitOfWork
+	tx       *mock_uow.MockTx
 }
 
 func TestNewUserDeleter(t *testing.T) {
@@ -37,62 +35,108 @@ func TestUserDeleter_HardDelete(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("get user by id returns error", func(t *testing.T) {
-		exec := createUserDeleterExecutor(ctrl)
-		exec.database.EXPECT().GetByID(testCtx, testUserID).Return(nil, entity.ErrInternal(""))
-
-		err := exec.deleter.HardDelete(testCtx, testUserID)
-
-		assert.Error(t, err)
-		assert.Equal(t, entity.ErrInternal(""), err)
-	})
-
-	t.Run("database returns error when delete", func(t *testing.T) {
 		user := createTestUser()
+		errReturn := entity.ErrInternal("")
 		exec := createUserDeleterExecutor(ctrl)
-		exec.transactor.EXPECT().WithinTransaction(testCtx, gomock.Any()).Return(entity.ErrInternal(""))
-		exec.database.EXPECT().GetByID(testCtx, testUserID).Return(user, nil)
-		// exec.database.EXPECT().HardDelete(testCtx, user.ID).Return(entity.ErrInternal(""))
+		exec.database.EXPECT().GetByID(testCtx, user.ID).Return(nil, errReturn)
 
-		err := exec.deleter.HardDelete(testCtx, testUserID)
+		err := exec.deleter.HardDelete(testCtx, user.ID)
 
 		assert.Error(t, err)
-		assert.Equal(t, entity.ErrInternal(""), err)
+		assert.Equal(t, errReturn, err)
 	})
 
-	// t.Run("keycloak returns error when delete", func(t *testing.T) {
-	// 	user := createTestUser()
-	// 	exec := createUserDeleterExecutor(ctrl)
-	// 	exec.database.EXPECT().GetByID(testCtx, testUserID).Return(user, nil)
-	// 	exec.database.EXPECT().HardDelete(testCtx, user.ID).Return(nil)
-	// 	exec.database.EXPECT().HardDelete(testCtx, user.ID).Return(entity.ErrInternal(""))
+	t.Run("unit of work begin returns error", func(t *testing.T) {
+		user := createTestUser()
+		errReturn := entity.ErrInternal("")
 
-	// 	err := exec.deleter.HardDelete(testCtx, testUserID)
+		exec := createUserDeleterExecutor(ctrl)
+		exec.database.EXPECT().GetByID(testCtx, user.ID).Return(user, nil)
+		exec.unit.EXPECT().Begin(testCtx).Return(nil, errReturn)
 
-	// 	assert.Error(t, err)
-	// 	assert.Equal(t, entity.ErrInternal(""), err)
-	// })
+		err := exec.deleter.HardDelete(testCtx, user.ID)
 
-	// t.Run("success delete user", func(t *testing.T) {
-	// 	user := createTestUser()
-	// 	exec := createUserDeleterExecutor(ctrl)
-	// 	exec.repo.EXPECT().GetByID(testCtx, testUserID).Return(user, nil)
-	// 	exec.repo.EXPECT().HardDelete(testCtx, user).Return(nil)
+		assert.Error(t, err)
+		assert.Equal(t, errReturn, err)
+	})
 
-	// 	err := exec.deleter.HardDelete(testCtx, testUserID)
+	t.Run("delete from database returns error and rollback", func(t *testing.T) {
+		user := createTestUser()
+		errReturn := entity.ErrInternal("")
 
-	// 	assert.NoError(t, err)
-	// })
+		exec := createUserDeleterExecutor(ctrl)
+		exec.database.EXPECT().GetByID(testCtx, user.ID).Return(user, nil)
+		exec.unit.EXPECT().Begin(testCtx).Return(exec.tx, nil)
+		exec.database.EXPECT().HardDelete(testCtx, exec.tx, user.ID).Return(errReturn)
+		exec.unit.EXPECT().Finish(testCtx, exec.tx, errReturn).Return(errReturn)
+
+		err := exec.deleter.HardDelete(testCtx, user.ID)
+
+		assert.Error(t, err)
+		assert.Equal(t, errReturn, err)
+	})
+
+	t.Run("delete from keycloak returns error and rollback", func(t *testing.T) {
+		user := createTestUser()
+		errReturn := entity.ErrInternal("")
+
+		exec := createUserDeleterExecutor(ctrl)
+		exec.database.EXPECT().GetByID(testCtx, user.ID).Return(user, nil)
+		exec.unit.EXPECT().Begin(testCtx).Return(exec.tx, nil)
+		exec.database.EXPECT().HardDelete(testCtx, exec.tx, user.ID).Return(nil)
+		exec.keycloak.EXPECT().HardDelete(testCtx, user.KeycloakID).Return(errReturn)
+		exec.unit.EXPECT().Finish(testCtx, exec.tx, errReturn).Return(errReturn)
+
+		err := exec.deleter.HardDelete(testCtx, user.ID)
+
+		assert.Error(t, err)
+		assert.Equal(t, errReturn, err)
+	})
+
+	t.Run("finish returns error", func(t *testing.T) {
+		user := createTestUser()
+		errReturn := entity.ErrInternal("")
+
+		exec := createUserDeleterExecutor(ctrl)
+		exec.database.EXPECT().GetByID(testCtx, user.ID).Return(user, nil)
+		exec.unit.EXPECT().Begin(testCtx).Return(exec.tx, nil)
+		exec.database.EXPECT().HardDelete(testCtx, exec.tx, user.ID).Return(nil)
+		exec.keycloak.EXPECT().HardDelete(testCtx, user.KeycloakID).Return(nil)
+		exec.unit.EXPECT().Finish(testCtx, exec.tx, nil).Return(errReturn)
+
+		err := exec.deleter.HardDelete(testCtx, user.ID)
+
+		assert.Error(t, err)
+		assert.Equal(t, errReturn, err)
+	})
+
+	t.Run("success hard delete user", func(t *testing.T) {
+		user := createTestUser()
+
+		exec := createUserDeleterExecutor(ctrl)
+		exec.database.EXPECT().GetByID(testCtx, user.ID).Return(user, nil)
+		exec.unit.EXPECT().Begin(testCtx).Return(exec.tx, nil)
+		exec.database.EXPECT().HardDelete(testCtx, exec.tx, user.ID).Return(nil)
+		exec.keycloak.EXPECT().HardDelete(testCtx, user.KeycloakID).Return(nil)
+		exec.unit.EXPECT().Finish(testCtx, exec.tx, nil).Return(nil)
+
+		err := exec.deleter.HardDelete(testCtx, user.ID)
+
+		assert.NoError(t, err)
+	})
 }
 
 func createUserDeleterExecutor(ctrl *gomock.Controller) *UserDeleterExecutor {
-	db := mock_service.NewMockDeleteUserDatabase(ctrl)
-	kc := mock_service.NewMockDeleteUserRepository(ctrl)
-	tx := mock_service.NewMockTransactor(ctrl)
-	d := service.NewUserDeleter(db, kc, tx)
+	kc := mock_service.NewMockDeleteUserProvider(ctrl)
+	db := mock_service.NewMockDeleteUserRepository(ctrl)
+	u := mock_uow.NewMockUnitOfWork(ctrl)
+	tx := mock_uow.NewMockTx(ctrl)
+	d := service.NewUserDeleter(u, db, kc)
 	return &UserDeleterExecutor{
-		deleter:    d,
-		database:   db,
-		keycloak:   kc,
-		transactor: tx,
+		deleter:  d,
+		database: db,
+		keycloak: kc,
+		unit:     u,
+		tx:       tx,
 	}
 }
