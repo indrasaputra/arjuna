@@ -16,7 +16,7 @@ var (
 	testCtx = context.Background()
 )
 
-type RegisterUserActivityExecutor struct {
+type RegisterUserActivitySuite struct {
 	activity *activity.RegisterUserActivity
 
 	vendor *mock_activity.MockRegisterUserVendor
@@ -28,8 +28,8 @@ func TestNewRegisterUserActivity(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("successfully create an instance of RegisterUserActivity", func(t *testing.T) {
-		exec := createRegisterUserActivityExecutor(ctrl)
-		assert.NotNil(t, exec.activity)
+		st := createRegisterUserActivitySuite(ctrl)
+		assert.NotNil(t, st.activity)
 	})
 }
 
@@ -38,22 +38,22 @@ func TestRegisterUserActivity_CreateInKeycloak(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("user already exists", func(t *testing.T) {
-		exec := createRegisterUserActivityExecutor(ctrl)
+		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
-		exec.vendor.EXPECT().Create(testCtx, user).Return("", entity.ErrAlreadyExists())
+		st.vendor.EXPECT().Create(testCtx, user).Return("", entity.ErrAlreadyExists())
 
-		id, err := exec.activity.CreateInKeycloak(testCtx, user)
+		id, err := st.activity.CreateInKeycloak(testCtx, user)
 
 		assert.Error(t, err)
 		assert.Empty(t, id)
 	})
 
 	t.Run("success create user", func(t *testing.T) {
-		exec := createRegisterUserActivityExecutor(ctrl)
+		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
-		exec.vendor.EXPECT().Create(testCtx, user).Return("1", nil)
+		st.vendor.EXPECT().Create(testCtx, user).Return("1", nil)
 
-		id, err := exec.activity.CreateInKeycloak(testCtx, user)
+		id, err := st.activity.CreateInKeycloak(testCtx, user)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, id)
@@ -65,21 +65,21 @@ func TestRegisterUserActivity_HardDeleteFromKeycloak(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("error when delete user from vendor", func(t *testing.T) {
-		exec := createRegisterUserActivityExecutor(ctrl)
+		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
-		exec.vendor.EXPECT().HardDelete(testCtx, user.ID).Return(entity.ErrInternal(""))
+		st.vendor.EXPECT().HardDelete(testCtx, user.ID).Return(entity.ErrInternal(""))
 
-		err := exec.activity.HardDeleteFromKeycloak(testCtx, user.ID)
+		err := st.activity.HardDeleteFromKeycloak(testCtx, user.ID)
 
 		assert.Error(t, err)
 	})
 
 	t.Run("success delete user from vendor", func(t *testing.T) {
-		exec := createRegisterUserActivityExecutor(ctrl)
+		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
-		exec.vendor.EXPECT().HardDelete(testCtx, user.ID).Return(nil)
+		st.vendor.EXPECT().HardDelete(testCtx, user.ID).Return(nil)
 
-		err := exec.activity.HardDeleteFromKeycloak(testCtx, user.ID)
+		err := st.activity.HardDeleteFromKeycloak(testCtx, user.ID)
 
 		assert.NoError(t, err)
 	})
@@ -90,21 +90,21 @@ func TestRegisterUserActivity_InsertToDatabase(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("user already exists in database", func(t *testing.T) {
-		exec := createRegisterUserActivityExecutor(ctrl)
+		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
-		exec.db.EXPECT().Insert(testCtx, user).Return(entity.ErrAlreadyExists())
+		st.db.EXPECT().Insert(testCtx, user).Return(entity.ErrAlreadyExists())
 
-		err := exec.activity.InsertToDatabase(testCtx, user)
+		err := st.activity.InsertToDatabase(testCtx, user)
 
 		assert.Error(t, err)
 	})
 
 	t.Run("success insert user to database", func(t *testing.T) {
-		exec := createRegisterUserActivityExecutor(ctrl)
+		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
-		exec.db.EXPECT().Insert(testCtx, user).Return(nil)
+		st.db.EXPECT().Insert(testCtx, user).Return(nil)
 
-		err := exec.activity.InsertToDatabase(testCtx, user)
+		err := st.activity.InsertToDatabase(testCtx, user)
 
 		assert.NoError(t, err)
 	})
@@ -118,11 +118,11 @@ func createTestUser() *entity.User {
 	}
 }
 
-func createRegisterUserActivityExecutor(ctrl *gomock.Controller) *RegisterUserActivityExecutor {
+func createRegisterUserActivitySuite(ctrl *gomock.Controller) *RegisterUserActivitySuite {
 	kc := mock_activity.NewMockRegisterUserVendor(ctrl)
 	db := mock_activity.NewMockRegisterUserDatabase(ctrl)
 	a := activity.NewRegisterUserActivity(kc, db)
-	return &RegisterUserActivityExecutor{
+	return &RegisterUserActivitySuite{
 		activity: a,
 		vendor:   kc,
 		db:       db,

@@ -21,7 +21,7 @@ var (
 	testPassword = "password"
 )
 
-type AuthExecutor struct {
+type AuthSuite struct {
 	auth   *keycloak.Auth
 	config *keycloak.Config
 	client *mock_keycloak.MockKeycloak
@@ -86,11 +86,11 @@ func TestAuth_Login(t *testing.T) {
 			kcsdk.NewError(http.StatusInternalServerError, ""),
 		}
 
-		exec := createAuthExecutor(ctrl)
+		st := createAuthSuite(ctrl)
 		for _, err := range errs {
-			exec.client.EXPECT().LoginUser(testCtx, exec.config.Realm, testClientID, testEmail, testPassword).Return(nil, err)
+			st.client.EXPECT().LoginUser(testCtx, st.config.Realm, testClientID, testEmail, testPassword).Return(nil, err)
 
-			token, err := exec.auth.Login(testCtx, testClientID, testEmail, testPassword)
+			token, err := st.auth.Login(testCtx, testClientID, testEmail, testPassword)
 
 			assert.Error(t, err)
 			assert.Nil(t, token)
@@ -98,10 +98,10 @@ func TestAuth_Login(t *testing.T) {
 	})
 
 	t.Run("success login", func(t *testing.T) {
-		exec := createAuthExecutor(ctrl)
-		exec.client.EXPECT().LoginUser(testCtx, exec.config.Realm, testClientID, testEmail, testPassword).Return(&kcsdk.JWT{}, nil)
+		st := createAuthSuite(ctrl)
+		st.client.EXPECT().LoginUser(testCtx, st.config.Realm, testClientID, testEmail, testPassword).Return(&kcsdk.JWT{}, nil)
 
-		token, err := exec.auth.Login(testCtx, testClientID, testEmail, testPassword)
+		token, err := st.auth.Login(testCtx, testClientID, testEmail, testPassword)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, token)
@@ -115,13 +115,13 @@ func createKeycloakConfig(ctrl *gomock.Controller) *keycloak.Config {
 	}
 }
 
-func createAuthExecutor(ctrl *gomock.Controller) *AuthExecutor {
+func createAuthSuite(ctrl *gomock.Controller) *AuthSuite {
 	client := mock_keycloak.NewMockKeycloak(ctrl)
 	config := createKeycloakConfig(ctrl)
 	config.Client = client
 	auth, _ := keycloak.NewAuth(config)
 
-	return &AuthExecutor{
+	return &AuthSuite{
 		auth:   auth,
 		config: config,
 		client: client,

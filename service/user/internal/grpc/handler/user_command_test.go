@@ -12,7 +12,7 @@ import (
 	mock_service "github.com/indrasaputra/arjuna/service/user/test/mock/service"
 )
 
-type UserCommandExecutor struct {
+type UserCommandSuite struct {
 	handler   *handler.UserCommand
 	registrar *mock_service.MockRegisterUser
 }
@@ -22,8 +22,8 @@ func TestNewUserCommand(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("successful create an instance of UserCommand", func(t *testing.T) {
-		exec := createUserCommandExecutor(ctrl)
-		assert.NotNil(t, exec.handler)
+		st := createUserCommandSuite(ctrl)
+		assert.NotNil(t, st.handler)
 	})
 }
 
@@ -32,9 +32,9 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("nil request is prohibited", func(t *testing.T) {
-		exec := createUserCommandExecutor(ctrl)
+		st := createUserCommandSuite(ctrl)
 
-		res, err := exec.handler.RegisterUser(testCtx, nil)
+		res, err := st.handler.RegisterUser(testCtx, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyUser(), err)
@@ -42,9 +42,9 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 	})
 
 	t.Run("empty user is prohibited", func(t *testing.T) {
-		exec := createUserCommandExecutor(ctrl)
+		st := createUserCommandSuite(ctrl)
 
-		res, err := exec.handler.RegisterUser(testCtx, &apiv1.RegisterUserRequest{})
+		res, err := st.handler.RegisterUser(testCtx, &apiv1.RegisterUserRequest{})
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyUser(), err)
@@ -52,7 +52,7 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 	})
 
 	t.Run("user service returns error", func(t *testing.T) {
-		exec := createUserCommandExecutor(ctrl)
+		st := createUserCommandSuite(ctrl)
 		request := &apiv1.RegisterUserRequest{
 			User: &apiv1.User{
 				Name:     "First User",
@@ -69,9 +69,9 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 			entity.ErrInternal("error"),
 		}
 		for _, errRet := range errors {
-			exec.registrar.EXPECT().Register(testCtx, gomock.Any()).Return("", errRet)
+			st.registrar.EXPECT().Register(testCtx, gomock.Any()).Return("", errRet)
 
-			res, err := exec.handler.RegisterUser(testCtx, request)
+			res, err := st.handler.RegisterUser(testCtx, request)
 
 			assert.Error(t, err)
 			assert.Equal(t, errRet, err)
@@ -80,8 +80,8 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 	})
 
 	t.Run("success register user", func(t *testing.T) {
-		exec := createUserCommandExecutor(ctrl)
-		exec.registrar.EXPECT().Register(testCtx, gomock.Any()).Return("id", nil)
+		st := createUserCommandSuite(ctrl)
+		st.registrar.EXPECT().Register(testCtx, gomock.Any()).Return("id", nil)
 		request := &apiv1.RegisterUserRequest{
 			User: &apiv1.User{
 				Name:     "First User",
@@ -90,7 +90,7 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 			},
 		}
 
-		res, err := exec.handler.RegisterUser(testCtx, request)
+		res, err := st.handler.RegisterUser(testCtx, request)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, res)
@@ -98,10 +98,10 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 	})
 }
 
-func createUserCommandExecutor(ctrl *gomock.Controller) *UserCommandExecutor {
+func createUserCommandSuite(ctrl *gomock.Controller) *UserCommandSuite {
 	r := mock_service.NewMockRegisterUser(ctrl)
 	h := handler.NewUserCommand(r)
-	return &UserCommandExecutor{
+	return &UserCommandSuite{
 		handler:   h,
 		registrar: r,
 	}

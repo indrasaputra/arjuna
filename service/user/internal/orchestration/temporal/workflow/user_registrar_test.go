@@ -23,21 +23,21 @@ var (
 	testCtx = context.Background()
 )
 
-type RegisterUserWorkflowExecutor struct {
+type RegisterUserWorkflowSuite struct {
 	workflow *workflow.RegisterUserWorkflow
 	client   *tempomock.Client
 }
 
 func TestNewRegisterUserWorkflow(t *testing.T) {
 	t.Run("successfully create an instance of RegisterUserWorkflow", func(t *testing.T) {
-		st := createRegisterUserWorkflowExecutor()
+		st := createRegisterUserWorkflowSuite()
 		assert.NotNil(t, st.workflow)
 	})
 }
 
 func TestRegisterUserWorkflow_RegisterUser(t *testing.T) {
 	t.Run("execute workflow returns error", func(t *testing.T) {
-		st := createRegisterUserWorkflowExecutor()
+		st := createRegisterUserWorkflowSuite()
 		user := createTestUser()
 		input := &service.RegisterUserInput{User: user}
 
@@ -52,7 +52,7 @@ func TestRegisterUserWorkflow_RegisterUser(t *testing.T) {
 	})
 
 	t.Run("workflow run returns error", func(t *testing.T) {
-		st := createRegisterUserWorkflowExecutor()
+		st := createRegisterUserWorkflowSuite()
 		user := createTestUser()
 		input := &service.RegisterUserInput{User: user}
 		wr := &tempomock.WorkflowRun{}
@@ -71,7 +71,7 @@ func TestRegisterUserWorkflow_RegisterUser(t *testing.T) {
 	})
 
 	t.Run("workflow is executed successfully", func(t *testing.T) {
-		st := createRegisterUserWorkflowExecutor()
+		st := createRegisterUserWorkflowSuite()
 		user := createTestUser()
 		input := &service.RegisterUserInput{User: user}
 		wr := &tempomock.WorkflowRun{}
@@ -188,10 +188,10 @@ func createRegisterUserInput() *service.RegisterUserInput {
 	}
 }
 
-func createRegisterUserWorkflowExecutor() *RegisterUserWorkflowExecutor {
+func createRegisterUserWorkflowSuite() *RegisterUserWorkflowSuite {
 	c := &tempomock.Client{}
 	w := workflow.NewRegisterUserWorkflow(c)
-	return &RegisterUserWorkflowExecutor{
+	return &RegisterUserWorkflowSuite{
 		workflow: w,
 		client:   c,
 	}

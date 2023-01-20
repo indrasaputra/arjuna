@@ -20,7 +20,7 @@ var (
 	testJWT = &kcsdk.JWT{}
 )
 
-type UserExecutor struct {
+type UserSuite struct {
 	user   *keycloak.User
 	config *keycloak.Config
 	client *mock_keycloak.MockKeycloak
@@ -98,68 +98,68 @@ func TestUser_Create(t *testing.T) {
 	user := createUserEntity()
 
 	t.Run("unable to login as admin to Keycloak", func(t *testing.T) {
-		exec := createUserExecutor(ctrl)
-		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(nil, errors.New("error"))
+		st := createUserSuite(ctrl)
+		st.client.EXPECT().LoginAdmin(testCtx, st.config.AdminUsername, st.config.AdminPassword).Return(nil, errors.New("error"))
 
-		id, err := exec.user.Create(testCtx, user)
+		id, err := st.user.Create(testCtx, user)
 
 		assert.Error(t, err)
 		assert.Empty(t, id)
 	})
 
 	t.Run("user already exists", func(t *testing.T) {
-		exec := createUserExecutor(ctrl)
-		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(testJWT, nil)
-		exec.client.EXPECT().CreateUser(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(kcsdk.NewError(http.StatusConflict, ""))
+		st := createUserSuite(ctrl)
+		st.client.EXPECT().LoginAdmin(testCtx, st.config.AdminUsername, st.config.AdminPassword).Return(testJWT, nil)
+		st.client.EXPECT().CreateUser(testCtx, testJWT.AccessToken, st.config.Realm, gomock.Any()).Return(kcsdk.NewError(http.StatusConflict, ""))
 
-		id, err := exec.user.Create(testCtx, user)
+		id, err := st.user.Create(testCtx, user)
 
 		assert.Error(t, err)
 		assert.Empty(t, id)
 	})
 
 	t.Run("create user returns error", func(t *testing.T) {
-		exec := createUserExecutor(ctrl)
-		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(testJWT, nil)
-		exec.client.EXPECT().CreateUser(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(errors.New("error"))
+		st := createUserSuite(ctrl)
+		st.client.EXPECT().LoginAdmin(testCtx, st.config.AdminUsername, st.config.AdminPassword).Return(testJWT, nil)
+		st.client.EXPECT().CreateUser(testCtx, testJWT.AccessToken, st.config.Realm, gomock.Any()).Return(errors.New("error"))
 
-		id, err := exec.user.Create(testCtx, user)
+		id, err := st.user.Create(testCtx, user)
 
 		assert.Error(t, err)
 		assert.Empty(t, id)
 	})
 
 	t.Run("get user id returns error", func(t *testing.T) {
-		exec := createUserExecutor(ctrl)
-		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(testJWT, nil)
-		exec.client.EXPECT().CreateUser(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(nil)
-		exec.client.EXPECT().GetUserByEmail(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(nil, errors.New("error"))
+		st := createUserSuite(ctrl)
+		st.client.EXPECT().LoginAdmin(testCtx, st.config.AdminUsername, st.config.AdminPassword).Return(testJWT, nil)
+		st.client.EXPECT().CreateUser(testCtx, testJWT.AccessToken, st.config.Realm, gomock.Any()).Return(nil)
+		st.client.EXPECT().GetUserByEmail(testCtx, testJWT.AccessToken, st.config.Realm, gomock.Any()).Return(nil, errors.New("error"))
 
-		id, err := exec.user.Create(testCtx, user)
+		id, err := st.user.Create(testCtx, user)
 
 		assert.Error(t, err)
 		assert.Empty(t, id)
 	})
 
 	t.Run("get user id returns user not found", func(t *testing.T) {
-		exec := createUserExecutor(ctrl)
-		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(testJWT, nil)
-		exec.client.EXPECT().CreateUser(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(nil)
-		exec.client.EXPECT().GetUserByEmail(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(nil, kcsdk.NewError(http.StatusNotFound, ""))
+		st := createUserSuite(ctrl)
+		st.client.EXPECT().LoginAdmin(testCtx, st.config.AdminUsername, st.config.AdminPassword).Return(testJWT, nil)
+		st.client.EXPECT().CreateUser(testCtx, testJWT.AccessToken, st.config.Realm, gomock.Any()).Return(nil)
+		st.client.EXPECT().GetUserByEmail(testCtx, testJWT.AccessToken, st.config.Realm, gomock.Any()).Return(nil, kcsdk.NewError(http.StatusNotFound, ""))
 
-		id, err := exec.user.Create(testCtx, user)
+		id, err := st.user.Create(testCtx, user)
 
 		assert.Error(t, err)
 		assert.Empty(t, id)
 	})
 
 	t.Run("success create a new user", func(t *testing.T) {
-		exec := createUserExecutor(ctrl)
-		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(testJWT, nil)
-		exec.client.EXPECT().CreateUser(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(nil)
-		exec.client.EXPECT().GetUserByEmail(testCtx, testJWT.AccessToken, exec.config.Realm, gomock.Any()).Return(&kcsdk.UserRepresentation{ID: "id"}, nil)
+		st := createUserSuite(ctrl)
+		st.client.EXPECT().LoginAdmin(testCtx, st.config.AdminUsername, st.config.AdminPassword).Return(testJWT, nil)
+		st.client.EXPECT().CreateUser(testCtx, testJWT.AccessToken, st.config.Realm, gomock.Any()).Return(nil)
+		st.client.EXPECT().GetUserByEmail(testCtx, testJWT.AccessToken, st.config.Realm, gomock.Any()).Return(&kcsdk.UserRepresentation{ID: "id"}, nil)
 
-		id, err := exec.user.Create(testCtx, user)
+		id, err := st.user.Create(testCtx, user)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, id)
@@ -173,30 +173,30 @@ func TestUser_HardDelete(t *testing.T) {
 	id := "1"
 
 	t.Run("unable to login as admin to Keycloak", func(t *testing.T) {
-		exec := createUserExecutor(ctrl)
-		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(nil, errors.New("error"))
+		st := createUserSuite(ctrl)
+		st.client.EXPECT().LoginAdmin(testCtx, st.config.AdminUsername, st.config.AdminPassword).Return(nil, errors.New("error"))
 
-		err := exec.user.HardDelete(testCtx, id)
+		err := st.user.HardDelete(testCtx, id)
 
 		assert.Error(t, err)
 	})
 
 	t.Run("delete user returns error", func(t *testing.T) {
-		exec := createUserExecutor(ctrl)
-		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(testJWT, nil)
-		exec.client.EXPECT().DeleteUser(testCtx, testJWT.AccessToken, exec.config.Realm, id).Return(kcsdk.NewError(http.StatusInternalServerError, ""))
+		st := createUserSuite(ctrl)
+		st.client.EXPECT().LoginAdmin(testCtx, st.config.AdminUsername, st.config.AdminPassword).Return(testJWT, nil)
+		st.client.EXPECT().DeleteUser(testCtx, testJWT.AccessToken, st.config.Realm, id).Return(kcsdk.NewError(http.StatusInternalServerError, ""))
 
-		err := exec.user.HardDelete(testCtx, id)
+		err := st.user.HardDelete(testCtx, id)
 
 		assert.Error(t, err)
 	})
 
 	t.Run("success delete user", func(t *testing.T) {
-		exec := createUserExecutor(ctrl)
-		exec.client.EXPECT().LoginAdmin(testCtx, exec.config.AdminUsername, exec.config.AdminPassword).Return(testJWT, nil)
-		exec.client.EXPECT().DeleteUser(testCtx, testJWT.AccessToken, exec.config.Realm, id).Return(nil)
+		st := createUserSuite(ctrl)
+		st.client.EXPECT().LoginAdmin(testCtx, st.config.AdminUsername, st.config.AdminPassword).Return(testJWT, nil)
+		st.client.EXPECT().DeleteUser(testCtx, testJWT.AccessToken, st.config.Realm, id).Return(nil)
 
-		err := exec.user.HardDelete(testCtx, id)
+		err := st.user.HardDelete(testCtx, id)
 
 		assert.NoError(t, err)
 	})
@@ -219,13 +219,13 @@ func createUserEntity() *entity.User {
 	}
 }
 
-func createUserExecutor(ctrl *gomock.Controller) *UserExecutor {
+func createUserSuite(ctrl *gomock.Controller) *UserSuite {
 	client := mock_keycloak.NewMockKeycloak(ctrl)
 	config := createKeycloakConfig(ctrl)
 	config.Client = client
 	user, _ := keycloak.NewUser(config)
 
-	return &UserExecutor{
+	return &UserSuite{
 		user:   user,
 		config: config,
 		client: client,
