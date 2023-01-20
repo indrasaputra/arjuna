@@ -11,9 +11,10 @@ import (
 
 	"github.com/indrasaputra/arjuna/service/user/internal/builder"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
+	orcact "github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/activity"
+	orcwork "github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/workflow"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/keycloak"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
-	"github.com/indrasaputra/arjuna/service/user/internal/workflow/temporal"
 )
 
 func main() {
@@ -50,12 +51,13 @@ func main() {
 	kc, _ := keycloak.NewUser(kcConfig)
 	db := postgres.NewUser(bunDB)
 
-	w := worker.New(c, temporal.TaskQueueRegisterUser, worker.Options{
+	act := orcact.NewRegisterUserActivity(kc, db)
+
+	w := worker.New(c, orcwork.TaskQueueRegisterUser, worker.Options{
 		DisableRegistrationAliasing: true,
 	})
-	w.RegisterWorkflow(temporal.RegisterUser)
-	w.RegisterActivityWithOptions(kc, activity.RegisterOptions{Name: "Keycloak", SkipInvalidStructFunctions: true})
-	w.RegisterActivityWithOptions(db, activity.RegisterOptions{Name: "Postgres", SkipInvalidStructFunctions: true})
+	w.RegisterWorkflow(orcwork.RegisterUser)
+	w.RegisterActivityWithOptions(act, activity.RegisterOptions{Name: "RegisterUserActivity", SkipInvalidStructFunctions: true})
 
 	err = w.Run(worker.InterruptCh())
 	if err != nil {

@@ -45,7 +45,7 @@ const (
 	UserErrorCode_USER_ERROR_CODE_INVALID_NAME UserErrorCode = 4
 	// User's email is invalid.
 	UserErrorCode_USER_ERROR_CODE_INVALID_EMAIL UserErrorCode = 5
-	// User' not found.
+	// User not found.
 	UserErrorCode_USER_ERROR_CODE_NOT_FOUND UserErrorCode = 6
 )
 

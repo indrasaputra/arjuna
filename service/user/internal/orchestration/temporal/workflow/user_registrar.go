@@ -1,4 +1,4 @@
-package temporal
+package workflow
 
 import (
 	"context"
@@ -21,11 +21,11 @@ const (
 	// ActivityTimeoutDefault sets to 2 seconds.
 	ActivityTimeoutDefault = 2 * time.Second
 	// ActivityKeycloakCreate is derived from struct name + method name. See activity registration in worker.
-	ActivityKeycloakCreate = "KeycloakCreate"
+	ActivityKeycloakCreate = "RegisterUserActivityCreateInKeycloak"
 	// ActivityKeycloakHardDelete is derived from struct name + method name. See activity registration in worker.
-	ActivityKeycloakHardDelete = "KeycloakHardDelete"
+	ActivityKeycloakHardDelete = "RegisterUserActivityHardDeleteFromKeycloak"
 	// ActivityPostgresInsert is derived from struct name + method name. See activity registration in worker.
-	ActivityPostgresInsert = "PostgresInsert"
+	ActivityPostgresInsert = "RegisterUserActivityInsertToDatabase"
 	// ActivityRetryBackoffCoefficient sets to 2.
 	ActivityRetryBackoffCoefficient = 2
 	// ActivityRetryMaximumAttempts sets to 3.
@@ -39,6 +39,9 @@ const (
 	WorkflowNameRegisterUser = "register-user"
 	// WorkflowRetryMaximumAttempts sets to 1.
 	WorkflowRetryMaximumAttempts = 1
+
+	// ErrNonRetryableUserExist occurs when user already exists in system.
+	ErrNonRetryableUserExist = "non-retryable-user-exist"
 )
 
 // RegisterUserWorkflow is responsible to execute register user workflow.
@@ -59,6 +62,9 @@ func (r *RegisterUserWorkflow) RegisterUser(ctx context.Context, input *service.
 		WorkflowRunTimeout: WorkflowTimeoutDefault,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: WorkflowRetryMaximumAttempts,
+			NonRetryableErrorTypes: []string{
+				ErrNonRetryableUserExist,
+			},
 		},
 	}
 	wr, err := r.client.ExecuteWorkflow(ctx, opts, RegisterUser, input)
@@ -84,6 +90,7 @@ func RegisterUser(ctx workflow.Context, input *service.RegisterUserInput) (*serv
 	var id string
 	ctx = createContextWithActivityOptions(ctx, ActivityTimeoutDefault, TaskQueueRegisterUser)
 	err := workflow.ExecuteActivity(ctx, ActivityKeycloakCreate, input.User).Get(ctx, &id)
+
 	if err != nil {
 		return nil, err
 	}
@@ -112,6 +119,9 @@ func createActivityOptions(timeout time.Duration, queue string) workflow.Activit
 			BackoffCoefficient: ActivityRetryBackoffCoefficient,
 			MaximumAttempts:    ActivityRetryMaximumAttempts,
 			InitialInterval:    ActivityRetryInitialInterval,
+			NonRetryableErrorTypes: []string{
+				ErrNonRetryableUserExist,
+			},
 		},
 	}
 }

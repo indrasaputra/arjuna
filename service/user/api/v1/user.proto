@@ -200,6 +200,6 @@ enum UserErrorCode {
   // User's email is invalid.
   USER_ERROR_CODE_INVALID_EMAIL = 5;
 
-  // User' not found.
+  // User not found.
   USER_ERROR_CODE_NOT_FOUND = 6;
 }
