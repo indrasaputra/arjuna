@@ -16,7 +16,7 @@ var (
 	testCtx = context.Background()
 )
 
-type UserRegistrarExecutor struct {
+type UserRegistrarSuite struct {
 	registrar     *service.UserRegistrar
 	orchestration *mock_service.MockRegisterUserOrchestration
 }
@@ -26,8 +26,8 @@ func TestNewUserRegistrar(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("successfully create an instance of UserRegistrar", func(t *testing.T) {
-		exec := createUserRegistrarExecutor(ctrl)
-		assert.NotNil(t, exec.registrar)
+		st := createUserRegistrarSuite(ctrl)
+		assert.NotNil(t, st.registrar)
 	})
 }
 
@@ -36,9 +36,9 @@ func TestUserRegistrar_Register(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("empty user is prohibited", func(t *testing.T) {
-		exec := createUserRegistrarExecutor(ctrl)
+		st := createUserRegistrarSuite(ctrl)
 
-		id, err := exec.registrar.Register(testCtx, nil)
+		id, err := st.registrar.Register(testCtx, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyUser(), err)
@@ -46,7 +46,7 @@ func TestUserRegistrar_Register(t *testing.T) {
 	})
 
 	t.Run("name contains character other than alphabet", func(t *testing.T) {
-		exec := createUserRegistrarExecutor(ctrl)
+		st := createUserRegistrarSuite(ctrl)
 		names := []string{
 			"123",
 			"First Us3r",
@@ -58,7 +58,7 @@ func TestUserRegistrar_Register(t *testing.T) {
 		for _, name := range names {
 			user := &entity.User{Name: name}
 
-			id, err := exec.registrar.Register(testCtx, user)
+			id, err := st.registrar.Register(testCtx, user)
 
 			assert.Error(t, err)
 			assert.Equal(t, entity.ErrInvalidName(), err)
@@ -67,7 +67,7 @@ func TestUserRegistrar_Register(t *testing.T) {
 	})
 
 	t.Run("email is invalid", func(t *testing.T) {
-		exec := createUserRegistrarExecutor(ctrl)
+		st := createUserRegistrarSuite(ctrl)
 		emails := []string{
 			"@domain",
 			"@domain.com",
@@ -78,7 +78,7 @@ func TestUserRegistrar_Register(t *testing.T) {
 			user := createTestUser()
 			user.Email = email
 
-			id, err := exec.registrar.Register(testCtx, user)
+			id, err := st.registrar.Register(testCtx, user)
 
 			assert.Error(t, err)
 			assert.Equal(t, entity.ErrInvalidEmail(), err)
@@ -87,34 +87,34 @@ func TestUserRegistrar_Register(t *testing.T) {
 	})
 
 	t.Run("orchestration returns error", func(t *testing.T) {
-		exec := createUserRegistrarExecutor(ctrl)
+		st := createUserRegistrarSuite(ctrl)
 		user := createTestUser()
 		input := &service.RegisterUserInput{User: user}
-		exec.orchestration.EXPECT().RegisterUser(testCtx, input).Return(nil, entity.ErrInternal("error"))
+		st.orchestration.EXPECT().RegisterUser(testCtx, input).Return(nil, entity.ErrInternal("error"))
 
-		id, err := exec.registrar.Register(testCtx, user)
+		id, err := st.registrar.Register(testCtx, user)
 
 		assert.Error(t, err)
 		assert.Empty(t, id)
 	})
 
 	t.Run("success register user", func(t *testing.T) {
-		exec := createUserRegistrarExecutor(ctrl)
+		st := createUserRegistrarSuite(ctrl)
 		user := createTestUser()
 		input := &service.RegisterUserInput{User: user}
-		exec.orchestration.EXPECT().RegisterUser(testCtx, input).Return(&service.RegisterUserOutput{UserID: "user-id"}, nil)
+		st.orchestration.EXPECT().RegisterUser(testCtx, input).Return(&service.RegisterUserOutput{UserID: "user-id"}, nil)
 
-		id, err := exec.registrar.Register(testCtx, user)
+		id, err := st.registrar.Register(testCtx, user)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, id)
 	})
 }
 
-func createUserRegistrarExecutor(ctrl *gomock.Controller) *UserRegistrarExecutor {
+func createUserRegistrarSuite(ctrl *gomock.Controller) *UserRegistrarSuite {
 	o := mock_service.NewMockRegisterUserOrchestration(ctrl)
 	r := service.NewUserRegistrar(o)
-	return &UserRegistrarExecutor{
+	return &UserRegistrarSuite{
 		registrar:     r,
 		orchestration: o,
 	}

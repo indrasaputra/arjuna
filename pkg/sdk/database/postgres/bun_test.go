@@ -18,7 +18,7 @@ var (
 	testCtx = context.Background()
 )
 
-type BunDBExecutor struct {
+type BunDBSuite struct {
 	sqldb *sql.DB
 	mock  sqlmock.Sqlmock
 	bun   *postgres.BunDB
@@ -52,25 +52,25 @@ func TestNewBunDB(t *testing.T) {
 
 func TestBunDB_Begin(t *testing.T) {
 	t.Run("fail begin the transaction due to unexpected mock call", func(t *testing.T) {
-		db := createBunDBExecutor(t)
+		st := createBunDBSuite(t)
 		defer func() {
-			_ = db.sqldb.Close()
+			_ = st.sqldb.Close()
 		}()
 
-		tx, err := db.bun.Begin(testCtx)
+		tx, err := st.bun.Begin(testCtx)
 
 		assert.Error(t, err)
 		assert.Nil(t, tx)
 	})
 
 	t.Run("success begin the transaction", func(t *testing.T) {
-		db := createBunDBExecutor(t)
+		st := createBunDBSuite(t)
 		defer func() {
-			_ = db.sqldb.Close()
+			_ = st.sqldb.Close()
 		}()
-		db.mock.ExpectBegin()
+		st.mock.ExpectBegin()
 
-		tx, err := db.bun.Begin(testCtx)
+		tx, err := st.bun.Begin(testCtx)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, tx)
@@ -81,31 +81,31 @@ func TestBunDB_Query(t *testing.T) {
 	query := `SELECT id FROM tables`
 
 	t.Run("query returns error", func(t *testing.T) {
-		db := createBunDBExecutor(t)
+		st := createBunDBSuite(t)
 		defer func() {
-			_ = db.sqldb.Close()
+			_ = st.sqldb.Close()
 		}()
 		var dest interface{}
 		errReturn := errors.New("error")
 
-		db.mock.ExpectQuery(query).WillReturnError(errReturn)
+		st.mock.ExpectQuery(query).WillReturnError(errReturn)
 
-		err := db.bun.Query(testCtx, &dest, query)
+		err := st.bun.Query(testCtx, &dest, query)
 
 		assert.Error(t, err)
 		assert.Equal(t, errReturn, err)
 	})
 
 	t.Run("query success", func(t *testing.T) {
-		db := createBunDBExecutor(t)
+		st := createBunDBSuite(t)
 		defer func() {
-			_ = db.sqldb.Close()
+			_ = st.sqldb.Close()
 		}()
 		var id int
 
-		db.mock.ExpectQuery(query).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+		st.mock.ExpectQuery(query).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 
-		err := db.bun.Query(testCtx, &id, query)
+		err := st.bun.Query(testCtx, &id, query)
 
 		assert.NoError(t, err)
 	})
@@ -113,12 +113,12 @@ func TestBunDB_Query(t *testing.T) {
 
 func TestBunTx_Begin(t *testing.T) {
 	t.Run("tx begin return itself", func(t *testing.T) {
-		db := createBunDBExecutor(t)
+		st := createBunDBSuite(t)
 		defer func() {
-			_ = db.sqldb.Close()
+			_ = st.sqldb.Close()
 		}()
-		db.mock.ExpectBegin()
-		res, _ := db.bun.Begin(testCtx)
+		st.mock.ExpectBegin()
+		res, _ := st.bun.Begin(testCtx)
 
 		tx, err := res.Begin(testCtx)
 
@@ -130,14 +130,14 @@ func TestBunTx_Begin(t *testing.T) {
 
 func TestBunTx_Commit(t *testing.T) {
 	t.Run("commit returns error", func(t *testing.T) {
-		db := createBunDBExecutor(t)
+		st := createBunDBSuite(t)
 		defer func() {
-			_ = db.sqldb.Close()
+			_ = st.sqldb.Close()
 		}()
-		db.mock.ExpectBegin()
-		tx, _ := db.bun.Begin(testCtx)
+		st.mock.ExpectBegin()
+		tx, _ := st.bun.Begin(testCtx)
 		errReturn := errors.New("error")
-		db.mock.ExpectCommit().WillReturnError(errReturn)
+		st.mock.ExpectCommit().WillReturnError(errReturn)
 
 		err := tx.Commit(testCtx)
 
@@ -145,13 +145,13 @@ func TestBunTx_Commit(t *testing.T) {
 	})
 
 	t.Run("commit success", func(t *testing.T) {
-		db := createBunDBExecutor(t)
+		st := createBunDBSuite(t)
 		defer func() {
-			_ = db.sqldb.Close()
+			_ = st.sqldb.Close()
 		}()
-		db.mock.ExpectBegin()
-		tx, _ := db.bun.Begin(testCtx)
-		db.mock.ExpectCommit()
+		st.mock.ExpectBegin()
+		tx, _ := st.bun.Begin(testCtx)
+		st.mock.ExpectCommit()
 
 		err := tx.Commit(testCtx)
 
@@ -161,14 +161,14 @@ func TestBunTx_Commit(t *testing.T) {
 
 func TestBunTx_Rollback(t *testing.T) {
 	t.Run("rollback returns error", func(t *testing.T) {
-		db := createBunDBExecutor(t)
+		st := createBunDBSuite(t)
 		defer func() {
-			_ = db.sqldb.Close()
+			_ = st.sqldb.Close()
 		}()
-		db.mock.ExpectBegin()
-		tx, _ := db.bun.Begin(testCtx)
+		st.mock.ExpectBegin()
+		tx, _ := st.bun.Begin(testCtx)
 		errReturn := errors.New("error")
-		db.mock.ExpectRollback().WillReturnError(errReturn)
+		st.mock.ExpectRollback().WillReturnError(errReturn)
 
 		err := tx.Rollback(testCtx)
 
@@ -176,13 +176,13 @@ func TestBunTx_Rollback(t *testing.T) {
 	})
 
 	t.Run("rollback success", func(t *testing.T) {
-		db := createBunDBExecutor(t)
+		st := createBunDBSuite(t)
 		defer func() {
-			_ = db.sqldb.Close()
+			_ = st.sqldb.Close()
 		}()
-		db.mock.ExpectBegin()
-		tx, _ := db.bun.Begin(testCtx)
-		db.mock.ExpectRollback()
+		st.mock.ExpectBegin()
+		tx, _ := st.bun.Begin(testCtx)
+		st.mock.ExpectRollback()
 
 		err := tx.Rollback(testCtx)
 
@@ -194,14 +194,14 @@ func TestBunTx_Query(t *testing.T) {
 	query := `SELECT id FROM tables`
 
 	t.Run("query returns error", func(t *testing.T) {
-		db := createBunDBExecutor(t)
+		st := createBunDBSuite(t)
 		defer func() {
-			_ = db.sqldb.Close()
+			_ = st.sqldb.Close()
 		}()
 		errReturn := errors.New("error")
-		db.mock.ExpectBegin()
-		tx, _ := db.bun.Begin(testCtx)
-		db.mock.ExpectQuery(query).WillReturnError(errReturn)
+		st.mock.ExpectBegin()
+		tx, _ := st.bun.Begin(testCtx)
+		st.mock.ExpectQuery(query).WillReturnError(errReturn)
 		var dest interface{}
 
 		err := tx.Query(testCtx, &dest, query)
@@ -211,13 +211,13 @@ func TestBunTx_Query(t *testing.T) {
 	})
 
 	t.Run("query success", func(t *testing.T) {
-		db := createBunDBExecutor(t)
+		st := createBunDBSuite(t)
 		defer func() {
-			_ = db.sqldb.Close()
+			_ = st.sqldb.Close()
 		}()
-		db.mock.ExpectBegin()
-		tx, _ := db.bun.Begin(testCtx)
-		db.mock.ExpectQuery(query).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+		st.mock.ExpectBegin()
+		tx, _ := st.bun.Begin(testCtx)
+		st.mock.ExpectQuery(query).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 		var id int
 
 		err := tx.Query(testCtx, &id, query)
@@ -226,7 +226,7 @@ func TestBunTx_Query(t *testing.T) {
 	})
 }
 
-func createBunDBExecutor(t *testing.T) *BunDBExecutor {
+func createBunDBSuite(t *testing.T) *BunDBSuite {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
@@ -235,7 +235,7 @@ func createBunDBExecutor(t *testing.T) *BunDBExecutor {
 	bdb := bun.NewDB(db, pgdialect.New())
 	b, _ := postgres.NewBunDB(bdb)
 
-	return &BunDBExecutor{
+	return &BunDBSuite{
 		sqldb: db,
 		mock:  mock,
 		bun:   b,

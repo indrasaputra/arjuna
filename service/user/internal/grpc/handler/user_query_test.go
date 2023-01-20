@@ -20,7 +20,7 @@ var (
 	testUser = &entity.User{}
 )
 
-type UserQueryExecutor struct {
+type UserQuerySuite struct {
 	handler *handler.UserQuery
 	getter  *mock_service.MockGetUser
 }
@@ -30,8 +30,8 @@ func TestNewUserQuery(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("successful create an instance of UserQuery", func(t *testing.T) {
-		exec := createUserQueryExecutor(ctrl)
-		assert.NotNil(t, exec.handler)
+		st := createUserQuerySuite(ctrl)
+		assert.NotNil(t, st.handler)
 	})
 }
 
@@ -40,9 +40,9 @@ func TestUserQuery_GetAllUsers(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("nil request is prohibited", func(t *testing.T) {
-		exec := createUserQueryExecutor(ctrl)
+		st := createUserQuerySuite(ctrl)
 
-		res, err := exec.handler.GetAllUsers(testCtx, nil)
+		res, err := st.handler.GetAllUsers(testCtx, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyUser(), err)
@@ -50,10 +50,10 @@ func TestUserQuery_GetAllUsers(t *testing.T) {
 	})
 
 	t.Run("user service returns error", func(t *testing.T) {
-		exec := createUserQueryExecutor(ctrl)
-		exec.getter.EXPECT().GetAll(testCtx, defaultLimit).Return([]*entity.User{}, entity.ErrInternal(""))
+		st := createUserQuerySuite(ctrl)
+		st.getter.EXPECT().GetAll(testCtx, defaultLimit).Return([]*entity.User{}, entity.ErrInternal(""))
 
-		res, err := exec.handler.GetAllUsers(testCtx, &apiv1.GetAllUsersRequest{Limit: uint32(defaultLimit)})
+		res, err := st.handler.GetAllUsers(testCtx, &apiv1.GetAllUsersRequest{Limit: uint32(defaultLimit)})
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrInternal(""), err)
@@ -61,10 +61,10 @@ func TestUserQuery_GetAllUsers(t *testing.T) {
 	})
 
 	t.Run("success get all users", func(t *testing.T) {
-		exec := createUserQueryExecutor(ctrl)
-		exec.getter.EXPECT().GetAll(testCtx, defaultLimit).Return([]*entity.User{testUser, testUser}, nil)
+		st := createUserQuerySuite(ctrl)
+		st.getter.EXPECT().GetAll(testCtx, defaultLimit).Return([]*entity.User{testUser, testUser}, nil)
 
-		res, err := exec.handler.GetAllUsers(testCtx, &apiv1.GetAllUsersRequest{Limit: uint32(defaultLimit)})
+		res, err := st.handler.GetAllUsers(testCtx, &apiv1.GetAllUsersRequest{Limit: uint32(defaultLimit)})
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, res.Data)
@@ -72,10 +72,10 @@ func TestUserQuery_GetAllUsers(t *testing.T) {
 	})
 }
 
-func createUserQueryExecutor(ctrl *gomock.Controller) *UserQueryExecutor {
+func createUserQuerySuite(ctrl *gomock.Controller) *UserQuerySuite {
 	g := mock_service.NewMockGetUser(ctrl)
 	h := handler.NewUserQuery(g)
-	return &UserQueryExecutor{
+	return &UserQuerySuite{
 		handler: h,
 		getter:  g,
 	}

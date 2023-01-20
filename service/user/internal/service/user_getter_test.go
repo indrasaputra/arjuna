@@ -11,7 +11,7 @@ import (
 	mock_service "github.com/indrasaputra/arjuna/service/user/test/mock/service"
 )
 
-type UserGetterExecutor struct {
+type UserGetterSuite struct {
 	getter *service.UserGetter
 	repo   *mock_service.MockGetUserRepository
 }
@@ -21,8 +21,8 @@ func TestNewUserGetter(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("successfully create an instance of UserGetter", func(t *testing.T) {
-		exec := createUserGetterExecutor(ctrl)
-		assert.NotNil(t, exec.getter)
+		st := createUserGetterSuite(ctrl)
+		assert.NotNil(t, st.getter)
 	})
 }
 
@@ -31,10 +31,10 @@ func TestUserGetter_GetAll(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("repository returns internal error", func(t *testing.T) {
-		exec := createUserGetterExecutor(ctrl)
-		exec.repo.EXPECT().GetAll(testCtx, service.DefaultGetAllUsersLimit).Return([]*entity.User{}, entity.ErrInternal(""))
+		st := createUserGetterSuite(ctrl)
+		st.repo.EXPECT().GetAll(testCtx, service.DefaultGetAllUsersLimit).Return([]*entity.User{}, entity.ErrInternal(""))
 
-		res, err := exec.getter.GetAll(testCtx, service.DefaultGetAllUsersLimit)
+		res, err := st.getter.GetAll(testCtx, service.DefaultGetAllUsersLimit)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrInternal(""), err)
@@ -42,50 +42,50 @@ func TestUserGetter_GetAll(t *testing.T) {
 	})
 
 	t.Run("repository returns empty list", func(t *testing.T) {
-		exec := createUserGetterExecutor(ctrl)
-		exec.repo.EXPECT().GetAll(testCtx, service.DefaultGetAllUsersLimit).Return([]*entity.User{}, nil)
+		st := createUserGetterSuite(ctrl)
+		st.repo.EXPECT().GetAll(testCtx, service.DefaultGetAllUsersLimit).Return([]*entity.User{}, nil)
 
-		res, err := exec.getter.GetAll(testCtx, service.DefaultGetAllUsersLimit)
+		res, err := st.getter.GetAll(testCtx, service.DefaultGetAllUsersLimit)
 
 		assert.Nil(t, err)
 		assert.Empty(t, res)
 	})
 
 	t.Run("successfully all users", func(t *testing.T) {
-		exec := createUserGetterExecutor(ctrl)
-		exec.repo.EXPECT().GetAll(testCtx, service.DefaultGetAllUsersLimit).Return([]*entity.User{{}}, nil)
+		st := createUserGetterSuite(ctrl)
+		st.repo.EXPECT().GetAll(testCtx, service.DefaultGetAllUsersLimit).Return([]*entity.User{{}}, nil)
 
-		res, err := exec.getter.GetAll(testCtx, service.DefaultGetAllUsersLimit)
+		res, err := st.getter.GetAll(testCtx, service.DefaultGetAllUsersLimit)
 
 		assert.Nil(t, err)
 		assert.NotEmpty(t, res)
 	})
 
 	t.Run("successfully all users with limit = 0", func(t *testing.T) {
-		exec := createUserGetterExecutor(ctrl)
-		exec.repo.EXPECT().GetAll(testCtx, service.DefaultGetAllUsersLimit).Return([]*entity.User{{}}, nil)
+		st := createUserGetterSuite(ctrl)
+		st.repo.EXPECT().GetAll(testCtx, service.DefaultGetAllUsersLimit).Return([]*entity.User{{}}, nil)
 
-		res, err := exec.getter.GetAll(testCtx, 0)
+		res, err := st.getter.GetAll(testCtx, 0)
 
 		assert.Nil(t, err)
 		assert.NotEmpty(t, res)
 	})
 
 	t.Run("successfully all users with limit > 10", func(t *testing.T) {
-		exec := createUserGetterExecutor(ctrl)
-		exec.repo.EXPECT().GetAll(testCtx, service.DefaultGetAllUsersLimit).Return([]*entity.User{{}}, nil)
+		st := createUserGetterSuite(ctrl)
+		st.repo.EXPECT().GetAll(testCtx, service.DefaultGetAllUsersLimit).Return([]*entity.User{{}}, nil)
 
-		res, err := exec.getter.GetAll(testCtx, 100)
+		res, err := st.getter.GetAll(testCtx, 100)
 
 		assert.Nil(t, err)
 		assert.NotEmpty(t, res)
 	})
 }
 
-func createUserGetterExecutor(ctrl *gomock.Controller) *UserGetterExecutor {
+func createUserGetterSuite(ctrl *gomock.Controller) *UserGetterSuite {
 	r := mock_service.NewMockGetUserRepository(ctrl)
 	g := service.NewUserGetter(r)
-	return &UserGetterExecutor{
+	return &UserGetterSuite{
 		getter: g,
 		repo:   r,
 	}

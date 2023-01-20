@@ -19,7 +19,7 @@ var (
 	testPassword = "password"
 )
 
-type AuthExecutor struct {
+type AuthSuite struct {
 	handler *handler.Auth
 	auth    *mock_service.MockAuthentication
 }
@@ -29,8 +29,8 @@ func TestNewAuth(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("successful create an instance of Auth", func(t *testing.T) {
-		exec := createAuthExecutor(ctrl)
-		assert.NotNil(t, exec.handler)
+		st := createAuthSuite(ctrl)
+		assert.NotNil(t, st.handler)
 	})
 }
 
@@ -52,9 +52,9 @@ func TestAuth_Login(t *testing.T) {
 			{request: &apiv1.LoginRequest{Credential: &apiv1.Credential{ClientId: "a", Email: "a", Password: ""}}, err: entity.ErrEmptyField("password")},
 		}
 
-		exec := createAuthExecutor(ctrl)
+		st := createAuthSuite(ctrl)
 		for _, test := range tests {
-			res, err := exec.handler.Login(testCtx, test.request)
+			res, err := st.handler.Login(testCtx, test.request)
 
 			assert.Error(t, err)
 			assert.Equal(t, test.err, err)
@@ -63,32 +63,32 @@ func TestAuth_Login(t *testing.T) {
 	})
 
 	t.Run("auth service returns error", func(t *testing.T) {
-		exec := createAuthExecutor(ctrl)
-		exec.auth.EXPECT().Login(testCtx, testClientID, testEmail, testPassword).Return(nil, errors.New("error"))
+		st := createAuthSuite(ctrl)
+		st.auth.EXPECT().Login(testCtx, testClientID, testEmail, testPassword).Return(nil, errors.New("error"))
 
 		req := &apiv1.LoginRequest{Credential: &apiv1.Credential{ClientId: testClientID, Email: testEmail, Password: testPassword}}
-		res, err := exec.handler.Login(testCtx, req)
+		res, err := st.handler.Login(testCtx, req)
 
 		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
 
 	t.Run("success login", func(t *testing.T) {
-		exec := createAuthExecutor(ctrl)
-		exec.auth.EXPECT().Login(testCtx, testClientID, testEmail, testPassword).Return(&entity.Token{}, nil)
+		st := createAuthSuite(ctrl)
+		st.auth.EXPECT().Login(testCtx, testClientID, testEmail, testPassword).Return(&entity.Token{}, nil)
 
 		req := &apiv1.LoginRequest{Credential: &apiv1.Credential{ClientId: testClientID, Email: testEmail, Password: testPassword}}
-		res, err := exec.handler.Login(testCtx, req)
+		res, err := st.handler.Login(testCtx, req)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, res)
 	})
 }
 
-func createAuthExecutor(ctrl *gomock.Controller) *AuthExecutor {
+func createAuthSuite(ctrl *gomock.Controller) *AuthSuite {
 	r := mock_service.NewMockAuthentication(ctrl)
 	h := handler.NewAuth(r)
-	return &AuthExecutor{
+	return &AuthSuite{
 		handler: h,
 		auth:    r,
 	}

@@ -12,7 +12,7 @@ import (
 	mock_service "github.com/indrasaputra/arjuna/service/user/test/mock/service"
 )
 
-type UserCommandInternalExecutor struct {
+type UserCommandInternalSuite struct {
 	handler *handler.UserCommandInternal
 	deleter *mock_service.MockDeleteUser
 }
@@ -22,8 +22,8 @@ func TestNewUserCommandInternal(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("successful create an instance of UserCommandInternal", func(t *testing.T) {
-		exec := createUserCommandInternalExecutor(ctrl)
-		assert.NotNil(t, exec.handler)
+		st := createUserCommandInternalSuite(ctrl)
+		assert.NotNil(t, st.handler)
 	})
 }
 
@@ -32,9 +32,9 @@ func TestUserCommandInternal_DeleteUser(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("nil request is prohibited", func(t *testing.T) {
-		exec := createUserCommandInternalExecutor(ctrl)
+		st := createUserCommandInternalSuite(ctrl)
 
-		res, err := exec.handler.DeleteUser(testCtx, nil)
+		res, err := st.handler.DeleteUser(testCtx, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyUser(), err)
@@ -42,9 +42,9 @@ func TestUserCommandInternal_DeleteUser(t *testing.T) {
 	})
 
 	t.Run("empty user is prohibited", func(t *testing.T) {
-		exec := createUserCommandInternalExecutor(ctrl)
+		st := createUserCommandInternalSuite(ctrl)
 
-		res, err := exec.handler.DeleteUser(testCtx, &apiv1.DeleteUserRequest{})
+		res, err := st.handler.DeleteUser(testCtx, &apiv1.DeleteUserRequest{})
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyUser(), err)
@@ -52,7 +52,7 @@ func TestUserCommandInternal_DeleteUser(t *testing.T) {
 	})
 
 	t.Run("user deleter service returns error", func(t *testing.T) {
-		exec := createUserCommandInternalExecutor(ctrl)
+		st := createUserCommandInternalSuite(ctrl)
 		id := "1"
 		request := &apiv1.DeleteUserRequest{Id: id}
 
@@ -64,9 +64,9 @@ func TestUserCommandInternal_DeleteUser(t *testing.T) {
 			entity.ErrInternal("error"),
 		}
 		for _, errRet := range errors {
-			exec.deleter.EXPECT().HardDelete(testCtx, id).Return(errRet)
+			st.deleter.EXPECT().HardDelete(testCtx, id).Return(errRet)
 
-			res, err := exec.handler.DeleteUser(testCtx, request)
+			res, err := st.handler.DeleteUser(testCtx, request)
 
 			assert.Error(t, err)
 			assert.Equal(t, errRet, err)
@@ -77,20 +77,20 @@ func TestUserCommandInternal_DeleteUser(t *testing.T) {
 	t.Run("success delete user", func(t *testing.T) {
 		id := "1"
 		request := &apiv1.DeleteUserRequest{Id: id}
-		exec := createUserCommandInternalExecutor(ctrl)
-		exec.deleter.EXPECT().HardDelete(testCtx, id).Return(nil)
+		st := createUserCommandInternalSuite(ctrl)
+		st.deleter.EXPECT().HardDelete(testCtx, id).Return(nil)
 
-		res, err := exec.handler.DeleteUser(testCtx, request)
+		res, err := st.handler.DeleteUser(testCtx, request)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, res)
 	})
 }
 
-func createUserCommandInternalExecutor(ctrl *gomock.Controller) *UserCommandInternalExecutor {
+func createUserCommandInternalSuite(ctrl *gomock.Controller) *UserCommandInternalSuite {
 	d := mock_service.NewMockDeleteUser(ctrl)
 	h := handler.NewUserCommandInternal(d)
-	return &UserCommandInternalExecutor{
+	return &UserCommandInternalSuite{
 		handler: h,
 		deleter: d,
 	}

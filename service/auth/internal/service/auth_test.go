@@ -19,7 +19,7 @@ var (
 	testPassword = "password"
 )
 
-type AuthExecutor struct {
+type AuthSuite struct {
 	auth *service.Auth
 	repo *mock_service.MockAuthRepository
 }
@@ -29,8 +29,8 @@ func TestNewAuth(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("successfully create an instance of Auth", func(t *testing.T) {
-		exec := createAuthExecutor(ctrl)
-		assert.NotNil(t, exec.auth)
+		st := createAuthSuite(ctrl)
+		assert.NotNil(t, st.auth)
 	})
 }
 
@@ -52,9 +52,9 @@ func TestAuth_Login(t *testing.T) {
 			{clientID: "a", email: "a", password: "", err: entity.ErrEmptyField("password")},
 		}
 
-		exec := createAuthExecutor(ctrl)
+		st := createAuthSuite(ctrl)
 		for _, test := range tests {
-			token, err := exec.auth.Login(testCtx, test.clientID, test.email, test.password)
+			token, err := st.auth.Login(testCtx, test.clientID, test.email, test.password)
 
 			assert.Error(t, err)
 			assert.Equal(t, test.err, err)
@@ -63,30 +63,30 @@ func TestAuth_Login(t *testing.T) {
 	})
 
 	t.Run("repository returns error", func(t *testing.T) {
-		exec := createAuthExecutor(ctrl)
-		exec.repo.EXPECT().Login(testCtx, testClientID, testEmail, testPassword).Return(nil, entity.ErrInternal("error"))
+		st := createAuthSuite(ctrl)
+		st.repo.EXPECT().Login(testCtx, testClientID, testEmail, testPassword).Return(nil, entity.ErrInternal("error"))
 
-		token, err := exec.auth.Login(testCtx, testClientID, testEmail, testPassword)
+		token, err := st.auth.Login(testCtx, testClientID, testEmail, testPassword)
 
 		assert.Error(t, err)
 		assert.Nil(t, token)
 	})
 
 	t.Run("success login", func(t *testing.T) {
-		exec := createAuthExecutor(ctrl)
-		exec.repo.EXPECT().Login(testCtx, testClientID, testEmail, testPassword).Return(&entity.Token{}, nil)
+		st := createAuthSuite(ctrl)
+		st.repo.EXPECT().Login(testCtx, testClientID, testEmail, testPassword).Return(&entity.Token{}, nil)
 
-		token, err := exec.auth.Login(testCtx, testClientID, testEmail, testPassword)
+		token, err := st.auth.Login(testCtx, testClientID, testEmail, testPassword)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, token)
 	})
 }
 
-func createAuthExecutor(ctrl *gomock.Controller) *AuthExecutor {
+func createAuthSuite(ctrl *gomock.Controller) *AuthSuite {
 	r := mock_service.NewMockAuthRepository(ctrl)
 	a := service.NewAuth(r)
-	return &AuthExecutor{
+	return &AuthSuite{
 		auth: a,
 		repo: r,
 	}
