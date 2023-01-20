@@ -35,8 +35,8 @@ type RegisterUser interface {
 	Register(ctx context.Context, user *entity.User) (string, error)
 }
 
-// RegisterUserWorkflow defines the interface for user registration workflow.
-type RegisterUserWorkflow interface {
+// RegisterUserOrchestration defines the interface to orchestrate user registration.
+type RegisterUserOrchestration interface {
 	// RegisterUser registers the user into the repository or 3rd party needed.
 	// It also validates if the user's email is unique.
 	// It returns the ID of the created user.
@@ -55,12 +55,12 @@ type RegisterUserOutput struct {
 
 // UserRegistrar is responsible for registering a new user.
 type UserRegistrar struct {
-	workflow RegisterUserWorkflow
+	orchestrator RegisterUserOrchestration
 }
 
 // NewUserRegistrar creates an instance of UserRegistrar.
-func NewUserRegistrar(workflow RegisterUserWorkflow) *UserRegistrar {
-	return &UserRegistrar{workflow: workflow}
+func NewUserRegistrar(orchestrator RegisterUserOrchestration) *UserRegistrar {
+	return &UserRegistrar{orchestrator: orchestrator}
 }
 
 // Register registers a user and store it in the storage.
@@ -82,7 +82,7 @@ func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User) (strin
 	setUserAuditableProperties(user)
 
 	input := &RegisterUserInput{User: user}
-	output, err := ur.workflow.RegisterUser(ctx, input)
+	output, err := ur.orchestrator.RegisterUser(ctx, input)
 	if err != nil {
 		return "", err
 	}

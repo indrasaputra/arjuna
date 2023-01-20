@@ -52,31 +52,31 @@ func (mr *MockRegisterUserMockRecorder) Register(ctx, user interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockRegisterUser)(nil).Register), ctx, user)
 }
 
-// MockRegisterUserWorkflow is a mock of RegisterUserWorkflow interface.
-type MockRegisterUserWorkflow struct {
+// MockRegisterUserOrchestration is a mock of RegisterUserOrchestration interface.
+type MockRegisterUserOrchestration struct {
 	ctrl     *gomock.Controller
-	recorder *MockRegisterUserWorkflowMockRecorder
+	recorder *MockRegisterUserOrchestrationMockRecorder
 }
 
-// MockRegisterUserWorkflowMockRecorder is the mock recorder for MockRegisterUserWorkflow.
-type MockRegisterUserWorkflowMockRecorder struct {
-	mock *MockRegisterUserWorkflow
+// MockRegisterUserOrchestrationMockRecorder is the mock recorder for MockRegisterUserOrchestration.
+type MockRegisterUserOrchestrationMockRecorder struct {
+	mock *MockRegisterUserOrchestration
 }
 
-// NewMockRegisterUserWorkflow creates a new mock instance.
-func NewMockRegisterUserWorkflow(ctrl *gomock.Controller) *MockRegisterUserWorkflow {
-	mock := &MockRegisterUserWorkflow{ctrl: ctrl}
-	mock.recorder = &MockRegisterUserWorkflowMockRecorder{mock}
+// NewMockRegisterUserOrchestration creates a new mock instance.
+func NewMockRegisterUserOrchestration(ctrl *gomock.Controller) *MockRegisterUserOrchestration {
+	mock := &MockRegisterUserOrchestration{ctrl: ctrl}
+	mock.recorder = &MockRegisterUserOrchestrationMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRegisterUserWorkflow) EXPECT() *MockRegisterUserWorkflowMockRecorder {
+func (m *MockRegisterUserOrchestration) EXPECT() *MockRegisterUserOrchestrationMockRecorder {
 	return m.recorder
 }
 
 // RegisterUser mocks base method.
-func (m *MockRegisterUserWorkflow) RegisterUser(ctx context.Context, input *service.RegisterUserInput) (*service.RegisterUserOutput, error) {
+func (m *MockRegisterUserOrchestration) RegisterUser(ctx context.Context, input *service.RegisterUserInput) (*service.RegisterUserOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterUser", ctx, input)
 	ret0, _ := ret[0].(*service.RegisterUserOutput)
@@ -85,7 +85,7 @@ func (m *MockRegisterUserWorkflow) RegisterUser(ctx context.Context, input *serv
 }
 
 // RegisterUser indicates an expected call of RegisterUser.
-func (mr *MockRegisterUserWorkflowMockRecorder) RegisterUser(ctx, input interface{}) *gomock.Call {
+func (mr *MockRegisterUserOrchestrationMockRecorder) RegisterUser(ctx, input interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterUser", reflect.TypeOf((*MockRegisterUserWorkflow)(nil).RegisterUser), ctx, input)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterUser", reflect.TypeOf((*MockRegisterUserOrchestration)(nil).RegisterUser), ctx, input)
 }

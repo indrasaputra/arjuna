@@ -17,8 +17,8 @@ var (
 )
 
 type UserRegistrarExecutor struct {
-	registrar *service.UserRegistrar
-	workflow  *mock_service.MockRegisterUserWorkflow
+	registrar     *service.UserRegistrar
+	orchestration *mock_service.MockRegisterUserOrchestration
 }
 
 func TestNewUserRegistrar(t *testing.T) {
@@ -86,11 +86,11 @@ func TestUserRegistrar_Register(t *testing.T) {
 		}
 	})
 
-	t.Run("workflow returns error", func(t *testing.T) {
+	t.Run("orchestration returns error", func(t *testing.T) {
 		exec := createUserRegistrarExecutor(ctrl)
 		user := createTestUser()
 		input := &service.RegisterUserInput{User: user}
-		exec.workflow.EXPECT().RegisterUser(testCtx, input).Return(nil, entity.ErrInternal("error"))
+		exec.orchestration.EXPECT().RegisterUser(testCtx, input).Return(nil, entity.ErrInternal("error"))
 
 		id, err := exec.registrar.Register(testCtx, user)
 
@@ -102,7 +102,7 @@ func TestUserRegistrar_Register(t *testing.T) {
 		exec := createUserRegistrarExecutor(ctrl)
 		user := createTestUser()
 		input := &service.RegisterUserInput{User: user}
-		exec.workflow.EXPECT().RegisterUser(testCtx, input).Return(&service.RegisterUserOutput{UserID: "user-id"}, nil)
+		exec.orchestration.EXPECT().RegisterUser(testCtx, input).Return(&service.RegisterUserOutput{UserID: "user-id"}, nil)
 
 		id, err := exec.registrar.Register(testCtx, user)
 
@@ -112,11 +112,11 @@ func TestUserRegistrar_Register(t *testing.T) {
 }
 
 func createUserRegistrarExecutor(ctrl *gomock.Controller) *UserRegistrarExecutor {
-	r := mock_service.NewMockRegisterUserWorkflow(ctrl)
-	rg := service.NewUserRegistrar(r)
+	o := mock_service.NewMockRegisterUserOrchestration(ctrl)
+	r := service.NewUserRegistrar(o)
 	return &UserRegistrarExecutor{
-		registrar: rg,
-		workflow:  r,
+		registrar:     r,
+		orchestration: o,
 	}
 }
 

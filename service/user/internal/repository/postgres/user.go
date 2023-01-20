@@ -52,12 +52,12 @@ func (u *User) Insert(ctx context.Context, user *entity.User) error {
 // It returns entity.ErrNotFound if user can't be found.
 func (u *User) GetByID(ctx context.Context, id string) (*entity.User, error) {
 	query := "SELECT id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by FROM users WHERE id = ? LIMIT 1"
-	res := &entity.User{}
+	var res entity.User
 	err := u.db.Query(ctx, &res, query, id)
 	if err != nil {
 		return nil, entity.ErrInternal(err.Error())
 	}
-	return res, nil
+	return &res, nil
 }
 
 // GetAll gets all users in users table.
