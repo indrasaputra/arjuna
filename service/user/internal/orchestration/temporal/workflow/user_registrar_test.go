@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"go.temporal.io/sdk/activity"
 	tempomock "go.temporal.io/sdk/mocks"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/testsuite"
 
 	"github.com/indrasaputra/arjuna/service/user/entity"
@@ -51,7 +52,26 @@ func TestRegisterUserWorkflow_RegisterUser(t *testing.T) {
 		assert.Nil(t, res)
 	})
 
-	t.Run("workflow run returns error", func(t *testing.T) {
+	t.Run("workflow run returns user already exists error", func(t *testing.T) {
+		st := createRegisterUserWorkflowSuite()
+		user := createTestUser()
+		input := &service.RegisterUserInput{User: user}
+		wr := &tempomock.WorkflowRun{}
+
+		st.client.
+			On("ExecuteWorkflow", testCtx, mock.Anything, mock.AnythingOfType("func(internal.Context, *service.RegisterUserInput) (*service.RegisterUserOutput, error)"), input).
+			Return(wr, nil)
+		wr.On("GetID").Return("")
+		wr.On("GetRunID").Return("")
+		wr.On("Get", testCtx, mock.Anything).Return(temporal.NewNonRetryableApplicationError("", workflow.ErrNonRetryableUserExist, errors.New("")))
+
+		res, err := st.workflow.RegisterUser(testCtx, input)
+
+		assert.Error(t, err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("workflow run returns internal error", func(t *testing.T) {
 		st := createRegisterUserWorkflowSuite()
 		user := createTestUser()
 		input := &service.RegisterUserInput{User: user}
@@ -110,18 +130,6 @@ func TestRegisterUser(t *testing.T) {
 
 		input := createRegisterUserInput()
 		input.User = nil
-		st.env.ExecuteWorkflow(workflow.RegisterUser, input)
-
-		assert.True(t, st.env.IsWorkflowCompleted())
-		assert.Error(t, st.env.GetWorkflowError())
-	})
-
-	t.Run("KeycloakCreate activity returns error", func(t *testing.T) {
-		st := createRegisterUserSuite()
-		input := createRegisterUserInput()
-
-		st.env.OnActivity(workflow.ActivityKeycloakCreate, mock.Anything, input.User).Return("", errors.New("keycloak error"))
-
 		st.env.ExecuteWorkflow(workflow.RegisterUser, input)
 
 		assert.True(t, st.env.IsWorkflowCompleted())

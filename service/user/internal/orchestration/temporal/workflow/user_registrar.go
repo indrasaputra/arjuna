@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -69,13 +70,17 @@ func (r *RegisterUserWorkflow) RegisterUser(ctx context.Context, input *service.
 	}
 	wr, err := r.client.ExecuteWorkflow(ctx, opts, RegisterUser, input)
 	if err != nil {
-		return nil, err
+		return nil, entity.ErrInternal("Something went wrong within our server. Please, try again")
 	}
 	log.Println("Started workflow", "WorkflowID", wr.GetID(), "RunID", wr.GetRunID())
 
 	var output *service.RegisterUserOutput
 	err = wr.Get(ctx, &output)
 	if err != nil {
+		var appErr *temporal.ApplicationError
+		if errors.As(err, &appErr) && appErr.Type() == ErrNonRetryableUserExist {
+			return nil, entity.ErrAlreadyExists()
+		}
 		return nil, entity.ErrInternal("Something went wrong within our server. Please, try again")
 	}
 	return output, nil
