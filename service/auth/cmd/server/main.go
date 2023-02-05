@@ -8,7 +8,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
+	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
+	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
+	"github.com/indrasaputra/arjuna/service/auth/internal/app"
 	"github.com/indrasaputra/arjuna/service/auth/internal/builder"
 	"github.com/indrasaputra/arjuna/service/auth/internal/config"
 	"github.com/indrasaputra/arjuna/service/auth/internal/grpc/handler"
@@ -18,6 +21,12 @@ import (
 func main() {
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
+
+	exp, err := trace.NewJaegerExporter(cfg.Tracer)
+	checkError(err)
+	_ = trace.NewProvider(cfg.Tracer, exp)
+
+	app.Logger = sdklog.NewLogger(cfg.AppEnv)
 
 	keycloakClient := builder.BuildKeycloakClient(cfg.Keycloak)
 

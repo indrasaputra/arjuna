@@ -1,0 +1,18 @@
+[sources.container_logs]
+  type = "file"
+  include = [ "/var/lib/docker/containers/*/*log" ]
+
+[transforms.parse_container_logs]
+type = "remap"
+inputs = [ "container_logs" ]
+source = """
+. |= parse_regex!(.message, r'(?P<container_name>(?:[^|]*[^|])).(?P<image_id>(?:[^|][a-zA-Z0-9]+:[a-zA-Z0-9]+[^|])).(?P<container_id>(?:[a-zA-Z0-9]+))')
+"""
+
+[sinks.container_loki]
+  type = "loki"
+  inputs = [ "parse_container_logs" ]
+  endpoint = "http://loki:3100"
+  encoding.codec = "text"
+  encoding.timestamp_format = "rfc3339"
+  labels.container_name = """{{ container_name }}"""

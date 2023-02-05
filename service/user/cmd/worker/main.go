@@ -9,6 +9,9 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 
+	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
+	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
+	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/builder"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
 	orcact "github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/activity"
@@ -28,6 +31,12 @@ func main() {
 
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
+
+	exp, err := trace.NewJaegerExporter(cfg.Tracer)
+	checkError(err)
+	_ = trace.NewProvider(cfg.Tracer, exp)
+
+	app.Logger = sdklog.NewLogger(cfg.AppEnv)
 
 	keycloakClient := builder.BuildKeycloakClient(cfg.Keycloak)
 	temporalClient, err := builder.BuildTemporalClient()

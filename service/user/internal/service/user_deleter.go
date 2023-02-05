@@ -5,6 +5,7 @@ import (
 
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
+	"github.com/indrasaputra/arjuna/service/user/internal/app"
 )
 
 // DeleteUser defines the interface to delete a user.
@@ -49,15 +50,20 @@ func NewUserDeleter(unit uow.UnitOfWork, db DeleteUserRepository, kc DeleteUserP
 func (td *UserDeleter) HardDelete(ctx context.Context, id string) error {
 	user, err := td.database.GetByID(ctx, id)
 	if err != nil {
+		app.Logger.Errorf(ctx, "[UserDeleter-HardDelete] fail get user: %v", err)
 		return err
 	}
 
 	tx, err := td.unit.Begin(ctx)
 	if err != nil {
+		app.Logger.Errorf(ctx, "[UserDeleter-HardDelete] fail init transaction: %v", err)
 		return err
 	}
 
 	err = td.hardDelete(ctx, tx, user)
+	if err != nil {
+		app.Logger.Errorf(ctx, "[UserDeleter-HardDelete] fail delete user: %v", err)
+	}
 	return td.unit.Finish(ctx, tx, err)
 }
 

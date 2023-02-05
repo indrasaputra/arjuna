@@ -4,6 +4,8 @@ import (
 	"github.com/joeshaw/envdecode"
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
+
+	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
 )
 
 // Config holds configuration for the project.
@@ -12,6 +14,7 @@ type Config struct {
 	AppEnv      string `env:"APP_ENV,default=development"`
 	Port        string `env:"PORT,default=8082"`
 	Keycloak    Keycloak
+	Tracer      trace.Config
 }
 
 // Keycloak holds configuration for Keycloak.

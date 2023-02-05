@@ -9,6 +9,7 @@ import (
 
 	kcsdk "github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
 	"github.com/indrasaputra/arjuna/service/auth/entity"
+	"github.com/indrasaputra/arjuna/service/auth/internal/app"
 )
 
 // Config defines Keycloak config.
@@ -48,6 +49,7 @@ func NewAuth(config *Config) (*Auth, error) {
 func (u *Auth) Login(ctx context.Context, clientID, email, password string) (*entity.Token, error) {
 	jwt, err := u.config.Client.LoginUser(ctx, u.config.Realm, clientID, email, password)
 	if err != nil {
+		app.Logger.Errorf(ctx, "[AuthRepo-Login] login fail: %v", err)
 		return nil, decideError(err)
 	}
 	return createToken(jwt), nil

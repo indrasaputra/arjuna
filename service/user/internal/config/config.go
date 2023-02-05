@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 
 	pgsdk "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
+	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
 )
 
 // Config holds configuration for the project.
@@ -15,6 +16,7 @@ type Config struct {
 	Port        string `env:"PORT,default=8080"`
 	Postgres    pgsdk.Config
 	Keycloak    Keycloak
+	Tracer      trace.Config
 }
 
 // Keycloak holds configuration for Keycloak.

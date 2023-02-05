@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/indrasaputra/arjuna/service/auth/entity"
+	"github.com/indrasaputra/arjuna/service/auth/internal/app"
 )
 
 // Authentication defines the interface to authenticate.
@@ -32,6 +33,7 @@ func NewAuth(repo AuthRepository) *Auth {
 // Login logs in a user using email and password.
 func (a *Auth) Login(ctx context.Context, clientID, email, password string) (*entity.Token, error) {
 	if err := validateParams(clientID, email, password); err != nil {
+		app.Logger.Errorf(ctx, "[Auth-Login] param invalid: %v", err)
 		return nil, err
 	}
 	return a.repo.Login(ctx, clientID, email, password)
