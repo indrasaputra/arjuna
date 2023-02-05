@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
+	"github.com/indrasaputra/arjuna/pkg/sdk/grpc/server"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
@@ -15,7 +16,6 @@ import (
 	"github.com/indrasaputra/arjuna/service/auth/internal/builder"
 	"github.com/indrasaputra/arjuna/service/auth/internal/config"
 	"github.com/indrasaputra/arjuna/service/auth/internal/grpc/handler"
-	"github.com/indrasaputra/arjuna/service/auth/internal/grpc/server"
 )
 
 func main() {
@@ -35,7 +35,7 @@ func main() {
 		Config:         cfg,
 	}
 
-	grpcServer := server.NewGrpcServer(cfg.Port)
+	grpcServer := server.NewGrpcServer(cfg.ServiceName, cfg.Port)
 	registerGrpcService(grpcServer, dep)
 
 	_ = grpcServer.Serve()

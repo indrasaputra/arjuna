@@ -21,8 +21,7 @@ import (
 )
 
 const (
-	connProtocol   = "tcp"
-	grpcServerName = "user service - grpc server"
+	connProtocol = "tcp"
 )
 
 // GrpcServer is responsible to act as gRPC server.
@@ -31,13 +30,15 @@ type GrpcServer struct {
 	server      *grpc.Server
 	serviceFunc []func(*grpc.Server)
 	listener    net.Listener
+	name        string
 	port        string
 }
 
 // newGrpc creates an instance of GrpcServer.
-func newGrpcServer(port string, options ...grpc.ServerOption) *GrpcServer {
+func newGrpcServer(name, port string, options ...grpc.ServerOption) *GrpcServer {
 	return &GrpcServer{
 		server: grpc.NewServer(options...),
+		name:   name,
 		port:   port,
 	}
 }
@@ -48,16 +49,16 @@ func newGrpcServer(port string, options ...grpc.ServerOption) *GrpcServer {
 //   - Metrics, using Prometheus.
 //   - Logging, using zap logger.
 //   - Recoverer, using grpcrecovery.
-func NewGrpcServer(port string) *GrpcServer {
+func NewGrpcServer(name, port string) *GrpcServer {
 	options := grpcmiddleware.WithUnaryServerChain(defaultUnaryServerInterceptors()...)
-	srv := newGrpcServer(port, options)
+	srv := newGrpcServer(name, port, options)
 	grpc_prometheus.Register(srv.server)
 	return srv
 }
 
 // Name returns server's name.
 func (gs *GrpcServer) Name() string {
-	return grpcServerName
+	return gs.name
 }
 
 // Port returns server's port.
