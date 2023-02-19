@@ -7,13 +7,16 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
+	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/service/user/entity"
+	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
 	mock_service "github.com/indrasaputra/arjuna/service/user/test/mock/service"
 )
 
 var (
 	testCtx = context.Background()
+	testEnv = "development"
 )
 
 type UserRegistrarSuite struct {
@@ -34,6 +37,8 @@ func TestNewUserRegistrar(t *testing.T) {
 func TestUserRegistrar_Register(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+
+	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("empty user is prohibited", func(t *testing.T) {
 		st := createUserRegistrarSuite(ctrl)

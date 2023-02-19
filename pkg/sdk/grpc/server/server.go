@@ -121,9 +121,9 @@ func defaultUnaryServerInterceptors() []grpc.UnaryServerInterceptor {
 
 	options := []grpc.UnaryServerInterceptor{
 		grpcrecovery.UnaryServerInterceptor(grpcrecovery.WithRecoveryHandler(recoveryHandler)),
+		otelgrpc.UnaryServerInterceptor(otelgrpc.WithTracerProvider(otel.GetTracerProvider())),
 		grpczap.UnaryServerInterceptor(logger),
 		grpc_prometheus.UnaryServerInterceptor,
-		otelgrpc.UnaryServerInterceptor(otelgrpc.WithTracerProvider(otel.GetTracerProvider())),
 	}
 	return options
 }

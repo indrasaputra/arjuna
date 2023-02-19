@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"google.golang.org/grpc"
@@ -25,15 +24,15 @@ func main() {
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
 
-	exp, err := trace.NewJaegerExporter(cfg.Tracer)
-	checkError(err)
-	_ = trace.NewProvider(cfg.Tracer, exp)
-
 	app.Logger = sdklog.NewLogger(cfg.AppEnv)
 
-	keycloakClient := builder.BuildKeycloakClient(cfg.Keycloak)
-	temporalClient, err := builder.BuildTemporalClient()
+	_, err = trace.NewProvider(ctx, cfg.Tracer)
 	checkError(err)
+
+	keycloakClient := builder.BuildKeycloakClient(cfg.Keycloak)
+	temporalClient, err := builder.BuildTemporalClient(cfg.Temporal.Address)
+	checkError(err)
+	defer temporalClient.Close()
 	bunDB, err := builder.BuildBunDB(ctx, cfg.Postgres)
 	checkError(err)
 
@@ -48,7 +47,6 @@ func main() {
 	registerGrpcService(ctx, grpcServer, dep)
 
 	_ = grpcServer.Serve()
-	fmt.Println("server start.. waiting signal")
 	grpcServer.GracefulStop()
 }
 

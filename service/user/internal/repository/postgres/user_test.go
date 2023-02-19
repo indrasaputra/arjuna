@@ -9,14 +9,17 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	pgsdk "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
+	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
+	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
 )
 
 var (
 	testCtx             = context.Background()
 	errPostgresInternal = errors.New("error")
+	testEnv             = "development"
 )
 
 type UserSuite struct {
@@ -38,6 +41,8 @@ func TestNewUser(t *testing.T) {
 func TestUser_Insert(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+
+	app.Logger = sdklog.NewLogger(testEnv)
 
 	query := "INSERT INTO " +
 		"users (id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by) " +
@@ -94,6 +99,8 @@ func TestUser_GetByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	app.Logger = sdklog.NewLogger(testEnv)
+
 	query := `SELECT id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by FROM users WHERE id = ? LIMIT 1`
 
 	t.Run("select by id returns empty row", func(t *testing.T) {
@@ -140,6 +147,8 @@ func TestUser_GetAll(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	app.Logger = sdklog.NewLogger(testEnv)
+
 	query := `SELECT id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by FROM users LIMIT ?`
 	limit := uint(10)
 
@@ -171,6 +180,8 @@ func TestUser_GetAll(t *testing.T) {
 func TestUser_HardDelete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+
+	app.Logger = sdklog.NewLogger(testEnv)
 
 	query := "DELETE FROM users WHERE id = ?"
 

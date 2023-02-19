@@ -10,14 +10,17 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	kcsdk "github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
+	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_keycloak "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/keycloak"
 	"github.com/indrasaputra/arjuna/service/user/entity"
+	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/keycloak"
 )
 
 var (
 	testCtx = context.Background()
 	testJWT = &kcsdk.JWT{}
+	testEnv = "development"
 )
 
 type UserSuite struct {
@@ -95,6 +98,8 @@ func TestUser_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	app.Logger = sdklog.NewLogger(testEnv)
+
 	user := createUserEntity()
 
 	t.Run("unable to login as admin to Keycloak", func(t *testing.T) {
@@ -169,6 +174,8 @@ func TestUser_Create(t *testing.T) {
 func TestUser_HardDelete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+
+	app.Logger = sdklog.NewLogger(testEnv)
 
 	id := "1"
 

@@ -19,7 +19,7 @@ type Config struct {
 
 // Keycloak holds configuration for Keycloak.
 type Keycloak struct {
-	Address string `env:"KEYCLOAK_HOST,default=http://localhost:8080/"`
+	Address string `env:"KEYCLOAK_ADDRESS,default=http://localhost:8080/"`
 	Realm   string `env:"KEYCLOAK_REALM,required"`
 	Timeout int    `env:"KEYCLOAK_TIMEOUT_SECONDS,default=5"`
 }

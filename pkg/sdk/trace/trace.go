@@ -4,7 +4,8 @@ import (
 	"context"
 
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -23,9 +24,9 @@ const (
 
 // Config holds configuration for tracing.
 type Config struct {
-	JaegerEndpoint string `env:"JAEGER_ENDPOINT,default=http://localhost:14268/api/traces"`
-	AppEnv         string `env:"APP_ENV,default=development"`
-	ServiceName    string `env:"SERVICE_NAME,required"`
+	OtelCollectorAddress string `env:"OPENTELEMETRY_COLLECTOR_ADDRESS,default=localhost:4317"`
+	AppEnv               string `env:"APP_ENV,default=development"`
+	ServiceName          string `env:"SERVICE_NAME,required"`
 }
 
 // Provider provides tracing functionality.
@@ -34,20 +35,41 @@ type Provider struct {
 }
 
 // NewProvider creates an instance of Provider.
-func NewProvider(cfg Config, exporter sdktrace.SpanExporter) *Provider {
+// func NewProvider(cfg Config, exporter sdktrace.SpanExporter) *Provider {
+func NewProvider(ctx context.Context, cfg Config) (*Provider, error) {
 	sampler := sdktrace.AlwaysSample()
 	if cfg.AppEnv == EnvProduction {
 		sampler = sdktrace.ParentBased(sdktrace.TraceIDRatioBased(samplerRatio))
 	}
 
-	prov := sdktrace.NewTracerProvider(
-		sdktrace.WithSampler(sampler),
-		sdktrace.WithBatcher(exporter),
-		sdktrace.WithResource(resource.NewWithAttributes(
-			semconv.SchemaURL,
+	client := otlptracegrpc.NewClient(
+		otlptracegrpc.WithInsecure(),
+		otlptracegrpc.WithEndpoint(cfg.OtelCollectorAddress),
+	)
+	exporter, err := otlptrace.New(ctx, client)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := resource.New(ctx,
+		resource.WithFromEnv(),
+		resource.WithProcess(),
+		resource.WithTelemetrySDK(),
+		resource.WithHost(),
+		resource.WithAttributes(
 			semconv.ServiceNameKey.String(cfg.ServiceName),
 			semconv.DeploymentEnvironmentKey.String(cfg.AppEnv),
-		)),
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	sp := sdktrace.NewBatchSpanProcessor(exporter)
+	prov := sdktrace.NewTracerProvider(
+		sdktrace.WithSampler(sampler),
+		sdktrace.WithSpanProcessor(sp),
+		sdktrace.WithResource(res),
 	)
 
 	otel.SetTracerProvider(prov)
@@ -56,19 +78,11 @@ func NewProvider(cfg Config, exporter sdktrace.SpanExporter) *Provider {
 		propagation.Baggage{},
 	))
 
-	return &Provider{prov}
+	prov.Tracer(cfg.ServiceName)
+	return &Provider{prov}, nil
 }
 
 // GetTraceIDFromContext gets trace id from context.
 func GetTraceIDFromContext(ctx context.Context) string {
 	return otrace.SpanFromContext(ctx).SpanContext().TraceID().String()
-}
-
-// NewJaegerExporter creates an instance of Jaeger exporter.
-func NewJaegerExporter(cfg Config) (*jaeger.Exporter, error) {
-	exp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(cfg.JaegerEndpoint)))
-	if err != nil {
-		return nil, err
-	}
-	return exp, nil
 }

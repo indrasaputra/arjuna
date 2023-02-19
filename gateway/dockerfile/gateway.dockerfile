@@ -1,15 +1,17 @@
 FROM golang:1.17 AS builder
 ARG SERVICE=gateway
 ARG OUTPUT_DIR=deploy/output
+ARG CMD=server
 WORKDIR /app
 COPY . .
-RUN if [ ! -f ${SERVICE}/${OUTPUT_DIR}/${SERVICE} ] ; then make compile svc=gateway ; fi
+RUN if [ ! -f ${SERVICE}/${OUTPUT_DIR}/${CMD}/${SERVICE} ] ; then make compile svc=gateway ; fi
 
 FROM alpine:3.13
 ARG SERVICE=gateway
 ARG OUTPUT_DIR=deploy/output
+ARG CMD=server
 WORKDIR /app
-COPY --from=builder /app/${SERVICE}/${OUTPUT_DIR}/${SERVICE} .
+COPY --from=builder /app/${SERVICE}/${OUTPUT_DIR}/${CMD}/${SERVICE} .
 RUN apk add --update curl && \
     rm -rf /var/cache/apk/*
 RUN chmod +x /app/${SERVICE}

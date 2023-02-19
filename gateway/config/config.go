@@ -4,6 +4,8 @@ import (
 	"github.com/joeshaw/envdecode"
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
+
+	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
 )
 
 // Config holds configuration for the project.
@@ -13,6 +15,7 @@ type Config struct {
 	Port               string `env:"PORT,default=8000"`
 	UserServiceAddress string `env:"USER_SERVICE_ADDRESS,required"`
 	AuthServiceAddress string `env:"AUTH_SERVICE_ADDRESS,required"`
+	Tracer             trace.Config
 }
 
 // NewConfig creates an instance of Config.

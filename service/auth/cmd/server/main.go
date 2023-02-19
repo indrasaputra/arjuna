@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -19,12 +20,13 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
+
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
 
-	exp, err := trace.NewJaegerExporter(cfg.Tracer)
+	_, err = trace.NewProvider(ctx, cfg.Tracer)
 	checkError(err)
-	_ = trace.NewProvider(cfg.Tracer, exp)
 
 	app.Logger = sdklog.NewLogger(cfg.AppEnv)
 

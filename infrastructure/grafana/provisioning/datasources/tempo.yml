@@ -1,11 +1,11 @@
 apiVersion: 1
 
 datasources:
-  - name: Jaeger
-    type: jaeger
-    url: http://jaeger:16686/
+  - name: Tempo
+    type: tempo
+    url: http://tempo:3100
     access: proxy
-    uid: jaeger
+    uid: tempo
     jsonData:
       tracesToLogs:
         datasourceUid: loki

@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"go.temporal.io/sdk/activity"
-	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
@@ -23,24 +22,18 @@ import (
 func main() {
 	ctx := context.Background()
 
-	c, err := client.Dial(client.Options{})
-	if err != nil {
-		log.Fatalln("Unable to create client", err)
-	}
-	defer c.Close()
-
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
 
-	exp, err := trace.NewJaegerExporter(cfg.Tracer)
-	checkError(err)
-	_ = trace.NewProvider(cfg.Tracer, exp)
-
 	app.Logger = sdklog.NewLogger(cfg.AppEnv)
 
-	keycloakClient := builder.BuildKeycloakClient(cfg.Keycloak)
-	temporalClient, err := builder.BuildTemporalClient()
+	_, err = trace.NewProvider(ctx, cfg.Tracer)
 	checkError(err)
+
+	temporalClient, err := builder.BuildTemporalClient(cfg.Temporal.Address)
+	checkError(err)
+	defer temporalClient.Close()
+	keycloakClient := builder.BuildKeycloakClient(cfg.Keycloak)
 	bunDB, err := builder.BuildBunDB(ctx, cfg.Postgres)
 	checkError(err)
 
@@ -62,7 +55,7 @@ func main() {
 
 	act := orcact.NewRegisterUserActivity(kc, db)
 
-	w := worker.New(c, orcwork.TaskQueueRegisterUser, worker.Options{
+	w := worker.New(temporalClient, orcwork.TaskQueueRegisterUser, worker.Options{
 		DisableRegistrationAliasing: true,
 	})
 	w.RegisterWorkflow(orcwork.RegisterUser)

@@ -76,6 +76,6 @@ func BuildKeycloakClient(cfg config.Keycloak) kcsdk.Keycloak {
 }
 
 // BuildTemporalClient builds temporal client.
-func BuildTemporalClient() (client.Client, error) {
-	return client.Dial(client.Options{})
+func BuildTemporalClient(address string) (client.Client, error) {
+	return client.Dial(client.Options{HostPort: address})
 }
