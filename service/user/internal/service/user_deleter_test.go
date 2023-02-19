@@ -6,8 +6,10 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
+	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
+	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
 	mock_service "github.com/indrasaputra/arjuna/service/user/test/mock/service"
 )
@@ -33,6 +35,8 @@ func TestNewUserDeleter(t *testing.T) {
 func TestUserDeleter_HardDelete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+
+	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("get user by id returns error", func(t *testing.T) {
 		user := createTestUser()

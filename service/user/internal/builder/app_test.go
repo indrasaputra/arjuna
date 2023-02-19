@@ -103,7 +103,7 @@ func TestBuildKeycloakClient(t *testing.T) {
 
 func TestBuildTemporalClient(t *testing.T) {
 	t.Run("fail build a temporal client", func(t *testing.T) {
-		client, err := builder.BuildTemporalClient()
+		client, err := builder.BuildTemporalClient("localhost:7233")
 
 		assert.Error(t, err)
 		assert.Nil(t, client)

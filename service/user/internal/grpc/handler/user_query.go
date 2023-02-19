@@ -7,6 +7,7 @@ import (
 
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/user/entity"
+	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
 )
 
@@ -29,6 +30,7 @@ func (uc *UserQuery) GetAllUsers(ctx context.Context, request *apiv1.GetAllUsers
 
 	users, err := uc.getter.GetAll(ctx, uint(request.GetLimit()))
 	if err != nil {
+		app.Logger.Errorf(ctx, "[UserQuery-GetAllUsers] fail get all users: %v", err)
 		return nil, err
 	}
 	return createGetAllUsersResponse(users), nil

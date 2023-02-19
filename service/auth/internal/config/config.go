@@ -4,6 +4,8 @@ import (
 	"github.com/joeshaw/envdecode"
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
+
+	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
 )
 
 // Config holds configuration for the project.
@@ -12,11 +14,12 @@ type Config struct {
 	AppEnv      string `env:"APP_ENV,default=development"`
 	Port        string `env:"PORT,default=8082"`
 	Keycloak    Keycloak
+	Tracer      trace.Config
 }
 
 // Keycloak holds configuration for Keycloak.
 type Keycloak struct {
-	Address string `env:"KEYCLOAK_HOST,default=http://localhost:8080/"`
+	Address string `env:"KEYCLOAK_ADDRESS,default=http://localhost:8080/"`
 	Realm   string `env:"KEYCLOAK_REALM,required"`
 	Timeout int    `env:"KEYCLOAK_TIMEOUT_SECONDS,default=5"`
 }

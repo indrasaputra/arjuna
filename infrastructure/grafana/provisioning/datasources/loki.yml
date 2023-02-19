@@ -1,0 +1,23 @@
+apiVersion: 1
+
+datasources:
+  - name: Loki
+    uid: loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      derivedFields:
+        - name: SyslogTraceID
+          datasourceUid: jaeger
+          matcherRegex: (?:traceID|trace_id)=(\w+)
+          url: $${__value.raw}
+        - name: JSONTraceID
+          datasourceUid: jaeger
+          matcherRegex: (?:traceID|trace_id)\\".*\\"(\w+)\\"
+          url: $${__value.raw}
+
+        # Field with external link.
+        - matcherRegex: (?:traceID|trace_id)=(\w+)
+          name: TraceID
+          url: 'http://localhost:16686/trace/$${__value.raw}'

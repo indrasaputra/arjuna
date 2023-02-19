@@ -9,6 +9,7 @@ import (
 
 	kcsdk "github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
 	"github.com/indrasaputra/arjuna/service/user/entity"
+	"github.com/indrasaputra/arjuna/service/user/internal/app"
 )
 
 const (
@@ -62,15 +63,18 @@ func NewUser(config *Config) (*User, error) {
 func (u *User) Create(ctx context.Context, user *entity.User) (string, error) {
 	jwt, err := u.config.Client.LoginAdmin(ctx, u.config.AdminUsername, u.config.AdminPassword)
 	if err != nil {
+		app.Logger.Errorf(ctx, "[KeycloakUser-Create] fail login admin: %v", err)
 		return "", entity.ErrInternal(err.Error())
 	}
 
 	if err = u.createUser(ctx, user, jwt.AccessToken); err != nil {
+		app.Logger.Errorf(ctx, "[KeycloakUser-Create] fail create user: %v", err)
 		return "", err
 	}
 	// TODO: if get user somehow error, need to rollback user.
 	res, err := u.config.Client.GetUserByEmail(ctx, jwt.AccessToken, u.config.Realm, user.Email)
 	if err != nil {
+		app.Logger.Errorf(ctx, "[KeycloakUser-Create] fail get user: %v", err)
 		return "", decideError(err)
 	}
 	return res.ID, nil
@@ -80,11 +84,13 @@ func (u *User) Create(ctx context.Context, user *entity.User) (string, error) {
 func (u *User) HardDelete(ctx context.Context, id string) error {
 	jwt, err := u.config.Client.LoginAdmin(ctx, u.config.AdminUsername, u.config.AdminPassword)
 	if err != nil {
+		app.Logger.Errorf(ctx, "[KeycloakUser-HardDelete] fail login admin: %v", err)
 		return entity.ErrInternal(err.Error())
 	}
 
 	err = u.config.Client.DeleteUser(ctx, jwt.AccessToken, u.config.Realm, id)
 	if err != nil {
+		app.Logger.Errorf(ctx, "[KeycloakUser-Create] fail delete user: %v", err)
 		return decideError(err)
 	}
 	return nil

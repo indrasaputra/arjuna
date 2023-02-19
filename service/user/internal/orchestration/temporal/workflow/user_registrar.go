@@ -12,6 +12,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 
 	"github.com/indrasaputra/arjuna/service/user/entity"
+	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
 )
 
@@ -70,6 +71,7 @@ func (r *RegisterUserWorkflow) RegisterUser(ctx context.Context, input *service.
 	}
 	wr, err := r.client.ExecuteWorkflow(ctx, opts, RegisterUser, input)
 	if err != nil {
+		app.Logger.Errorf(ctx, "[RegisterUserWorkflow-RegisterUser] workflow failure: %v", err)
 		return nil, entity.ErrInternal("Something went wrong within our server. Please, try again")
 	}
 	log.Println("Started workflow", "WorkflowID", wr.GetID(), "RunID", wr.GetRunID())
@@ -81,6 +83,7 @@ func (r *RegisterUserWorkflow) RegisterUser(ctx context.Context, input *service.
 		if errors.As(err, &appErr) && appErr.Type() == ErrNonRetryableUserExist {
 			return nil, entity.ErrAlreadyExists()
 		}
+		app.Logger.Errorf(ctx, "[RegisterUserWorkflow-RegisterUser] error get workflow result: %v", err)
 		return nil, entity.ErrInternal("Something went wrong within our server. Please, try again")
 	}
 	return output, nil
@@ -95,7 +98,6 @@ func RegisterUser(ctx workflow.Context, input *service.RegisterUserInput) (*serv
 	var id string
 	ctx = createContextWithActivityOptions(ctx, ActivityTimeoutDefault, TaskQueueRegisterUser)
 	err := workflow.ExecuteActivity(ctx, ActivityKeycloakCreate, input.User).Get(ctx, &id)
-
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,7 @@ import (
 	pgsdk "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
+	"github.com/indrasaputra/arjuna/service/user/internal/app"
 )
 
 // User is responsible to connect user entity with users table in PostgreSQL.
@@ -43,6 +44,7 @@ func (u *User) Insert(ctx context.Context, user *entity.User) error {
 		return entity.ErrAlreadyExists()
 	}
 	if err != nil {
+		app.Logger.Errorf(ctx, "[PostgresUser-Insert] fail insert user: %v", err)
 		return entity.ErrInternal(err.Error())
 	}
 	return nil
@@ -55,6 +57,7 @@ func (u *User) GetByID(ctx context.Context, id string) (*entity.User, error) {
 	var res entity.User
 	err := u.db.Query(ctx, &res, query, id)
 	if err != nil {
+		app.Logger.Errorf(ctx, "[PostgresUser-GetByID] fail get user: %v", err)
 		return nil, entity.ErrInternal(err.Error())
 	}
 	return &res, nil
@@ -66,6 +69,7 @@ func (u *User) GetAll(ctx context.Context, limit uint) ([]*entity.User, error) {
 	res := []*entity.User{}
 	err := u.db.Query(ctx, &res, query, limit)
 	if err != nil {
+		app.Logger.Errorf(ctx, "[PostgresUser-GetAll] fail get all users: %v", err)
 		return []*entity.User{}, entity.ErrInternal(err.Error())
 	}
 	return res, nil
@@ -75,12 +79,14 @@ func (u *User) GetAll(ctx context.Context, limit uint) ([]*entity.User, error) {
 // If the user doesn't exist, it doesn't returns error.
 func (u *User) HardDelete(ctx context.Context, tx uow.Tx, id string) error {
 	if tx == nil {
+		app.Logger.Errorf(ctx, "[PostgresUser-HardDelete] transaction is not set")
 		return entity.ErrInternal("transaction is not set")
 	}
 
 	query := "DELETE FROM users WHERE id = ?"
 	_, err := tx.Exec(ctx, query, id)
 	if err != nil {
+		app.Logger.Errorf(ctx, "[PostgresUser-HardDelete] fail delete user: %v", err)
 		return entity.ErrInternal(err.Error())
 	}
 	return nil

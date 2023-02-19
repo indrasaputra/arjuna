@@ -6,8 +6,10 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
+	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/user/entity"
+	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/grpc/handler"
 	mock_service "github.com/indrasaputra/arjuna/service/user/test/mock/service"
 )
@@ -30,6 +32,8 @@ func TestNewUserCommand(t *testing.T) {
 func TestUserCommand_RegisterUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+
+	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("nil request is prohibited", func(t *testing.T) {
 		st := createUserCommandSuite(ctrl)

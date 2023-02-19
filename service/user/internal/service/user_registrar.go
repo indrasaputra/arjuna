@@ -12,6 +12,7 @@ import (
 	"github.com/segmentio/ksuid"
 
 	"github.com/indrasaputra/arjuna/service/user/entity"
+	"github.com/indrasaputra/arjuna/service/user/internal/app"
 )
 
 const (
@@ -68,6 +69,7 @@ func NewUserRegistrar(orchestrator RegisterUserOrchestration) *UserRegistrar {
 // It checks the email for duplication.
 func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User) (string, error) {
 	if err := validateUser(user); err != nil {
+		app.Logger.Errorf(ctx, "[UserRegistrar-Register] user is invalid: %v", err)
 		return "", err
 	}
 	sanitizeUser(user)
@@ -77,6 +79,7 @@ func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User) (strin
 	user.Username = generateUsername(usernameLength)
 
 	if err := setUserID(user); err != nil {
+		app.Logger.Errorf(ctx, "[UserRegistrar-Register] fail set user id: %v", err)
 		return "", err
 	}
 	setUserAuditableProperties(user)
@@ -84,6 +87,7 @@ func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User) (strin
 	input := &RegisterUserInput{User: user}
 	output, err := ur.orchestrator.RegisterUser(ctx, input)
 	if err != nil {
+		app.Logger.Errorf(ctx, "[UserRegistrar-Register] orchestration fail: %v", err)
 		return "", err
 	}
 	return output.UserID, nil

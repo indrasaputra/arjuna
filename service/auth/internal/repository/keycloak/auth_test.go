@@ -10,7 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	kcsdk "github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
+	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_keycloak "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/keycloak"
+	"github.com/indrasaputra/arjuna/service/auth/internal/app"
 	"github.com/indrasaputra/arjuna/service/auth/internal/repository/keycloak"
 )
 
@@ -19,6 +21,7 @@ var (
 	testClientID = "client-id"
 	testEmail    = "email@email.com"
 	testPassword = "password"
+	testEnv      = "development"
 )
 
 type AuthSuite struct {
@@ -77,6 +80,8 @@ func TestNewAuth(t *testing.T) {
 func TestAuth_Login(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+
+	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("login returns error", func(t *testing.T) {
 		errs := []error{

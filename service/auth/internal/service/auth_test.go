@@ -7,7 +7,9 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
+	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/service/auth/entity"
+	"github.com/indrasaputra/arjuna/service/auth/internal/app"
 	"github.com/indrasaputra/arjuna/service/auth/internal/service"
 	mock_service "github.com/indrasaputra/arjuna/service/auth/test/mock/service"
 )
@@ -17,6 +19,7 @@ var (
 	testClientID = "client-id"
 	testEmail    = "email@email.com"
 	testPassword = "password"
+	testEnv      = "development"
 )
 
 type AuthSuite struct {
@@ -37,6 +40,8 @@ func TestNewAuth(t *testing.T) {
 func TestAuth_Login(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+
+	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("param is invalid", func(t *testing.T) {
 		type testSuite struct {

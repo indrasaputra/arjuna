@@ -3,17 +3,19 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
+	"github.com/indrasaputra/arjuna/pkg/sdk/grpc/server"
+	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
+	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
+	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/builder"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
 	"github.com/indrasaputra/arjuna/service/user/internal/grpc/handler"
-	"github.com/indrasaputra/arjuna/service/user/internal/grpc/server"
 )
 
 func main() {
@@ -22,9 +24,15 @@ func main() {
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
 
-	keycloakClient := builder.BuildKeycloakClient(cfg.Keycloak)
-	temporalClient, err := builder.BuildTemporalClient()
+	app.Logger = sdklog.NewLogger(cfg.AppEnv)
+
+	_, err = trace.NewProvider(ctx, cfg.Tracer)
 	checkError(err)
+
+	keycloakClient := builder.BuildKeycloakClient(cfg.Keycloak)
+	temporalClient, err := builder.BuildTemporalClient(cfg.Temporal.Address)
+	checkError(err)
+	defer temporalClient.Close()
 	bunDB, err := builder.BuildBunDB(ctx, cfg.Postgres)
 	checkError(err)
 
@@ -35,11 +43,10 @@ func main() {
 		DB:             bunDB,
 	}
 
-	grpcServer := server.NewGrpcServer(cfg.Port)
+	grpcServer := server.NewGrpcServer(cfg.ServiceName, cfg.Port)
 	registerGrpcService(ctx, grpcServer, dep)
 
 	_ = grpcServer.Serve()
-	fmt.Println("server start.. waiting signal")
 	grpcServer.GracefulStop()
 }
 
