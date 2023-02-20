@@ -39,6 +39,7 @@ func main() {
 
 	grpcServer := server.NewGrpcServer(cfg.ServiceName, cfg.Port)
 	registerGrpcService(grpcServer, dep)
+	grpcServer.EnablePrometheus(cfg.PrometheusPort)
 
 	_ = grpcServer.Serve()
 	fmt.Println("server start.. waiting signal")

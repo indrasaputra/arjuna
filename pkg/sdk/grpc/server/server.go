@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,6 +13,7 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpcrecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
@@ -28,6 +30,7 @@ const (
 // It composes grpc.Server.
 type GrpcServer struct {
 	server      *grpc.Server
+	httpServer  *http.Server
 	serviceFunc []func(*grpc.Server)
 	listener    net.Listener
 	name        string
@@ -72,6 +75,16 @@ func (gs *GrpcServer) AttachService(fn func(*grpc.Server)) {
 	gs.serviceFunc = append(gs.serviceFunc, fn)
 }
 
+// EnablePrometheus registers prometheus metrics.
+func (gs *GrpcServer) EnablePrometheus(port string) {
+	grpc_prometheus.Register(gs.server)
+	srv := &http.Server{
+		Addr: fmt.Sprintf(":%s", port),
+	}
+	http.Handle("/metrics", promhttp.Handler())
+	gs.httpServer = srv
+}
+
 // Serve runs the server.
 // It basically runs grpc.Server.Serve and is a blocking.
 func (gs *GrpcServer) Serve() error {
@@ -83,6 +96,11 @@ func (gs *GrpcServer) Serve() error {
 	gs.listener, err = net.Listen(connProtocol, fmt.Sprintf(":%s", gs.port))
 	if err != nil {
 		return err
+	}
+	if gs.httpServer != nil {
+		go func() {
+			_ = gs.httpServer.ListenAndServe()
+		}()
 	}
 	go func() {
 		_ = gs.server.Serve(gs.listener)
