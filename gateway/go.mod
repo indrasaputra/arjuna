@@ -37,6 +37,8 @@ require go.uber.org/zap v1.13.0
 
 require github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 
+require github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
+
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.0 // indirect

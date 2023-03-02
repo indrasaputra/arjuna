@@ -11,13 +11,14 @@ import (
 
 // Config holds configuration for the project.
 type Config struct {
-	ServiceName string `env:"SERVICE_NAME,default=user-server"`
-	AppEnv      string `env:"APP_ENV,default=development"`
-	Port        string `env:"PORT,default=8080"`
-	Postgres    pgsdk.Config
-	Keycloak    Keycloak
-	Tracer      trace.Config
-	Temporal    Temporal
+	ServiceName    string `env:"SERVICE_NAME,default=user-server"`
+	AppEnv         string `env:"APP_ENV,default=development"`
+	Port           string `env:"PORT,default=8001"`
+	PrometheusPort string `env:"PROMETHEUS_PORT,default=7001"`
+	Postgres       pgsdk.Config
+	Keycloak       Keycloak
+	Tracer         trace.Config
+	Temporal       Temporal
 }
 
 // Keycloak holds configuration for Keycloak.

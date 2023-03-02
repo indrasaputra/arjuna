@@ -45,6 +45,7 @@ func main() {
 
 	grpcServer := server.NewGrpcServer(cfg.ServiceName, cfg.Port)
 	registerGrpcService(ctx, grpcServer, dep)
+	grpcServer.EnablePrometheus(cfg.PrometheusPort)
 
 	_ = grpcServer.Serve()
 	grpcServer.GracefulStop()

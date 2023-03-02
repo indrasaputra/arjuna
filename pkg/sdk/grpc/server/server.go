@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,6 +13,7 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpcrecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
@@ -28,6 +30,7 @@ const (
 // It composes grpc.Server.
 type GrpcServer struct {
 	server      *grpc.Server
+	httpServer  *http.Server
 	serviceFunc []func(*grpc.Server)
 	listener    net.Listener
 	name        string
@@ -50,8 +53,16 @@ func newGrpcServer(name, port string, options ...grpc.ServerOption) *GrpcServer 
 //   - Logging, using zap logger.
 //   - Recoverer, using grpcrecovery.
 func NewGrpcServer(name, port string) *GrpcServer {
-	options := grpcmiddleware.WithUnaryServerChain(defaultUnaryServerInterceptors()...)
-	srv := newGrpcServer(name, port, options)
+	logger, _ := zap.NewProduction() // error is impossible, hence ignored.
+	grpczap.SetGrpcLoggerV2(grpclogsettable.ReplaceGrpcLoggerV2(), logger)
+	grpc_prometheus.EnableHandlingTimeHistogram()
+
+	unary := defaultUnaryServerInterceptors(logger)
+	stream := defaultStreamServerInterceptors(logger)
+	unaryMdw := grpcmiddleware.WithUnaryServerChain(unary...)
+	streamMdw := grpcmiddleware.WithStreamServerChain(stream...)
+
+	srv := newGrpcServer(name, port, unaryMdw, streamMdw)
 	grpc_prometheus.Register(srv.server)
 	return srv
 }
@@ -72,6 +83,16 @@ func (gs *GrpcServer) AttachService(fn func(*grpc.Server)) {
 	gs.serviceFunc = append(gs.serviceFunc, fn)
 }
 
+// EnablePrometheus registers prometheus metrics.
+func (gs *GrpcServer) EnablePrometheus(port string) {
+	grpc_prometheus.Register(gs.server)
+	srv := &http.Server{
+		Addr: fmt.Sprintf(":%s", port),
+	}
+	http.Handle("/metrics", promhttp.Handler())
+	gs.httpServer = srv
+}
+
 // Serve runs the server.
 // It basically runs grpc.Server.Serve and is a blocking.
 func (gs *GrpcServer) Serve() error {
@@ -83,6 +104,11 @@ func (gs *GrpcServer) Serve() error {
 	gs.listener, err = net.Listen(connProtocol, fmt.Sprintf(":%s", gs.port))
 	if err != nil {
 		return err
+	}
+	if gs.httpServer != nil {
+		go func() {
+			_ = gs.httpServer.ListenAndServe()
+		}()
 	}
 	go func() {
 		_ = gs.server.Serve(gs.listener)
@@ -114,18 +140,22 @@ func (gs *GrpcServer) Stop() {
 	gs.server.Stop()
 }
 
-func defaultUnaryServerInterceptors() []grpc.UnaryServerInterceptor {
-	logger, _ := zap.NewProduction() // error is impossible, hence ignored.
-	grpczap.SetGrpcLoggerV2(grpclogsettable.ReplaceGrpcLoggerV2(), logger)
-	grpc_prometheus.EnableHandlingTimeHistogram()
-
-	options := []grpc.UnaryServerInterceptor{
+func defaultUnaryServerInterceptors(logger *zap.Logger) []grpc.UnaryServerInterceptor {
+	return []grpc.UnaryServerInterceptor{
 		grpcrecovery.UnaryServerInterceptor(grpcrecovery.WithRecoveryHandler(recoveryHandler)),
 		otelgrpc.UnaryServerInterceptor(otelgrpc.WithTracerProvider(otel.GetTracerProvider())),
 		grpczap.UnaryServerInterceptor(logger),
 		grpc_prometheus.UnaryServerInterceptor,
 	}
-	return options
+}
+
+func defaultStreamServerInterceptors(logger *zap.Logger) []grpc.StreamServerInterceptor {
+	return []grpc.StreamServerInterceptor{
+		grpcrecovery.StreamServerInterceptor(grpcrecovery.WithRecoveryHandler(recoveryHandler)),
+		otelgrpc.StreamServerInterceptor(otelgrpc.WithTracerProvider(otel.GetTracerProvider())),
+		grpczap.StreamServerInterceptor(logger),
+		grpc_prometheus.StreamServerInterceptor,
+	}
 }
 
 func recoveryHandler(p interface{}) error {

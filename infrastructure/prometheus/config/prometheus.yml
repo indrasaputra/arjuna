@@ -1,0 +1,43 @@
+global:
+  # By default, scrape targets every 15 seconds.
+  scrape_interval: 15s
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+    monitor: 'arjuna'
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+    static_configs:
+      - targets: 
+          - localhost:9090
+
+  - job_name: 'gateway-server'
+    scrape_interval: 5s
+    static_configs:
+      - targets: 
+          - gateway-server:8000
+
+  - job_name: 'user-server'
+    scrape_interval: 5s
+    static_configs:
+      - targets: 
+          - user-server:7001
+
+  - job_name: 'auth-server'
+    scrape_interval: 5s
+    static_configs:
+      - targets: 
+          - auth-server:7002
+
+  - job_name: 'temporal'
+    scrape_interval: 5s
+    static_configs:
+      - targets: 
+          - temporal:9091

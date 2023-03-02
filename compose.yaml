@@ -139,9 +139,11 @@ services:
       - ENABLE_ES=true
       - ES_SEEDS=elasticsearch
       - ES_VERSION=v7
+      - PROMETHEUS_ENDPOINT=0.0.0.0:9091
     image: temporalio/auto-setup:1.18.5
     ports:
       - 7233:7233
+      - 9091:9091
 
   temporal-admin-tools:
     <<: *default
@@ -233,14 +235,24 @@ services:
     ports:
       - 3100:3100
 
+  prometheus:
+    <<: *default
+    image: prom/prometheus:v2.42.0
+    container_name: arjuna-prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./infrastructure/prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
+
   grafana:
     <<: *default
-    image: grafana/grafana:9.3.6
+    image: grafana/grafana:9.4.1
     container_name: arjuna-grafana
+    depends_on:
+      - prometheus
     ports:
       - 3500:3000
     volumes:
-      - storage:/var/lib/grafana
       - ./infrastructure/grafana/provisioning:/etc/grafana/provisioning
     environment:
       - GF_AUTH_DISABLE_LOGIN_FORM=true
@@ -278,6 +290,7 @@ services:
       - keycloak
     ports:
       - 8002:8002
+      - 7002:7002
     env_file:
       - service/auth/.env
     environment:
@@ -300,6 +313,7 @@ services:
         condition: service_started
     ports:
       - 8001:8001
+      - 7001:7001
     env_file:
       - service/user/.env
     environment:
@@ -337,4 +351,3 @@ volumes:
 networks:
   arjuna:
     name: arjuna
-    driver: bridge
