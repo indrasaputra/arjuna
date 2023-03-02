@@ -53,8 +53,16 @@ func newGrpcServer(name, port string, options ...grpc.ServerOption) *GrpcServer 
 //   - Logging, using zap logger.
 //   - Recoverer, using grpcrecovery.
 func NewGrpcServer(name, port string) *GrpcServer {
-	options := grpcmiddleware.WithUnaryServerChain(defaultUnaryServerInterceptors()...)
-	srv := newGrpcServer(name, port, options)
+	logger, _ := zap.NewProduction() // error is impossible, hence ignored.
+	grpczap.SetGrpcLoggerV2(grpclogsettable.ReplaceGrpcLoggerV2(), logger)
+	grpc_prometheus.EnableHandlingTimeHistogram()
+
+	unary := defaultUnaryServerInterceptors(logger)
+	stream := defaultStreamServerInterceptors(logger)
+	unaryMdw := grpcmiddleware.WithUnaryServerChain(unary...)
+	streamMdw := grpcmiddleware.WithStreamServerChain(stream...)
+
+	srv := newGrpcServer(name, port, unaryMdw, streamMdw)
 	grpc_prometheus.Register(srv.server)
 	return srv
 }
@@ -132,18 +140,22 @@ func (gs *GrpcServer) Stop() {
 	gs.server.Stop()
 }
 
-func defaultUnaryServerInterceptors() []grpc.UnaryServerInterceptor {
-	logger, _ := zap.NewProduction() // error is impossible, hence ignored.
-	grpczap.SetGrpcLoggerV2(grpclogsettable.ReplaceGrpcLoggerV2(), logger)
-	grpc_prometheus.EnableHandlingTimeHistogram()
-
-	options := []grpc.UnaryServerInterceptor{
+func defaultUnaryServerInterceptors(logger *zap.Logger) []grpc.UnaryServerInterceptor {
+	return []grpc.UnaryServerInterceptor{
 		grpcrecovery.UnaryServerInterceptor(grpcrecovery.WithRecoveryHandler(recoveryHandler)),
 		otelgrpc.UnaryServerInterceptor(otelgrpc.WithTracerProvider(otel.GetTracerProvider())),
 		grpczap.UnaryServerInterceptor(logger),
 		grpc_prometheus.UnaryServerInterceptor,
 	}
-	return options
+}
+
+func defaultStreamServerInterceptors(logger *zap.Logger) []grpc.StreamServerInterceptor {
+	return []grpc.StreamServerInterceptor{
+		grpcrecovery.StreamServerInterceptor(grpcrecovery.WithRecoveryHandler(recoveryHandler)),
+		otelgrpc.StreamServerInterceptor(otelgrpc.WithTracerProvider(otel.GetTracerProvider())),
+		grpczap.StreamServerInterceptor(logger),
+		grpc_prometheus.StreamServerInterceptor,
+	}
 }
 
 func recoveryHandler(p interface{}) error {

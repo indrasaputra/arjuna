@@ -7,6 +7,7 @@ import (
 
 	grpclogsettable "github.com/grpc-ecosystem/go-grpc-middleware/logging/settable"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
@@ -62,6 +63,12 @@ func defaultGrpcServerOptions() []grpc.DialOption {
 		grpc.WithChainUnaryInterceptor(
 			otelgrpc.UnaryClientInterceptor(otelgrpc.WithTracerProvider(otel.GetTracerProvider())),
 			grpczap.UnaryClientInterceptor(logger),
+			grpc_prometheus.UnaryClientInterceptor,
+		),
+		grpc.WithChainStreamInterceptor(
+			otelgrpc.StreamClientInterceptor(otelgrpc.WithTracerProvider(otel.GetTracerProvider())),
+			grpczap.StreamClientInterceptor(logger),
+			grpc_prometheus.StreamClientInterceptor,
 		),
 	}
 }

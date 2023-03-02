@@ -2,10 +2,10 @@ apiVersion: 1
 
 datasources:
   - name: Tempo
+    uid: tempo
     type: tempo
     url: http://tempo:3100
     access: proxy
-    uid: tempo
     jsonData:
       tracesToLogs:
         datasourceUid: loki

@@ -5,7 +5,7 @@ global:
   # Attach these labels to any time series or alerts when communicating with
   # external systems (federation, remote storage, Alertmanager).
   external_labels:
-    monitor: 'dev-monitor'
+    monitor: 'arjuna'
 
 # A scrape configuration containing exactly one endpoint to scrape:
 # Here it's Prometheus itself.
@@ -18,26 +18,26 @@ scrape_configs:
       - targets: 
           - localhost:9090
 
-  - job_name: 'grpc-gateway'
+  - job_name: 'gateway-server'
     scrape_interval: 5s
     static_configs:
       - targets: 
-          - host.docker.internal:8000
+          - gateway-server:8000
 
   - job_name: 'user-server'
     scrape_interval: 5s
     static_configs:
       - targets: 
-          - host.docker.internal:7001
+          - user-server:7001
 
   - job_name: 'auth-server'
     scrape_interval: 5s
     static_configs:
       - targets: 
-          - host.docker.internal:7002
+          - auth-server:7002
 
   - job_name: 'temporal'
     scrape_interval: 5s
     static_configs:
       - targets: 
-          - host.docker.internal:9091
+          - temporal:9091

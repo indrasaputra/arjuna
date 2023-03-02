@@ -236,6 +236,7 @@ services:
       - 3100:3100
 
   prometheus:
+    <<: *default
     image: prom/prometheus:v2.42.0
     container_name: arjuna-prometheus
     ports:
@@ -245,12 +246,13 @@ services:
 
   grafana:
     <<: *default
-    image: grafana/grafana:9.3.6
+    image: grafana/grafana:9.4.1
     container_name: arjuna-grafana
+    depends_on:
+      - prometheus
     ports:
       - 3500:3000
     volumes:
-      - storage:/var/lib/grafana
       - ./infrastructure/grafana/provisioning:/etc/grafana/provisioning
     environment:
       - GF_AUTH_DISABLE_LOGIN_FORM=true
@@ -349,4 +351,3 @@ volumes:
 networks:
   arjuna:
     name: arjuna
-    driver: bridge
