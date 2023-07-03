@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpclogsettable "github.com/grpc-ecosystem/go-grpc-middleware/logging/settable"
@@ -23,7 +24,8 @@ import (
 )
 
 const (
-	connProtocol = "tcp"
+	connProtocol                = "tcp"
+	prometheusReadHeaderTimeout = 5 * time.Second
 )
 
 // GrpcServer is responsible to act as gRPC server.
@@ -87,7 +89,8 @@ func (gs *GrpcServer) AttachService(fn func(*grpc.Server)) {
 func (gs *GrpcServer) EnablePrometheus(port string) {
 	grpc_prometheus.Register(gs.server)
 	srv := &http.Server{
-		Addr: fmt.Sprintf(":%s", port),
+		Addr:              fmt.Sprintf(":%s", port),
+		ReadHeaderTimeout: prometheusReadHeaderTimeout,
 	}
 	http.Handle("/metrics", promhttp.Handler())
 	gs.httpServer = srv

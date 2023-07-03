@@ -69,13 +69,13 @@ func setupClients() {
 	userGrpcClient = apiv1.NewUserCommandInternalServiceClient(conn)
 }
 
-func restoreDefaultState(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
+func restoreDefaultState(ctx context.Context, _ *godog.Scenario) (context.Context, error) {
 	err := deleteAllUsers()
 	checkErr(err)
 	return ctx, nil
 }
 
-func cleanUpData(ctx context.Context, sc *godog.Scenario, _ error) (context.Context, error) {
+func cleanUpData(ctx context.Context, _ *godog.Scenario, _ error) (context.Context, error) {
 	err := deleteAllUsers()
 	checkErr(err)
 	return ctx, nil

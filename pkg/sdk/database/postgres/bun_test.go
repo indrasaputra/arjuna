@@ -26,7 +26,7 @@ type BunDBSuite struct {
 
 func TestNewDBWithPgx(t *testing.T) {
 	t.Run("success create db with pgx", func(t *testing.T) {
-		db, err := postgres.NewDBWithPgx(testCtx, postgres.Config{})
+		db, err := postgres.NewDBWithPgx(postgres.Config{})
 
 		assert.NoError(t, err)
 		assert.NotNil(t, db)

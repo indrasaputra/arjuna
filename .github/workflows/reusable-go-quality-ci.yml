@@ -40,7 +40,7 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     container:
-      image: indrasaputra/protogen:2021-09-07
+      image: indrasaputra/protogen:2023-07-03
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
@@ -78,7 +78,7 @@ jobs:
       - name: Lint using golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.50.1
+          version: v1.53.3
           args: --config=${GITHUB_WORKSPACE}/.golangci.yml
           working-directory: ${{ inputs.target }}
 

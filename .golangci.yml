@@ -5,12 +5,15 @@ run:
 
 linters:
   enable:
+    - asciicheck
+    - bidichk
     - bodyclose
-    # - deadcode // abandoned by owner
-    - depguard
+    - decorder
     - dogsled
     - dupl
+    - durationcheck
     - errcheck
+    - execinquery
     - exportloopref
     - exhaustive
     - funlen
@@ -21,10 +24,13 @@ linters:
     - gofmt
     - goimports
     - gomnd
+    - gomodguard
     - goprintffuncname
     - gosec
     - gosimple
     - govet
+    - grouper
+    - importas
     - ineffassign
     - lll
     - megacheck
@@ -34,15 +40,12 @@ linters:
     - nolintlint
     - prealloc
     - revive
-    # - rowserrcheck // disabled due to generics
     - staticcheck
-    # - structcheck // abandoned by owner, disabled due to generics
     - stylecheck
     - typecheck
     - unconvert
     - unparam
     - unused
-    # - varcheck // abandoned by owner
     - whitespace
 
 linters-settings:

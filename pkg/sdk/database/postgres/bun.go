@@ -43,7 +43,7 @@ type Config struct {
 }
 
 // NewDBWithPgx creates a bun.DB using pgx as driver.
-func NewDBWithPgx(ctx context.Context, cfg Config) (*bun.DB, error) {
+func NewDBWithPgx(cfg Config) (*bun.DB, error) {
 	connCfg := fmt.Sprintf(postgresConnFormat,
 		cfg.Host,
 		cfg.Port,

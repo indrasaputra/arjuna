@@ -33,7 +33,7 @@ jobs:
 
   go-code-quality:
     name: Go code quality check
-    uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@main
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@update-golangcilint
     with:
       filters: |
         changed:

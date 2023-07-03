@@ -1,7 +1,6 @@
 package builder_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,8 +31,6 @@ func TestBuildUserCommandHandler(t *testing.T) {
 }
 
 func TestBuildUserCommandInternalHandler(t *testing.T) {
-	ctx := context.Background()
-
 	t.Run("fail create user command internal handler", func(t *testing.T) {
 		dep := &builder.Dependency{
 			KeycloakClient: nil,
@@ -42,7 +39,7 @@ func TestBuildUserCommandInternalHandler(t *testing.T) {
 			},
 		}
 
-		handler, err := builder.BuildUserCommandInternalHandler(ctx, dep)
+		handler, err := builder.BuildUserCommandInternalHandler(dep)
 
 		assert.Error(t, err)
 		assert.Nil(t, handler)
@@ -60,7 +57,7 @@ func TestBuildUserCommandInternalHandler(t *testing.T) {
 			},
 		}
 
-		handler, err := builder.BuildUserCommandInternalHandler(ctx, dep)
+		handler, err := builder.BuildUserCommandInternalHandler(dep)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, handler)
@@ -78,12 +75,10 @@ func TestBuildUserQueryHandler(t *testing.T) {
 }
 
 func TestBuildBunDB(t *testing.T) {
-	ctx := context.Background()
-
 	t.Run("success create bundb", func(t *testing.T) {
 		cfg := pgsdk.Config{}
 
-		db, err := builder.BuildBunDB(ctx, cfg)
+		db, err := builder.BuildBunDB(cfg)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, db)
