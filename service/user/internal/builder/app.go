@@ -1,7 +1,6 @@
 package builder
 
 import (
-	"context"
 	"net/http"
 	"time"
 
@@ -34,7 +33,7 @@ func BuildUserCommandHandler(dep *Dependency) *handler.UserCommand {
 }
 
 // BuildUserCommandInternalHandler builds user command handler including all of its dependencies.
-func BuildUserCommandInternalHandler(ctx context.Context, dep *Dependency) (*handler.UserCommandInternal, error) {
+func BuildUserCommandInternalHandler(dep *Dependency) (*handler.UserCommandInternal, error) {
 	kcconf := &keycloak.Config{
 		Client:        dep.KeycloakClient,
 		Realm:         dep.Config.Keycloak.Realm,
@@ -60,8 +59,8 @@ func BuildUserQueryHandler(dep *Dependency) *handler.UserQuery {
 }
 
 // BuildBunDB builds BunDB.
-func BuildBunDB(ctx context.Context, cfg pgsdk.Config) (*pgsdk.BunDB, error) {
-	pdb, err := pgsdk.NewDBWithPgx(ctx, cfg)
+func BuildBunDB(cfg pgsdk.Config) (*pgsdk.BunDB, error) {
+	pdb, err := pgsdk.NewDBWithPgx(cfg)
 	if err != nil {
 		return nil, err
 	}

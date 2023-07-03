@@ -19,7 +19,7 @@ func NewHealth() *Health {
 }
 
 // Check checks the entire system health.
-func (hh *Health) Check(ctx context.Context, request *grpc_health_v1.HealthCheckRequest) (*grpc_health_v1.HealthCheckResponse, error) {
+func (hh *Health) Check(_ context.Context, request *grpc_health_v1.HealthCheckRequest) (*grpc_health_v1.HealthCheckResponse, error) {
 	if request == nil {
 		st := status.New(codes.InvalidArgument, "health check request is nil")
 		return createHealthCheckResponse(grpc_health_v1.HealthCheckResponse_UNKNOWN), st.Err()

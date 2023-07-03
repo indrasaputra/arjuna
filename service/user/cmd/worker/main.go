@@ -34,7 +34,7 @@ func main() {
 	checkError(err)
 	defer temporalClient.Close()
 	keycloakClient := builder.BuildKeycloakClient(cfg.Keycloak)
-	bunDB, err := builder.BuildBunDB(ctx, cfg.Postgres)
+	bunDB, err := builder.BuildBunDB(cfg.Postgres)
 	checkError(err)
 
 	dep := &builder.Dependency{

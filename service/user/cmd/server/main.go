@@ -33,7 +33,7 @@ func main() {
 	temporalClient, err := builder.BuildTemporalClient(cfg.Temporal.Address)
 	checkError(err)
 	defer temporalClient.Close()
-	bunDB, err := builder.BuildBunDB(ctx, cfg.Postgres)
+	bunDB, err := builder.BuildBunDB(cfg.Postgres)
 	checkError(err)
 
 	dep := &builder.Dependency{
@@ -44,17 +44,17 @@ func main() {
 	}
 
 	grpcServer := server.NewGrpcServer(cfg.ServiceName, cfg.Port)
-	registerGrpcService(ctx, grpcServer, dep)
+	registerGrpcService(grpcServer, dep)
 	grpcServer.EnablePrometheus(cfg.PrometheusPort)
 
 	_ = grpcServer.Serve()
 	grpcServer.GracefulStop()
 }
 
-func registerGrpcService(ctx context.Context, grpcServer *server.GrpcServer, dep *builder.Dependency) {
+func registerGrpcService(grpcServer *server.GrpcServer, dep *builder.Dependency) {
 	// start register all module's gRPC handlers
 	command := builder.BuildUserCommandHandler(dep)
-	commandInternal, err := builder.BuildUserCommandInternalHandler(ctx, dep)
+	commandInternal, err := builder.BuildUserCommandInternalHandler(dep)
 	if err != nil {
 		log.Fatalf("fail build user command internal handler: %v", err)
 	}
