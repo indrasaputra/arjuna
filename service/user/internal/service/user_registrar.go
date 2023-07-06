@@ -102,17 +102,21 @@ func (ur *UserRegistrar) saveUserToRepository(ctx context.Context, user *entity.
 
 	if err = ur.userRepo.InsertWithTx(ctx, tx, user); err != nil {
 		app.Logger.Errorf(ctx, "[UserRegistrar-saveUserToRepository] fail insert user to repo: %v", err)
-		return ur.unit.Finish(ctx, tx, err)
+		_ = ur.unit.Finish(ctx, tx, err)
+		return err
 	}
 
 	payload, err := createUserOutbox(user)
 	if err != nil {
-		return ur.unit.Finish(ctx, tx, err)
+		_ = ur.unit.Finish(ctx, tx, err)
+		return err
 	}
 
 	err = ur.userOutboxRepo.InsertWithTx(ctx, tx, payload)
 	if err != nil {
 		app.Logger.Errorf(ctx, "[UserRegistrar-saveUserToRepository] fail insert user outbox to repo: %v", err)
+		_ = ur.unit.Finish(ctx, tx, err)
+		return err
 	}
 	return ur.unit.Finish(ctx, tx, err)
 }

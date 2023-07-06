@@ -114,7 +114,7 @@ func TestUserRegistrar_Register(t *testing.T) {
 
 		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
 		st.userRepo.EXPECT().InsertWithTx(testCtx, st.tx, user).Return(errReturn)
-		st.unit.EXPECT().Finish(testCtx, st.tx, errReturn).Return(errReturn)
+		st.unit.EXPECT().Finish(testCtx, st.tx, errReturn).Return(nil)
 
 		id, err := st.registrar.Register(testCtx, user)
 
@@ -130,7 +130,7 @@ func TestUserRegistrar_Register(t *testing.T) {
 		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
 		st.userRepo.EXPECT().InsertWithTx(testCtx, st.tx, user).Return(nil)
 		st.userOutboxRepo.EXPECT().InsertWithTx(testCtx, st.tx, gomock.Any()).Return(errReturn)
-		st.unit.EXPECT().Finish(testCtx, st.tx, errReturn).Return(errReturn)
+		st.unit.EXPECT().Finish(testCtx, st.tx, errReturn).Return(nil)
 
 		id, err := st.registrar.Register(testCtx, user)
 
