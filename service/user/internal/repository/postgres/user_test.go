@@ -38,7 +38,7 @@ func TestNewUser(t *testing.T) {
 	})
 }
 
-func TestUser_Insert(t *testing.T) {
+func TestUser_InsertWithTx(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -48,10 +48,18 @@ func TestUser_Insert(t *testing.T) {
 		"users (id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by) " +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
 
+	t.Run("nil tx is prohibited", func(t *testing.T) {
+		st := createUserSuite(ctrl)
+
+		err := st.user.InsertWithTx(testCtx, nil, nil)
+
+		assert.Error(t, err)
+	})
+
 	t.Run("nil user is prohibited", func(t *testing.T) {
 		st := createUserSuite(ctrl)
 
-		err := st.user.Insert(testCtx, nil)
+		err := st.user.InsertWithTx(testCtx, st.tx, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyUser(), err)
@@ -60,11 +68,11 @@ func TestUser_Insert(t *testing.T) {
 	t.Run("insert duplicate user", func(t *testing.T) {
 		user := createTestUser()
 		st := createUserSuite(ctrl)
-		st.db.EXPECT().
+		st.tx.EXPECT().
 			Exec(testCtx, query, user.ID, user.KeycloakID, user.Name, user.Email, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).
 			Return(int64(0), pgsdk.ErrAlreadyExist)
 
-		err := st.user.Insert(testCtx, user)
+		err := st.user.InsertWithTx(testCtx, st.tx, user)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrAlreadyExists(), err)
@@ -73,11 +81,11 @@ func TestUser_Insert(t *testing.T) {
 	t.Run("insert returns error", func(t *testing.T) {
 		user := createTestUser()
 		st := createUserSuite(ctrl)
-		st.db.EXPECT().
+		st.tx.EXPECT().
 			Exec(testCtx, query, user.ID, user.KeycloakID, user.Name, user.Email, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).
 			Return(int64(0), entity.ErrInternal(""))
 
-		err := st.user.Insert(testCtx, user)
+		err := st.user.InsertWithTx(testCtx, st.tx, user)
 
 		assert.Error(t, err)
 	})
@@ -85,11 +93,11 @@ func TestUser_Insert(t *testing.T) {
 	t.Run("success insert user", func(t *testing.T) {
 		user := createTestUser()
 		st := createUserSuite(ctrl)
-		st.db.EXPECT().
+		st.tx.EXPECT().
 			Exec(testCtx, query, user.ID, user.KeycloakID, user.Name, user.Email, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).
 			Return(int64(1), nil)
 
-		err := st.user.Insert(testCtx, user)
+		err := st.user.InsertWithTx(testCtx, st.tx, user)
 
 		assert.NoError(t, err)
 	})
@@ -177,7 +185,40 @@ func TestUser_GetAll(t *testing.T) {
 	})
 }
 
-func TestUser_HardDelete(t *testing.T) {
+func TestUser_UpdateKeycloakID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	app.Logger = sdklog.NewLogger(testEnv)
+
+	query := "UPDATE users SET keycloak_id = ? WHERE id = ?"
+
+	t.Run("update keycloak id returns error", func(t *testing.T) {
+		user := createTestUser()
+		st := createUserSuite(ctrl)
+		st.db.EXPECT().
+			Exec(testCtx, query, user.KeycloakID, user.ID).
+			Return(int64(0), errPostgresInternal)
+
+		err := st.user.UpdateKeycloakID(testCtx, user.ID, user.KeycloakID)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("update keycloak id success", func(t *testing.T) {
+		user := createTestUser()
+		st := createUserSuite(ctrl)
+		st.db.EXPECT().
+			Exec(testCtx, query, user.KeycloakID, user.ID).
+			Return(int64(0), nil)
+
+		err := st.user.UpdateKeycloakID(testCtx, user.ID, user.KeycloakID)
+
+		assert.NoError(t, err)
+	})
+}
+
+func TestUser_HardDeleteWithTx(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -189,7 +230,7 @@ func TestUser_HardDelete(t *testing.T) {
 		user := createTestUser()
 		st := createUserSuite(ctrl)
 
-		err := st.user.HardDelete(testCtx, nil, user.ID)
+		err := st.user.HardDeleteWithTx(testCtx, nil, user.ID)
 
 		assert.Error(t, err)
 	})
@@ -201,7 +242,7 @@ func TestUser_HardDelete(t *testing.T) {
 			Exec(testCtx, query, user.ID).
 			Return(int64(0), errPostgresInternal)
 
-		err := st.user.HardDelete(testCtx, st.tx, user.ID)
+		err := st.user.HardDeleteWithTx(testCtx, st.tx, user.ID)
 
 		assert.Error(t, err)
 	})
@@ -213,7 +254,7 @@ func TestUser_HardDelete(t *testing.T) {
 			Exec(testCtx, query, user.ID).
 			Return(int64(0), nil)
 
-		err := st.user.HardDelete(testCtx, st.tx, user.ID)
+		err := st.user.HardDeleteWithTx(testCtx, st.tx, user.ID)
 
 		assert.NoError(t, err)
 	})

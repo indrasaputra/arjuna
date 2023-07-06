@@ -71,7 +71,7 @@ func TestUserDeleter_HardDelete(t *testing.T) {
 		st := createUserDeleterSuite(ctrl)
 		st.database.EXPECT().GetByID(testCtx, user.ID).Return(user, nil)
 		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
-		st.database.EXPECT().HardDelete(testCtx, st.tx, user.ID).Return(errReturn)
+		st.database.EXPECT().HardDeleteWithTx(testCtx, st.tx, user.ID).Return(errReturn)
 		st.unit.EXPECT().Finish(testCtx, st.tx, errReturn).Return(errReturn)
 
 		err := st.deleter.HardDelete(testCtx, user.ID)
@@ -87,7 +87,7 @@ func TestUserDeleter_HardDelete(t *testing.T) {
 		st := createUserDeleterSuite(ctrl)
 		st.database.EXPECT().GetByID(testCtx, user.ID).Return(user, nil)
 		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
-		st.database.EXPECT().HardDelete(testCtx, st.tx, user.ID).Return(nil)
+		st.database.EXPECT().HardDeleteWithTx(testCtx, st.tx, user.ID).Return(nil)
 		st.keycloak.EXPECT().HardDelete(testCtx, user.KeycloakID).Return(errReturn)
 		st.unit.EXPECT().Finish(testCtx, st.tx, errReturn).Return(errReturn)
 
@@ -104,7 +104,7 @@ func TestUserDeleter_HardDelete(t *testing.T) {
 		st := createUserDeleterSuite(ctrl)
 		st.database.EXPECT().GetByID(testCtx, user.ID).Return(user, nil)
 		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
-		st.database.EXPECT().HardDelete(testCtx, st.tx, user.ID).Return(nil)
+		st.database.EXPECT().HardDeleteWithTx(testCtx, st.tx, user.ID).Return(nil)
 		st.keycloak.EXPECT().HardDelete(testCtx, user.KeycloakID).Return(nil)
 		st.unit.EXPECT().Finish(testCtx, st.tx, nil).Return(errReturn)
 
@@ -120,7 +120,7 @@ func TestUserDeleter_HardDelete(t *testing.T) {
 		st := createUserDeleterSuite(ctrl)
 		st.database.EXPECT().GetByID(testCtx, user.ID).Return(user, nil)
 		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
-		st.database.EXPECT().HardDelete(testCtx, st.tx, user.ID).Return(nil)
+		st.database.EXPECT().HardDeleteWithTx(testCtx, st.tx, user.ID).Return(nil)
 		st.keycloak.EXPECT().HardDelete(testCtx, user.KeycloakID).Return(nil)
 		st.unit.EXPECT().Finish(testCtx, st.tx, nil).Return(nil)
 

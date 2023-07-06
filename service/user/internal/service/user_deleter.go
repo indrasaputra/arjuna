@@ -25,9 +25,9 @@ type DeleteUserProvider interface {
 type DeleteUserRepository interface {
 	// GetByID gets a user by ID.
 	GetByID(ctx context.Context, id string) (*entity.User, error)
-	// HardDelete hard-deletes a single user from the repository.
+	// HardDeleteWithTx hard-deletes a single user from the repository using transaction.
 	// If the user can't be found, it doesn't return error.
-	HardDelete(ctx context.Context, tx uow.Tx, id string) error
+	HardDeleteWithTx(ctx context.Context, tx uow.Tx, id string) error
 }
 
 // UserDeleter is responsible for deleting a user.
@@ -68,7 +68,7 @@ func (td *UserDeleter) HardDelete(ctx context.Context, id string) error {
 }
 
 func (td *UserDeleter) hardDelete(ctx context.Context, tx uow.Tx, user *entity.User) error {
-	if err := td.database.HardDelete(ctx, tx, user.ID); err != nil {
+	if err := td.database.HardDeleteWithTx(ctx, tx, user.ID); err != nil {
 		return err
 	}
 	return td.keycloak.HardDelete(ctx, user.KeycloakID)

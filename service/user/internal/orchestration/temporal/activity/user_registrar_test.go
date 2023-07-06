@@ -85,26 +85,26 @@ func TestRegisterUserActivity_HardDeleteFromKeycloak(t *testing.T) {
 	})
 }
 
-func TestRegisterUserActivity_InsertToDatabase(t *testing.T) {
+func TestRegisterUserActivity_UpdateKeycloakID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	t.Run("user already exists in database", func(t *testing.T) {
+	t.Run("keycloak id already exists in database", func(t *testing.T) {
 		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
-		st.db.EXPECT().Insert(testCtx, user).Return(entity.ErrAlreadyExists())
+		st.db.EXPECT().UpdateKeycloakID(testCtx, user.ID, user.KeycloakID).Return(entity.ErrAlreadyExists())
 
-		err := st.activity.InsertToDatabase(testCtx, user)
+		err := st.activity.UpdateKeycloakID(testCtx, user)
 
 		assert.Error(t, err)
 	})
 
-	t.Run("success insert user to database", func(t *testing.T) {
+	t.Run("success update keycloak id to database", func(t *testing.T) {
 		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
-		st.db.EXPECT().Insert(testCtx, user).Return(nil)
+		st.db.EXPECT().UpdateKeycloakID(testCtx, user.ID, user.KeycloakID).Return(nil)
 
-		err := st.activity.InsertToDatabase(testCtx, user)
+		err := st.activity.UpdateKeycloakID(testCtx, user)
 
 		assert.NoError(t, err)
 	})

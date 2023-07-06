@@ -10,8 +10,8 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 
+	uow "github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	entity "github.com/indrasaputra/arjuna/service/user/entity"
-	service "github.com/indrasaputra/arjuna/service/user/internal/service"
 )
 
 // MockRegisterUser is a mock of RegisterUser interface.
@@ -52,40 +52,76 @@ func (mr *MockRegisterUserMockRecorder) Register(ctx, user interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockRegisterUser)(nil).Register), ctx, user)
 }
 
-// MockRegisterUserOrchestration is a mock of RegisterUserOrchestration interface.
-type MockRegisterUserOrchestration struct {
+// MockRegisterUserRepository is a mock of RegisterUserRepository interface.
+type MockRegisterUserRepository struct {
 	ctrl     *gomock.Controller
-	recorder *MockRegisterUserOrchestrationMockRecorder
+	recorder *MockRegisterUserRepositoryMockRecorder
 }
 
-// MockRegisterUserOrchestrationMockRecorder is the mock recorder for MockRegisterUserOrchestration.
-type MockRegisterUserOrchestrationMockRecorder struct {
-	mock *MockRegisterUserOrchestration
+// MockRegisterUserRepositoryMockRecorder is the mock recorder for MockRegisterUserRepository.
+type MockRegisterUserRepositoryMockRecorder struct {
+	mock *MockRegisterUserRepository
 }
 
-// NewMockRegisterUserOrchestration creates a new mock instance.
-func NewMockRegisterUserOrchestration(ctrl *gomock.Controller) *MockRegisterUserOrchestration {
-	mock := &MockRegisterUserOrchestration{ctrl: ctrl}
-	mock.recorder = &MockRegisterUserOrchestrationMockRecorder{mock}
+// NewMockRegisterUserRepository creates a new mock instance.
+func NewMockRegisterUserRepository(ctrl *gomock.Controller) *MockRegisterUserRepository {
+	mock := &MockRegisterUserRepository{ctrl: ctrl}
+	mock.recorder = &MockRegisterUserRepositoryMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRegisterUserOrchestration) EXPECT() *MockRegisterUserOrchestrationMockRecorder {
+func (m *MockRegisterUserRepository) EXPECT() *MockRegisterUserRepositoryMockRecorder {
 	return m.recorder
 }
 
-// RegisterUser mocks base method.
-func (m *MockRegisterUserOrchestration) RegisterUser(ctx context.Context, input *service.RegisterUserInput) (*service.RegisterUserOutput, error) {
+// InsertWithTx mocks base method.
+func (m *MockRegisterUserRepository) InsertWithTx(ctx context.Context, tx uow.Tx, user *entity.User) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RegisterUser", ctx, input)
-	ret0, _ := ret[0].(*service.RegisterUserOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "InsertWithTx", ctx, tx, user)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// RegisterUser indicates an expected call of RegisterUser.
-func (mr *MockRegisterUserOrchestrationMockRecorder) RegisterUser(ctx, input interface{}) *gomock.Call {
+// InsertWithTx indicates an expected call of InsertWithTx.
+func (mr *MockRegisterUserRepositoryMockRecorder) InsertWithTx(ctx, tx, user interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterUser", reflect.TypeOf((*MockRegisterUserOrchestration)(nil).RegisterUser), ctx, input)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithTx", reflect.TypeOf((*MockRegisterUserRepository)(nil).InsertWithTx), ctx, tx, user)
+}
+
+// MockRegisterUserOutboxRepository is a mock of RegisterUserOutboxRepository interface.
+type MockRegisterUserOutboxRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockRegisterUserOutboxRepositoryMockRecorder
+}
+
+// MockRegisterUserOutboxRepositoryMockRecorder is the mock recorder for MockRegisterUserOutboxRepository.
+type MockRegisterUserOutboxRepositoryMockRecorder struct {
+	mock *MockRegisterUserOutboxRepository
+}
+
+// NewMockRegisterUserOutboxRepository creates a new mock instance.
+func NewMockRegisterUserOutboxRepository(ctrl *gomock.Controller) *MockRegisterUserOutboxRepository {
+	mock := &MockRegisterUserOutboxRepository{ctrl: ctrl}
+	mock.recorder = &MockRegisterUserOutboxRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRegisterUserOutboxRepository) EXPECT() *MockRegisterUserOutboxRepositoryMockRecorder {
+	return m.recorder
+}
+
+// InsertWithTx mocks base method.
+func (m *MockRegisterUserOutboxRepository) InsertWithTx(ctx context.Context, tx uow.Tx, payload *entity.UserOutbox) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertWithTx", ctx, tx, payload)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InsertWithTx indicates an expected call of InsertWithTx.
+func (mr *MockRegisterUserOutboxRepositoryMockRecorder) InsertWithTx(ctx, tx, payload interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithTx", reflect.TypeOf((*MockRegisterUserOutboxRepository)(nil).InsertWithTx), ctx, tx, payload)
 }

@@ -29,6 +29,8 @@ services:
       interval: 10s
       timeout: 60s
       retries: 5
+    profiles:
+      - infra
 
   db-migrate:
     <<: *default
@@ -42,6 +44,8 @@ services:
     working_dir: /app
     entrypoint: [""]
     command: ["sh", "-c", "/app/tool/script/golang/migrate.sh"]
+    profiles:
+      - infra
 
   sqlpad:
     <<: *default
@@ -69,6 +73,8 @@ services:
       - SQLPAD_CONNECTIONS__keycloak_postgres__password=postgrespassword
     ports:
       - 3000:3000
+    profiles:
+      - infra
 
   keycloak:
     <<: *default
@@ -95,6 +101,8 @@ services:
       timeout: 60s
       retries: 5
     command: start-dev
+    profiles:
+      - infra
   
   keycloak-init:
     <<: *default
@@ -108,6 +116,8 @@ services:
     working_dir: /app/tool/script/keycloak
     entrypoint: [""]
     command: ["go", "run", "main.go"]
+    profiles:
+      - infra
 
   elasticsearch:
     <<: *default
@@ -123,6 +133,8 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.8
     ports:
       - 9200:9200
+    profiles:
+      - infra
 
   temporal:
     <<: *default
@@ -144,6 +156,8 @@ services:
     ports:
       - 7233:7233
       - 9091:9091
+    profiles:
+      - infra
 
   temporal-admin-tools:
     <<: *default
@@ -161,6 +175,8 @@ services:
       - TEMPORAL_CLI_ADDRESS=temporal:7233
     stdin_open: true
     tty: true
+    profiles:
+      - infra
 
   temporal-ui:
     <<: *default
@@ -174,6 +190,8 @@ services:
     image: temporalio/ui:2.8.3
     ports:
       - 8081:8080
+    profiles:
+      - infra
 
   jaeger:
     <<: *default
@@ -190,6 +208,8 @@ services:
       - 14268:14268
       - 14250:14250
       - 9411:9411
+    profiles:
+      - infra
 
   otel-collector:
     <<: *default
@@ -205,6 +225,8 @@ services:
       - 55679:55679
     volumes:
       - ./infrastructure/opentelemetry/config/otel-collector.yml:/etc/otel-config.yml
+    profiles:
+      - infra
 
   loki:
     <<: *default
@@ -215,6 +237,8 @@ services:
       - 3001:3001
     volumes:
       - ./infrastructure/loki/config/loki.yml:/etc/loki/local-config.yml
+    profiles:
+      - infra
 
   promtail:
     <<: *default
@@ -224,6 +248,8 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
       - ./infrastructure/promtail/config/promtail.yaml:/etc/promtail/promtail.yml
     command: -config.file=/etc/promtail/promtail.yml
+    profiles:
+      - infra
 
   tempo:
     <<: *default
@@ -234,6 +260,8 @@ services:
       - ./infrastructure/tempo/config/tempo.yml:/etc/tempo.yml
     ports:
       - 3100:3100
+    profiles:
+      - infra
 
   prometheus:
     <<: *default
@@ -243,6 +271,8 @@ services:
       - 9090:9090
     volumes:
       - ./infrastructure/prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
+    profiles:
+      - infra
 
   grafana:
     <<: *default
@@ -258,6 +288,8 @@ services:
       - GF_AUTH_DISABLE_LOGIN_FORM=true
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    profiles:
+      - infra
 
   blueprint-server:
     <<: *default
@@ -265,6 +297,8 @@ services:
     container_name: arjuna-blueprint-server
     ports:
       - 4000:80
+    profiles:
+      - service
 
   gateway-server:
     <<: *arjuna-backend-default
@@ -280,6 +314,8 @@ services:
       - USER_SERVICE_ADDRESS=user-server:8001
       - AUTH_SERVICE_ADDRESS=auth-server:8002
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
+    profiles:
+      - service
 
   auth-server:
     <<: *arjuna-backend-default
@@ -299,6 +335,8 @@ services:
       - KEYCLOAK_TIMEOUT_SECONDS=5
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
+    profiles:
+      - service
 
   user-server:
     <<: *arjuna-backend-default
@@ -323,6 +361,8 @@ services:
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - TEMPORAL_ADDRESS=temporal:7233
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
+    profiles:
+      - service
 
   user-worker:
     <<: *arjuna-backend-default
@@ -344,6 +384,32 @@ services:
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - TEMPORAL_ADDRESS=temporal:7233
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
+    profiles:
+      - service
+
+  user-relayer:
+    <<: *arjuna-backend-default
+    image: indrasaputra/arjuna-user-relayer:latest
+    container_name: arjuna-user-relayer
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      temporal:
+        condition: service_started
+    env_file:
+      - service/user/.env
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - KEYCLOAK_ADDRESS=http://keycloak:8080
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - TEMPORAL_ADDRESS=temporal:7233
+      - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
+      - RELAYER_SLEEP_TIME_MILLISECONDS=1000
+    profiles:
+      - service
 
 volumes:
   storage:

@@ -11,6 +11,7 @@ import (
 
 	"github.com/segmentio/ksuid"
 
+	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
 )
@@ -36,32 +37,32 @@ type RegisterUser interface {
 	Register(ctx context.Context, user *entity.User) (string, error)
 }
 
-// RegisterUserOrchestration defines the interface to orchestrate user registration.
-type RegisterUserOrchestration interface {
-	// RegisterUser registers the user into the repository or 3rd party needed.
-	// It also validates if the user's email is unique.
-	// It returns the ID of the created user.
-	RegisterUser(ctx context.Context, input *RegisterUserInput) (*RegisterUserOutput, error)
+// RegisterUserRepository defines interface to register user to repository.
+type RegisterUserRepository interface {
+	// InsertWithTx inserts user to repository using transaction.
+	InsertWithTx(ctx context.Context, tx uow.Tx, user *entity.User) error
 }
 
-// RegisterUserInput holds input data for register user workflow
-type RegisterUserInput struct {
-	User *entity.User
-}
-
-// RegisterUserOutput holds output data for register user workflow
-type RegisterUserOutput struct {
-	UserID string
+// RegisterUserOutboxRepository defines interface to register user outbox to repository.
+type RegisterUserOutboxRepository interface {
+	// InsertWithTx inserts user outbox to repository using transaction.
+	InsertWithTx(ctx context.Context, tx uow.Tx, payload *entity.UserOutbox) error
 }
 
 // UserRegistrar is responsible for registering a new user.
 type UserRegistrar struct {
-	orchestrator RegisterUserOrchestration
+	userRepo       RegisterUserRepository
+	userOutboxRepo RegisterUserOutboxRepository
+	unit           uow.UnitOfWork
 }
 
 // NewUserRegistrar creates an instance of UserRegistrar.
-func NewUserRegistrar(orchestrator RegisterUserOrchestration) *UserRegistrar {
-	return &UserRegistrar{orchestrator: orchestrator}
+func NewUserRegistrar(ur RegisterUserRepository, uor RegisterUserOutboxRepository, u uow.UnitOfWork) *UserRegistrar {
+	return &UserRegistrar{
+		userRepo:       ur,
+		userOutboxRepo: uor,
+		unit:           u,
+	}
 }
 
 // Register registers a user and store it in the storage.
@@ -84,13 +85,36 @@ func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User) (strin
 	}
 	setUserAuditableProperties(user)
 
-	input := &RegisterUserInput{User: user}
-	output, err := ur.orchestrator.RegisterUser(ctx, input)
+	err := ur.saveUserToRepository(ctx, user)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[UserRegistrar-Register] orchestration fail: %v", err)
+		app.Logger.Errorf(ctx, "[UserRegistrar-Register] fail save to repository: %v", err)
 		return "", err
 	}
-	return output.UserID, nil
+	return user.ID, nil
+}
+
+func (ur *UserRegistrar) saveUserToRepository(ctx context.Context, user *entity.User) error {
+	tx, err := ur.unit.Begin(ctx)
+	if err != nil {
+		app.Logger.Errorf(ctx, "[UserRegistrar-saveUserToRepository] fail init transaction: %v", err)
+		return err
+	}
+
+	if err = ur.userRepo.InsertWithTx(ctx, tx, user); err != nil {
+		app.Logger.Errorf(ctx, "[UserRegistrar-saveUserToRepository] fail insert user to repo: %v", err)
+		return ur.unit.Finish(ctx, tx, err)
+	}
+
+	payload, err := createUserOutbox(user)
+	if err != nil {
+		return ur.unit.Finish(ctx, tx, err)
+	}
+
+	err = ur.userOutboxRepo.InsertWithTx(ctx, tx, payload)
+	if err != nil {
+		app.Logger.Errorf(ctx, "[UserRegistrar-saveUserToRepository] fail insert user outbox to repo: %v", err)
+	}
+	return ur.unit.Finish(ctx, tx, err)
 }
 
 func validateUser(user *entity.User) error {
@@ -112,12 +136,20 @@ func sanitizeUser(user *entity.User) {
 }
 
 func setUserID(user *entity.User) error {
-	id, err := ksuid.NewRandom()
+	id, err := generateUniqueID()
 	if err != nil {
 		return entity.ErrInternal("fail to create user's ID")
 	}
-	user.ID = id.String()
+	user.ID = id
 	return nil
+}
+
+func generateUniqueID() (string, error) {
+	id, err := ksuid.NewRandom()
+	if err != nil {
+		return "", entity.ErrInternal("fail to generate unique ID")
+	}
+	return id.String(), err
 }
 
 func setUserAuditableProperties(user *entity.User) {
@@ -139,4 +171,23 @@ func generateUsername(n int) string {
 func cryptoRandSecure(max int64) int64 {
 	nBig, _ := rand.Int(rand.Reader, big.NewInt(max))
 	return nBig.Int64()
+}
+
+func createUserOutbox(user *entity.User) (*entity.UserOutbox, error) {
+	id, err := generateUniqueID()
+	if err != nil {
+		return nil, entity.ErrInternal("fail to generate user outbox id")
+	}
+
+	return &entity.UserOutbox{
+		ID:      id,
+		Status:  entity.UserOutboxStatusReady,
+		Payload: user,
+		Auditable: entity.Auditable{
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+			CreatedBy: user.CreatedBy,
+			UpdatedBy: user.UpdatedBy,
+		},
+	}, nil
 }
