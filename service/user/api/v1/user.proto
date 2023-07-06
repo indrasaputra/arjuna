@@ -171,6 +171,42 @@ message User {
   google.protobuf.Timestamp updated_at = 6 [ (google.api.field_behavior) = OUTPUT_ONLY ];
 }
 
+// UserOutboxStatus enumerates user outbox status code.
+enum UserOutboxStatus {
+  // Default enum code according to
+  // https://medium.com/@akhaku/protobuf-definition-best-practices-87f281576f31.
+  USER_OUTBOX_STATUS_UNSPECIFIED = 0;
+
+  // Record ready to be picked up.
+  USER_OUTBOX_STATUS_READY = 1;
+
+  // Record is being processed to be sent to server.
+  USER_OUTBOX_STATUS_PROCESSED = 2;
+
+  // Record is successfully delivered to server.
+  USER_OUTBOX_STATUS_DELIVERED = 3;
+
+  // Record is failed to be processed.
+  USER_OUTBOX_STATUS_FAILED = 4;
+}
+
+// UserOutbox represents a user outbox data.
+message UserOutbox {
+  // id represents a users_outbox's id.
+  string id = 1 [ (google.api.field_behavior) = OUTPUT_ONLY ];
+
+  // status represents specific status.
+  UserOutboxStatus status = 2;
+
+  // payload represents a user message.
+  User payload = 3;
+
+  // created_at represents when the user was registered.
+  google.protobuf.Timestamp created_at = 5 [ (google.api.field_behavior) = OUTPUT_ONLY ];
+  // updated_at represents when the user was last updated.
+  google.protobuf.Timestamp updated_at = 6 [ (google.api.field_behavior) = OUTPUT_ONLY ];
+}
+
 // UserError represents message for any error happening in user.
 message UserError {
   // error_code represents specific and unique error code for user.

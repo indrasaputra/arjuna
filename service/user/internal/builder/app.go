@@ -11,7 +11,6 @@ import (
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
 	"github.com/indrasaputra/arjuna/service/user/internal/grpc/handler"
-	orcwork "github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/workflow"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/keycloak"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
@@ -27,8 +26,11 @@ type Dependency struct {
 
 // BuildUserCommandHandler builds user command handler including all of its dependencies.
 func BuildUserCommandHandler(dep *Dependency) *handler.UserCommand {
-	tp := orcwork.NewRegisterUserWorkflow(dep.TemporalClient)
-	rg := service.NewUserRegistrar(tp)
+	pu := postgres.NewUser(dep.DB)
+	puo := postgres.NewUserOutbox(dep.DB)
+	u := uow.NewUnitWorker(dep.DB)
+
+	rg := service.NewUserRegistrar(pu, puo, u)
 	return handler.NewUserCommand(rg)
 }
 

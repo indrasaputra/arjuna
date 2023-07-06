@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
+	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
@@ -20,8 +21,11 @@ var (
 )
 
 type UserRegistrarSuite struct {
-	registrar     *service.UserRegistrar
-	orchestration *mock_service.MockRegisterUserOrchestration
+	registrar      *service.UserRegistrar
+	userRepo       *mock_service.MockRegisterUserRepository
+	userOutboxRepo *mock_service.MockRegisterUserOutboxRepository
+	unit           *mock_uow.MockUnitOfWork
+	tx             *mock_uow.MockTx
 }
 
 func TestNewUserRegistrar(t *testing.T) {
@@ -56,7 +60,6 @@ func TestUserRegistrar_Register(t *testing.T) {
 			"123",
 			"First Us3r",
 			"First User !!!",
-			"F1rst User",
 			"!@#$%^&*()",
 		}
 
@@ -91,11 +94,59 @@ func TestUserRegistrar_Register(t *testing.T) {
 		}
 	})
 
-	t.Run("orchestration returns error", func(t *testing.T) {
+	t.Run("unit of work begin returns error", func(t *testing.T) {
 		st := createUserRegistrarSuite(ctrl)
 		user := createTestUser()
-		input := &service.RegisterUserInput{User: user}
-		st.orchestration.EXPECT().RegisterUser(testCtx, input).Return(nil, entity.ErrInternal("error"))
+		errReturn := entity.ErrInternal("")
+
+		st.unit.EXPECT().Begin(testCtx).Return(nil, errReturn)
+
+		id, err := st.registrar.Register(testCtx, user)
+
+		assert.Error(t, err)
+		assert.Empty(t, id)
+	})
+
+	t.Run("user repo insert with tx returns error", func(t *testing.T) {
+		st := createUserRegistrarSuite(ctrl)
+		user := createTestUser()
+		errReturn := entity.ErrInternal("")
+
+		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
+		st.userRepo.EXPECT().InsertWithTx(testCtx, st.tx, user).Return(errReturn)
+		st.unit.EXPECT().Finish(testCtx, st.tx, errReturn).Return(nil)
+
+		id, err := st.registrar.Register(testCtx, user)
+
+		assert.Error(t, err)
+		assert.Empty(t, id)
+	})
+
+	t.Run("user outbox repo insert with tx returns error", func(t *testing.T) {
+		st := createUserRegistrarSuite(ctrl)
+		user := createTestUser()
+		errReturn := entity.ErrInternal("")
+
+		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
+		st.userRepo.EXPECT().InsertWithTx(testCtx, st.tx, user).Return(nil)
+		st.userOutboxRepo.EXPECT().InsertWithTx(testCtx, st.tx, gomock.Any()).Return(errReturn)
+		st.unit.EXPECT().Finish(testCtx, st.tx, errReturn).Return(nil)
+
+		id, err := st.registrar.Register(testCtx, user)
+
+		assert.Error(t, err)
+		assert.Empty(t, id)
+	})
+
+	t.Run("unit of work finish returns error", func(t *testing.T) {
+		st := createUserRegistrarSuite(ctrl)
+		user := createTestUser()
+		errReturn := entity.ErrInternal("")
+
+		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
+		st.userRepo.EXPECT().InsertWithTx(testCtx, st.tx, user).Return(nil)
+		st.userOutboxRepo.EXPECT().InsertWithTx(testCtx, st.tx, gomock.Any()).Return(nil)
+		st.unit.EXPECT().Finish(testCtx, st.tx, nil).Return(errReturn)
 
 		id, err := st.registrar.Register(testCtx, user)
 
@@ -106,8 +157,11 @@ func TestUserRegistrar_Register(t *testing.T) {
 	t.Run("success register user", func(t *testing.T) {
 		st := createUserRegistrarSuite(ctrl)
 		user := createTestUser()
-		input := &service.RegisterUserInput{User: user}
-		st.orchestration.EXPECT().RegisterUser(testCtx, input).Return(&service.RegisterUserOutput{UserID: "user-id"}, nil)
+
+		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
+		st.userRepo.EXPECT().InsertWithTx(testCtx, st.tx, user).Return(nil)
+		st.userOutboxRepo.EXPECT().InsertWithTx(testCtx, st.tx, gomock.Any()).Return(nil)
+		st.unit.EXPECT().Finish(testCtx, st.tx, nil).Return(nil)
 
 		id, err := st.registrar.Register(testCtx, user)
 
@@ -117,11 +171,17 @@ func TestUserRegistrar_Register(t *testing.T) {
 }
 
 func createUserRegistrarSuite(ctrl *gomock.Controller) *UserRegistrarSuite {
-	o := mock_service.NewMockRegisterUserOrchestration(ctrl)
-	r := service.NewUserRegistrar(o)
+	ur := mock_service.NewMockRegisterUserRepository(ctrl)
+	uor := mock_service.NewMockRegisterUserOutboxRepository(ctrl)
+	u := mock_uow.NewMockUnitOfWork(ctrl)
+	tx := mock_uow.NewMockTx(ctrl)
+	r := service.NewUserRegistrar(ur, uor, u)
 	return &UserRegistrarSuite{
-		registrar:     r,
-		orchestration: o,
+		registrar:      r,
+		userRepo:       ur,
+		userOutboxRepo: uor,
+		unit:           u,
+		tx:             tx,
 	}
 }
 

@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/jackc/pgx/v4"
@@ -86,7 +85,6 @@ func (b *BunDB) Begin(ctx context.Context) (uow.Tx, error) {
 // Exec executes the given query.
 func (b *BunDB) Exec(ctx context.Context, query string, args ...interface{}) (int64, error) {
 	res, err := b.db.ExecContext(ctx, query, args...)
-	log.Println(err)
 	if isUniqueViolationErr(err) {
 		return 0, ErrAlreadyExist
 	}
@@ -124,6 +122,9 @@ func (t *BunTx) Rollback(_ context.Context) error {
 // Exec executes the given query.
 func (t *BunTx) Exec(ctx context.Context, query string, args ...interface{}) (int64, error) {
 	res, err := t.tx.ExecContext(ctx, query, args...)
+	if isUniqueViolationErr(err) {
+		return 0, ErrAlreadyExist
+	}
 	if err != nil {
 		return 0, fmt.Errorf("[BunTx] exec error: %v", err)
 	}

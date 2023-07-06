@@ -20,8 +20,8 @@ type RegisterUserVendor interface {
 
 // RegisterUserDatabase defines interface to register user to database.
 type RegisterUserDatabase interface {
-	// Insert inserts a user into a database.
-	Insert(ctx context.Context, user *entity.User) error
+	// UpdateKeycloakID updates user's keycloak id in database.
+	UpdateKeycloakID(ctx context.Context, id, keycloakID string) error
 }
 
 // RegisterUserActivity is responsible to execute register user workflow.
@@ -49,9 +49,9 @@ func (r *RegisterUserActivity) HardDeleteFromKeycloak(ctx context.Context, id st
 	return r.vendor.HardDelete(ctx, id)
 }
 
-// InsertToDatabase inserts user to database.
-func (r *RegisterUserActivity) InsertToDatabase(ctx context.Context, user *entity.User) error {
-	err := r.database.Insert(ctx, user)
+// UpdateKeycloakID updates user's keycloak id in database.
+func (r *RegisterUserActivity) UpdateKeycloakID(ctx context.Context, user *entity.User) error {
+	err := r.database.UpdateKeycloakID(ctx, user.ID, user.KeycloakID)
 	if errors.Is(err, entity.ErrAlreadyExists()) {
 		return temporal.NewNonRetryableApplicationError(err.Error(), workflow.ErrNonRetryableUserExist, err)
 	}

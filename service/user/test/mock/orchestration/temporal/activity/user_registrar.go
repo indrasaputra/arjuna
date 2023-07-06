@@ -88,16 +88,16 @@ func (m *MockRegisterUserDatabase) EXPECT() *MockRegisterUserDatabaseMockRecorde
 	return m.recorder
 }
 
-// Insert mocks base method.
-func (m *MockRegisterUserDatabase) Insert(ctx context.Context, user *entity.User) error {
+// UpdateKeycloakID mocks base method.
+func (m *MockRegisterUserDatabase) UpdateKeycloakID(ctx context.Context, id, keycloakID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Insert", ctx, user)
+	ret := m.ctrl.Call(m, "UpdateKeycloakID", ctx, id, keycloakID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Insert indicates an expected call of Insert.
-func (mr *MockRegisterUserDatabaseMockRecorder) Insert(ctx, user interface{}) *gomock.Call {
+// UpdateKeycloakID indicates an expected call of UpdateKeycloakID.
+func (mr *MockRegisterUserDatabaseMockRecorder) UpdateKeycloakID(ctx, id, keycloakID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockRegisterUserDatabase)(nil).Insert), ctx, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateKeycloakID", reflect.TypeOf((*MockRegisterUserDatabase)(nil).UpdateKeycloakID), ctx, id, keycloakID)
 }

@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-CMD_DIRS=(server worker)
+CMD_DIRS=(server worker relayer)
 OUTPUT_DIR=deploy/output
 APP_DIR=
 

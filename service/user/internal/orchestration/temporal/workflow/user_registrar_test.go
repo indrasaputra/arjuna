@@ -19,7 +19,6 @@ import (
 	"github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/workflow"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/keycloak"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
-	"github.com/indrasaputra/arjuna/service/user/internal/service"
 )
 
 var (
@@ -45,10 +44,10 @@ func TestRegisterUserWorkflow_RegisterUser(t *testing.T) {
 	t.Run("execute workflow returns error", func(t *testing.T) {
 		st := createRegisterUserWorkflowSuite()
 		user := createTestUser()
-		input := &service.RegisterUserInput{User: user}
+		input := &entity.RegisterUserInput{User: user}
 
 		st.client.
-			On("ExecuteWorkflow", testCtx, mock.Anything, mock.AnythingOfType("func(internal.Context, *service.RegisterUserInput) (*service.RegisterUserOutput, error)"), input).
+			On("ExecuteWorkflow", testCtx, mock.Anything, mock.AnythingOfType("func(internal.Context, *entity.RegisterUserInput) (*entity.RegisterUserOutput, error)"), input).
 			Return(nil, errors.New("temporal is down"))
 
 		res, err := st.workflow.RegisterUser(testCtx, input)
@@ -60,11 +59,11 @@ func TestRegisterUserWorkflow_RegisterUser(t *testing.T) {
 	t.Run("workflow run returns user already exists error", func(t *testing.T) {
 		st := createRegisterUserWorkflowSuite()
 		user := createTestUser()
-		input := &service.RegisterUserInput{User: user}
+		input := &entity.RegisterUserInput{User: user}
 		wr := &tempomock.WorkflowRun{}
 
 		st.client.
-			On("ExecuteWorkflow", testCtx, mock.Anything, mock.AnythingOfType("func(internal.Context, *service.RegisterUserInput) (*service.RegisterUserOutput, error)"), input).
+			On("ExecuteWorkflow", testCtx, mock.Anything, mock.AnythingOfType("func(internal.Context, *entity.RegisterUserInput) (*entity.RegisterUserOutput, error)"), input).
 			Return(wr, nil)
 		wr.On("GetID").Return("")
 		wr.On("GetRunID").Return("")
@@ -79,11 +78,11 @@ func TestRegisterUserWorkflow_RegisterUser(t *testing.T) {
 	t.Run("workflow run returns internal error", func(t *testing.T) {
 		st := createRegisterUserWorkflowSuite()
 		user := createTestUser()
-		input := &service.RegisterUserInput{User: user}
+		input := &entity.RegisterUserInput{User: user}
 		wr := &tempomock.WorkflowRun{}
 
 		st.client.
-			On("ExecuteWorkflow", testCtx, mock.Anything, mock.AnythingOfType("func(internal.Context, *service.RegisterUserInput) (*service.RegisterUserOutput, error)"), input).
+			On("ExecuteWorkflow", testCtx, mock.Anything, mock.AnythingOfType("func(internal.Context, *entity.RegisterUserInput) (*entity.RegisterUserOutput, error)"), input).
 			Return(wr, nil)
 		wr.On("GetID").Return("")
 		wr.On("GetRunID").Return("")
@@ -98,11 +97,11 @@ func TestRegisterUserWorkflow_RegisterUser(t *testing.T) {
 	t.Run("workflow is executed successfully", func(t *testing.T) {
 		st := createRegisterUserWorkflowSuite()
 		user := createTestUser()
-		input := &service.RegisterUserInput{User: user}
+		input := &entity.RegisterUserInput{User: user}
 		wr := &tempomock.WorkflowRun{}
 
 		st.client.
-			On("ExecuteWorkflow", testCtx, mock.Anything, mock.AnythingOfType("func(internal.Context, *service.RegisterUserInput) (*service.RegisterUserOutput, error)"), input).
+			On("ExecuteWorkflow", testCtx, mock.Anything, mock.AnythingOfType("func(internal.Context, *entity.RegisterUserInput) (*entity.RegisterUserOutput, error)"), input).
 			Return(wr, nil)
 		wr.On("GetID").Return("")
 		wr.On("GetRunID").Return("")
@@ -159,7 +158,7 @@ func TestRegisterUser(t *testing.T) {
 		id := "1"
 
 		st.env.OnActivity(workflow.ActivityKeycloakCreate, mock.Anything, mock.Anything).Return(id, nil)
-		st.env.OnActivity(workflow.ActivityPostgresInsert, mock.Anything, mock.Anything).Return(errors.New("keycloak error"))
+		st.env.OnActivity(workflow.ActivityPostgresUpdateKeycloakID, mock.Anything, mock.Anything).Return(errors.New("keycloak error"))
 		st.env.OnActivity(workflow.ActivityKeycloakHardDelete, mock.Anything, id).Return(nil)
 
 		st.env.ExecuteWorkflow(workflow.RegisterUser, input)
@@ -174,16 +173,16 @@ func TestRegisterUser(t *testing.T) {
 		id := input.User.ID
 
 		st.env.OnActivity(workflow.ActivityKeycloakCreate, mock.Anything, mock.Anything).Return(id, nil)
-		st.env.OnActivity(workflow.ActivityPostgresInsert, mock.Anything, mock.Anything).Return(nil)
+		st.env.OnActivity(workflow.ActivityPostgresUpdateKeycloakID, mock.Anything, mock.Anything).Return(nil)
 
 		st.env.ExecuteWorkflow(workflow.RegisterUser, input)
 
 		assert.True(t, st.env.IsWorkflowCompleted())
 		assert.NoError(t, st.env.GetWorkflowError())
 
-		var res *service.RegisterUserOutput
+		var res *entity.RegisterUserOutput
 		_ = st.env.GetWorkflowResult(&res)
-		assert.Equal(t, id, res.UserID)
+		assert.NotNil(t, res)
 	})
 }
 
@@ -195,8 +194,8 @@ func createTestUser() *entity.User {
 	}
 }
 
-func createRegisterUserInput() *service.RegisterUserInput {
-	return &service.RegisterUserInput{
+func createRegisterUserInput() *entity.RegisterUserInput {
+	return &entity.RegisterUserInput{
 		User: createTestUser(),
 	}
 }

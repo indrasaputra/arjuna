@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"go.temporal.io/sdk/client"
@@ -13,7 +12,6 @@ import (
 
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
-	"github.com/indrasaputra/arjuna/service/user/internal/service"
 )
 
 const (
@@ -26,8 +24,8 @@ const (
 	ActivityKeycloakCreate = "RegisterUserActivityCreateInKeycloak"
 	// ActivityKeycloakHardDelete is derived from struct name + method name. See activity registration in worker.
 	ActivityKeycloakHardDelete = "RegisterUserActivityHardDeleteFromKeycloak"
-	// ActivityPostgresInsert is derived from struct name + method name. See activity registration in worker.
-	ActivityPostgresInsert = "RegisterUserActivityInsertToDatabase"
+	// ActivityPostgresUpdateKeycloakID is derived from struct name + method name. See activity registration in worker.
+	ActivityPostgresUpdateKeycloakID = "RegisterUserActivityUpdateKeycloakID"
 	// ActivityRetryBackoffCoefficient sets to 2.
 	ActivityRetryBackoffCoefficient = 2
 	// ActivityRetryMaximumAttempts sets to 3.
@@ -57,7 +55,7 @@ func NewRegisterUserWorkflow(client client.Client) *RegisterUserWorkflow {
 }
 
 // RegisterUser runs the register users workflow.
-func (r *RegisterUserWorkflow) RegisterUser(ctx context.Context, input *service.RegisterUserInput) (*service.RegisterUserOutput, error) {
+func (r *RegisterUserWorkflow) RegisterUser(ctx context.Context, input *entity.RegisterUserInput) (*entity.RegisterUserOutput, error) {
 	opts := client.StartWorkflowOptions{
 		ID:                 fmt.Sprintf("%s-%s", WorkflowNameRegisterUser, input.User.ID),
 		TaskQueue:          TaskQueueRegisterUser,
@@ -74,9 +72,9 @@ func (r *RegisterUserWorkflow) RegisterUser(ctx context.Context, input *service.
 		app.Logger.Errorf(ctx, "[RegisterUserWorkflow-RegisterUser] workflow failure: %v", err)
 		return nil, entity.ErrInternal("Something went wrong within our server. Please, try again")
 	}
-	log.Println("Started workflow", "WorkflowID", wr.GetID(), "RunID", wr.GetRunID())
+	app.Logger.Infof(ctx, "Started workflow with ID: %s and run ID: %s", wr.GetID(), wr.GetRunID())
 
-	var output *service.RegisterUserOutput
+	var output *entity.RegisterUserOutput
 	err = wr.Get(ctx, &output)
 	if err != nil {
 		var appErr *temporal.ApplicationError
@@ -90,7 +88,7 @@ func (r *RegisterUserWorkflow) RegisterUser(ctx context.Context, input *service.
 }
 
 // RegisterUser runs the user registration workflow.
-func RegisterUser(ctx workflow.Context, input *service.RegisterUserInput) (*service.RegisterUserOutput, error) {
+func RegisterUser(ctx workflow.Context, input *entity.RegisterUserInput) (*entity.RegisterUserOutput, error) {
 	if err := validateRegisterUserInput(input); err != nil {
 		return nil, err
 	}
@@ -104,13 +102,13 @@ func RegisterUser(ctx workflow.Context, input *service.RegisterUserInput) (*serv
 	input.User.KeycloakID = id
 
 	ctx = createContextWithActivityOptions(ctx, ActivityTimeoutDefault, TaskQueueRegisterUser)
-	err = workflow.ExecuteActivity(ctx, ActivityPostgresInsert, input.User).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, ActivityPostgresUpdateKeycloakID, input.User).Get(ctx, nil)
 	if err != nil {
 		ctx = createContextWithActivityOptions(ctx, ActivityTimeoutDefault, TaskQueueRegisterUser)
 		_ = workflow.ExecuteActivity(ctx, ActivityKeycloakHardDelete, id).Get(ctx, nil)
 		return nil, entity.ErrInternal("Something went wrong within our server. Please try again")
 	}
-	return &service.RegisterUserOutput{UserID: input.User.ID}, nil
+	return &entity.RegisterUserOutput{}, nil
 }
 
 func createContextWithActivityOptions(tempoCtx workflow.Context, timeout time.Duration, queue string) workflow.Context {
@@ -133,7 +131,7 @@ func createActivityOptions(timeout time.Duration, queue string) workflow.Activit
 	}
 }
 
-func validateRegisterUserInput(input *service.RegisterUserInput) error {
+func validateRegisterUserInput(input *entity.RegisterUserInput) error {
 	if input == nil || input.User == nil {
 		return entity.ErrEmptyUser()
 	}

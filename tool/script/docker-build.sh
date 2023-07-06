@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-CMD_DIRS=(server worker)
+CMD_DIRS=(server worker relayer)
 DOCKERFILE=$1/dockerfile/$1.dockerfile
 
 set_app_dir() {
