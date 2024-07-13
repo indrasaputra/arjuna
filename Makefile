@@ -12,6 +12,10 @@ format: ## Format golang and proto files.
 tidy: ## Format golang and proto files.
 	tool/script/tidy.sh
 
+.PHONY: lint.struct
+lint.struct: ## Run fieldalignment.
+	tool/script/lint-struct.sh
+
 .PHONY: lint.cleancache
 lint.cleancache: ## Clean golangci-lint cache.
 	golangci-lint cache clean
