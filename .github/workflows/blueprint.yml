@@ -17,7 +17,7 @@ on:
 jobs:
   general-quality-check:
     name: General quality check
-    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@update-dep
+    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@main
 
   build-push-docker:
     name: Build and push docker
