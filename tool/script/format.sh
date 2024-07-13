@@ -13,7 +13,6 @@ done
 for dir in `find . -type d`; do
   if [[ -f ${dir}/go.mod ]]; then
     (cd ${dir} &&
-      fieldalignment -fix ./... &&
       goimports -w -local github.com/indrasaputra/arjuna $(go list -f {{.Dir}} ./...) &&
       gofmt -s -w .)
   fi
