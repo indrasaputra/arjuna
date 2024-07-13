@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 
 	kcsdk "github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"

@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/service/auth/entity"
@@ -45,10 +45,10 @@ func TestAuth_Login(t *testing.T) {
 
 	t.Run("param is invalid", func(t *testing.T) {
 		type testSuite struct {
+			err      error
 			clientID string
 			email    string
 			password string
-			err      error
 		}
 
 		tests := []testSuite{

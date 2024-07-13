@@ -1,5 +1,5 @@
 OUTPUT_DIR			= deploy/output
-PROTOGEN_IMAGE		= indrasaputra/protogen:2023-07-03
+PROTOGEN_IMAGE		= indrasaputra/protogen:2024-07-13
 
 include Makefile.help.mk
 
@@ -11,6 +11,10 @@ format: ## Format golang and proto files.
 .PHONY: tidy
 tidy: ## Format golang and proto files.
 	tool/script/tidy.sh
+
+.PHONY: lint.struct
+lint.struct: ## Run fieldalignment.
+	tool/script/lint-struct.sh
 
 .PHONY: lint.cleancache
 lint.cleancache: ## Clean golangci-lint cache.

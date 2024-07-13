@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/stdlib"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 
@@ -43,7 +43,7 @@ type Config struct {
 
 // NewDBWithPgx creates a bun.DB using pgx as driver.
 func NewDBWithPgx(cfg Config) (*bun.DB, error) {
-	connCfg := fmt.Sprintf(postgresConnFormat,
+	connStr := fmt.Sprintf(postgresConnFormat,
 		cfg.Host,
 		cfg.Port,
 		cfg.User,
@@ -51,13 +51,18 @@ func NewDBWithPgx(cfg Config) (*bun.DB, error) {
 		cfg.Name,
 		cfg.SSLMode,
 	)
-	pgconf, err := pgx.ParseConfig(connCfg)
+	connCfg, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
-		return nil, fmt.Errorf("[pgx] parse config error: %v", err)
+		return nil, err
 	}
 
-	sqldb := stdlib.OpenDB(*pgconf)
-	return bun.NewDB(sqldb, pgdialect.New()), nil
+	pool, err := pgxpool.NewWithConfig(context.Background(), connCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	s := stdlib.OpenDBFromPool(pool)
+	return bun.NewDB(s, pgdialect.New()), nil
 }
 
 // BunDB wraps uptrace/bun to comply with internal use.

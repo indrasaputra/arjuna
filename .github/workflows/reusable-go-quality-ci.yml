@@ -21,7 +21,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: ^1.17.x
+          go-version: ^1.22.x
       - name: Clone repository
         uses: actions/checkout@v3
       - name: Download module
@@ -40,7 +40,7 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     container:
-      image: indrasaputra/protogen:2023-07-03
+      image: indrasaputra/protogen:2024-07-13
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
@@ -55,7 +55,7 @@ jobs:
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
-      - name: Scan using Semgrep  
+      - name: Scan using Semgrep
         uses: returntocorp/semgrep-action@v1
         with:
           publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
@@ -74,11 +74,11 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: ^1.17.x
+          go-version: ^1.22.x
       - name: Lint using golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.53.3
+          version: v1.59.1
           args: --config=${GITHUB_WORKSPACE}/.golangci.yml
           working-directory: ${{ inputs.target }}
 
@@ -89,7 +89,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: ^1.17.x
+          go-version: ^1.22.x
       - name: Clone repository
         uses: actions/checkout@v3
       # TODO: move this after lint

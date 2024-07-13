@@ -39,9 +39,7 @@ func main() {
 
 	dep := &builder.Dependency{
 		KeycloakClient: keycloakClient,
-		TemporalClient: temporalClient,
 		Config:         cfg,
-		DB:             bunDB,
 	}
 
 	kcConfig := &keycloak.Config{

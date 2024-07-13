@@ -9,7 +9,6 @@ import (
 	"syscall"
 	"time"
 
-	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpclogsettable "github.com/grpc-ecosystem/go-grpc-middleware/logging/settable"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpcrecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
@@ -31,12 +30,12 @@ const (
 // GrpcServer is responsible to act as gRPC server.
 // It composes grpc.Server.
 type GrpcServer struct {
+	listener    net.Listener
 	server      *grpc.Server
 	httpServer  *http.Server
-	serviceFunc []func(*grpc.Server)
-	listener    net.Listener
 	name        string
 	port        string
+	serviceFunc []func(*grpc.Server)
 }
 
 // newGrpc creates an instance of GrpcServer.
@@ -61,10 +60,11 @@ func NewGrpcServer(name, port string) *GrpcServer {
 
 	unary := defaultUnaryServerInterceptors(logger)
 	stream := defaultStreamServerInterceptors(logger)
-	unaryMdw := grpcmiddleware.WithUnaryServerChain(unary...)
-	streamMdw := grpcmiddleware.WithStreamServerChain(stream...)
+	unaryMdw := grpc.ChainUnaryInterceptor(unary...)
+	streamMdw := grpc.ChainStreamInterceptor(stream...)
+	trace := grpc.StatsHandler(otelgrpc.NewServerHandler(otelgrpc.WithTracerProvider(otel.GetTracerProvider())))
 
-	srv := newGrpcServer(name, port, unaryMdw, streamMdw)
+	srv := newGrpcServer(name, port, trace, unaryMdw, streamMdw)
 	grpc_prometheus.Register(srv.server)
 	return srv
 }
@@ -146,7 +146,6 @@ func (gs *GrpcServer) Stop() {
 func defaultUnaryServerInterceptors(logger *zap.Logger) []grpc.UnaryServerInterceptor {
 	return []grpc.UnaryServerInterceptor{
 		grpcrecovery.UnaryServerInterceptor(grpcrecovery.WithRecoveryHandler(recoveryHandler)),
-		otelgrpc.UnaryServerInterceptor(otelgrpc.WithTracerProvider(otel.GetTracerProvider())),
 		grpczap.UnaryServerInterceptor(logger),
 		grpc_prometheus.UnaryServerInterceptor,
 	}
@@ -155,7 +154,6 @@ func defaultUnaryServerInterceptors(logger *zap.Logger) []grpc.UnaryServerInterc
 func defaultStreamServerInterceptors(logger *zap.Logger) []grpc.StreamServerInterceptor {
 	return []grpc.StreamServerInterceptor{
 		grpcrecovery.StreamServerInterceptor(grpcrecovery.WithRecoveryHandler(recoveryHandler)),
-		otelgrpc.StreamServerInterceptor(otelgrpc.WithTracerProvider(otel.GetTracerProvider())),
 		grpczap.StreamServerInterceptor(logger),
 		grpc_prometheus.StreamServerInterceptor,
 	}

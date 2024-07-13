@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 
 	"github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
 	mock_keycloak "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/keycloak"

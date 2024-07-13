@@ -65,7 +65,7 @@ func setupClients() {
 	if url != "" {
 		userGrpcURL = url
 	}
-	conn, _ := grpc.DialContext(testCtx, userGrpcURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, _ := grpc.NewClient(userGrpcURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	userGrpcClient = apiv1.NewUserCommandInternalServiceClient(conn)
 }
 
