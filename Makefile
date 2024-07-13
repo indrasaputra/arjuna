@@ -1,5 +1,5 @@
 OUTPUT_DIR			= deploy/output
-PROTOGEN_IMAGE		= indrasaputra/protogen:2023-07-03
+PROTOGEN_IMAGE		= indrasaputra/protogen:2024-07-13
 
 include Makefile.help.mk
 

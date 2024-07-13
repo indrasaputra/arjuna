@@ -44,13 +44,13 @@ type keycloakErrorResponse struct {
 type JWT struct {
 	AccessToken      string `json:"access_token"`
 	IDToken          string `json:"id_token"`
-	ExpiresIn        int    `json:"expires_in"`
-	RefreshExpiresIn int    `json:"refresh_expires_in"`
 	RefreshToken     string `json:"refresh_token"`
 	TokenType        string `json:"token_type"`
-	NotBeforePolicy  int    `json:"not-before-policy"`
 	SessionState     string `json:"session_state"`
 	Scope            string `json:"scope"`
+	ExpiresIn        int    `json:"expires_in"`
+	RefreshExpiresIn int    `json:"refresh_expires_in"`
+	NotBeforePolicy  int    `json:"not-before-policy"`
 }
 
 // RealmRepresentation represents Keycloak realm data structure.
@@ -65,11 +65,11 @@ type RealmRepresentation struct {
 type ClientRepresentation struct {
 	ClientID     string `json:"clientId"`
 	Name         string `json:"name"`
-	Enabled      bool   `json:"enabled"`
 	RootURL      string `json:"rootUrl"`
 	Protocol     string `json:"protocol"`
-	PublicClient bool   `json:"publicClient"`
 	Secret       string `json:"secret"`
+	Enabled      bool   `json:"enabled"`
+	PublicClient bool   `json:"publicClient"`
 }
 
 // UserRepresentation represents Keycloak user data structure.
@@ -79,8 +79,8 @@ type UserRepresentation struct {
 	FirstName   string                      `json:"firstName"`
 	LastName    string                      `json:"lastName"`
 	Email       string                      `json:"email"`
-	Enabled     bool                        `json:"enabled"`
 	Credentials []*CredentialRepresentation `json:"credentials"`
+	Enabled     bool                        `json:"enabled"`
 }
 
 // CredentialRepresentation represents Keycloak credential data structure.

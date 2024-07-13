@@ -19,8 +19,8 @@ const (
 // It composes grpc-gateway runtime.ServeMux.
 type GrpcGateway struct {
 	mux         *runtime.ServeMux
-	serviceFunc []func(*runtime.ServeMux) error
 	port        string
+	serviceFunc []func(*runtime.ServeMux) error
 }
 
 // NewGrpcGateway creates an instance of GrpcGateway with default production options attached.
@@ -92,7 +92,7 @@ func prometheusHandler() runtime.HandlerFunc {
 }
 
 func healthHandler() runtime.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request, _ map[string]string) {
+	return func(w http.ResponseWriter, _ *http.Request, _ map[string]string) {
 		w.WriteHeader(http.StatusOK)
 	}
 }

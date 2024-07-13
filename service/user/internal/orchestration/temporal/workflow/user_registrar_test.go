@@ -115,8 +115,8 @@ func TestRegisterUserWorkflow_RegisterUser(t *testing.T) {
 }
 
 type RegisterUserSuite struct {
-	testsuite.WorkflowTestSuite
 	env *testsuite.TestWorkflowEnvironment
+	testsuite.WorkflowTestSuite
 }
 
 func TestRegisterUser(t *testing.T) {

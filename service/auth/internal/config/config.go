@@ -14,8 +14,8 @@ type Config struct {
 	AppEnv         string `env:"APP_ENV,default=development"`
 	Port           string `env:"PORT,default=8002"`
 	PrometheusPort string `env:"PROMETHEUS_PORT,default=7002"`
-	Keycloak       Keycloak
 	Tracer         trace.Config
+	Keycloak       Keycloak
 }
 
 // Keycloak holds configuration for Keycloak.

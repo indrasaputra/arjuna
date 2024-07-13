@@ -58,15 +58,14 @@ func defaultGrpcServerOptions() []grpc.DialOption {
 	return []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithChainUnaryInterceptor(
-			otelgrpc.UnaryClientInterceptor(otelgrpc.WithTracerProvider(otel.GetTracerProvider())),
 			grpczap.UnaryClientInterceptor(logger),
 			grpc_prometheus.UnaryClientInterceptor,
 		),
 		grpc.WithChainStreamInterceptor(
-			otelgrpc.StreamClientInterceptor(otelgrpc.WithTracerProvider(otel.GetTracerProvider())),
 			grpczap.StreamClientInterceptor(logger),
 			grpc_prometheus.StreamClientInterceptor,
 		),
+		grpc.WithStatsHandler(otelgrpc.NewClientHandler(otelgrpc.WithTracerProvider(otel.GetTracerProvider()))),
 	}
 }
 
