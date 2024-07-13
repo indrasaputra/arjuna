@@ -15,14 +15,14 @@ jobs:
         working-directory: ${{ inputs.target }}
     steps:
       - name: Setup Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ^1.22.x
       - name: Clone repository
         uses: actions/checkout@v4
       - name: Download module
         run: go mod download
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cache/go-build
@@ -62,11 +62,11 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v4
       - name: Setup Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ^1.22.x
       - name: Lint using golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v6
         with:
           version: v1.59.1
           args: --config=${GITHUB_WORKSPACE}/.golangci.yml
@@ -77,14 +77,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ^1.22.x
       - name: Clone repository
         uses: actions/checkout@v4
       # TODO: move this after lint
       - name: Cache vendor
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/go-build
