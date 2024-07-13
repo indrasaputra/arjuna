@@ -33,7 +33,10 @@ jobs:
     outputs:
       has-change: ${{ steps.filter.outputs.changed }}
     steps:
-      - uses: dorny/paths-filter@v3
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - name: Check path filters
+        uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
