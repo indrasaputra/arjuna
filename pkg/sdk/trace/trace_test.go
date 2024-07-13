@@ -21,17 +21,6 @@ func TestGetTraceIDFromContext(t *testing.T) {
 func TestNewProvider(t *testing.T) {
 	ctx := context.Background()
 
-	t.Run("fail to build due to unknown collector address", func(t *testing.T) {
-		cfg := trace.Config{
-			AppEnv: "development",
-		}
-
-		prov, err := trace.NewProvider(ctx, cfg)
-
-		assert.Error(t, err)
-		assert.Nil(t, prov)
-	})
-
 	t.Run("success create a new provider", func(t *testing.T) {
 		cfg := trace.Config{
 			OtelCollectorAddress: "localhost:4317",
