@@ -40,7 +40,7 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     container:
-      image: indrasaputra/protogen:2023-07-03
+      image: indrasaputra/protogen:2024-07-13
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
