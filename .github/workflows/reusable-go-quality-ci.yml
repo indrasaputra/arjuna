@@ -1,10 +1,6 @@
 on:
   workflow_call:
     inputs:
-      filters:
-        description: The paths to decide if the workflow steps should run.
-        required: true
-        type: string
       target:
         description: The target project to run the check against.
         required: true
@@ -65,12 +61,6 @@ jobs:
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
-      - name: Filter paths
-        uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          initial-fetch-depth: 10
-          filters: ${{ inputs.filters }}
       - name: Setup Go
         uses: actions/setup-go@v3
         with:

@@ -1,10 +1,6 @@
 on:
   workflow_call:
     inputs:
-      filters:
-        description: The paths to decide if the workflow steps should run.
-        required: true
-        type: string
       target:
         description: The target project to run the check against.
         required: true

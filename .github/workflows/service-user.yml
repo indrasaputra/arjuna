@@ -27,45 +27,44 @@ on:
       - "service/user/**"
 
 jobs:
+  change-check:
+    name: Check changes
+    runs-on: ubuntu-latest
+    outputs:
+      has-change: ${{ steps.filter.outputs.changed }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            changed:
+            - 'pkg/**'
+            - 'openapiv2/**'
+            - 'proto/**'
+            - 'tool/**'
+            - 'gateway/**'
+            - 'service/user/**'
+
   general-quality-check:
     name: General quality check
-    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@main
+    needs: [change-check]
+    if: ${{ needs.change-check.outputs.has-change == 'true' }}
+    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@fix-workflow-filter
 
   go-code-quality:
     name: Go code quality check
-    uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@main
+    needs: [change-check]
+    if: ${{ needs.change-check.outputs.has-change == 'true' }}
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@fix-workflow-filter
     with:
-      filters: |
-        changed:
-          - '.github/workflows/reusable-general-quality-ci.yml'
-          - '.github/workflows/reusable-go-build-ci.yml'
-          - '.github/workflows/reusable-go-quality-ci.yml'
-          - '.github/workflows/service-user.yml'
-          - 'pkg/**'
-          - 'openapiv2/**'
-          - 'proto/**'
-          - 'tool/**'
-          - 'gateway/**'
-          - 'service/user/**'
       target: service/user
 
   build-push-docker:
     name: Build and push docker
-    needs: [general-quality-check, go-code-quality]
-    uses: indrasaputra/arjuna/.github/workflows/reusable-go-build-ci.yml@main
+    needs: [general-quality-check, go-code-quality, change-check]
+    if: ${{ needs.change-check.outputs.has-change == 'true' }}
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-build-ci.yml@fix-workflow-filter
     with:
-      filters: |
-        changed:
-          - '.github/workflows/reusable-general-quality-ci.yml'
-          - '.github/workflows/reusable-go-build-ci.yml'
-          - '.github/workflows/reusable-go-quality-ci.yml'
-          - '.github/workflows/service-user.yml'
-          - 'pkg/**'
-          - 'openapiv2/**'
-          - 'proto/**'
-          - 'tool/**'
-          - 'gateway/**'
-          - 'service/user/**'
       target: service/user
       service: user
       dockerfile: ./service/user/dockerfile/user.dockerfile

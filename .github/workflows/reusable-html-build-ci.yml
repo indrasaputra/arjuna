@@ -1,10 +1,6 @@
 on:
   workflow_call:
     inputs:
-      filters:
-        description: The paths to decide if the workflow steps should run.
-        required: true
-        type: string
       service:
         description: The name of service.
         required: true
