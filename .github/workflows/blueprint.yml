@@ -22,7 +22,7 @@ jobs:
   build-push-docker:
     name: Build and push docker
     needs: [general-quality-check]
-    uses: indrasaputra/arjuna/.github/workflows/reusable-html-build-ci.yml@ci-for-blueprint
+    uses: indrasaputra/arjuna/.github/workflows/reusable-html-build-ci.yml@main
     with:
       filters: |
         changed:
