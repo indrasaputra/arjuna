@@ -29,11 +29,11 @@ on:
 jobs:
   general-quality-check:
     name: General quality check
-    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@main
+    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@update-dep
 
   go-code-quality:
     name: Go code quality check
-    uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@main
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@update-dep
     with:
       filters: |
         changed:
@@ -52,7 +52,7 @@ jobs:
   build-push-docker:
     name: Build and push docker
     needs: [general-quality-check, go-code-quality]
-    uses: indrasaputra/arjuna/.github/workflows/reusable-go-build-ci.yml@main
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-build-ci.yml@update-dep
     with:
       filters: |
         changed:
