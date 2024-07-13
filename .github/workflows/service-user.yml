@@ -41,6 +41,10 @@ jobs:
         with:
           filters: |
             changed:
+            - '.github/workflows/reusable-general-quality-ci.yml'
+            - '.github/workflows/reusable-go-build-ci.yml'
+            - '.github/workflows/reusable-go-quality-ci.yml'
+            - '.github/workflows/service-user.yml'
             - 'pkg/**'
             - 'openapiv2/**'
             - 'proto/**'
@@ -50,8 +54,6 @@ jobs:
 
   general-quality-check:
     name: General quality check
-    needs: [change-check]
-    if: ${{ needs.change-check.outputs.has-change == 'true' }}
     uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@fix-workflow-filter
 
   go-code-quality:
