@@ -4,12 +4,14 @@ on:
   push:
     paths:
       - ".github/workflows/blueprint.yml"
+      - ".github/workflows/reusable-go-build-ci.yml"
       - "openapiv2/**"
       - "proto/**"
       - "blueprint/**"
   pull_request:
     paths:
       - ".github/workflows/blueprint.yml"
+      - ".github/workflows/reusable-go-build-ci.yml"
       - "openapiv2/**"
       - "proto/**"
       - "blueprint/**"
@@ -30,6 +32,7 @@ jobs:
           filters: |
             changed:
             - '.github/workflows/blueprint.yml'
+            - '.github/workflows/reusable-go-build-ci.yml'
             - 'openapiv2/**'
             - 'proto/**'
             - 'blueprint/**'
