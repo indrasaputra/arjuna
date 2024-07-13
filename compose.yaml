@@ -106,7 +106,7 @@ services:
   
   keycloak-init:
     <<: *default
-    image: golang:1.18
+    image: golang:1.22
     container_name: arjuna-keycloak-init
     depends_on:
       keycloak:
@@ -121,6 +121,7 @@ services:
 
   elasticsearch:
     <<: *default
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.8
     container_name: arjuna-elasticsearch
     environment:
       - cluster.routing.allocation.disk.threshold_enabled=true
@@ -130,7 +131,6 @@ services:
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms256m -Xmx256m
       - xpack.security.enabled=false
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.8
     ports:
       - 9200:9200
     profiles:
@@ -138,6 +138,7 @@ services:
 
   temporal:
     <<: *default
+    image: temporalio/auto-setup:1.18.5
     container_name: arjuna-temporal
     depends_on:
       - postgres
@@ -152,7 +153,6 @@ services:
       - ES_SEEDS=elasticsearch
       - ES_VERSION=v7
       - PROMETHEUS_ENDPOINT=0.0.0.0:9091
-    image: temporalio/auto-setup:1.18.5
     ports:
       - 7233:7233
       - 9091:9091
@@ -161,8 +161,8 @@ services:
 
   temporal-admin-tools:
     <<: *default
-    container_name: arjuna-temporal-admin-tools
     image: temporalio/admin-tools:1.18.5
+    container_name: arjuna-temporal-admin-tools
     depends_on:
       temporal:
         condition: service_started
@@ -180,6 +180,7 @@ services:
 
   temporal-ui:
     <<: *default
+    image: temporalio/ui:2.8.3
     container_name: arjuna-temporal-ui
     depends_on:
       - temporal
@@ -187,7 +188,6 @@ services:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CORS_ORIGINS=http://localhost:3000
       - TEMPORAL_NOTIFY_ON_NEW_VERSION=false
-    image: temporalio/ui:2.8.3
     ports:
       - 8081:8080
     profiles:
@@ -213,8 +213,8 @@ services:
 
   otel-collector:
     <<: *default
-    container_name: arjuna-otel-collector
     image: otel/opentelemetry-collector:0.71.0
+    container_name: arjuna-otel-collector
     depends_on:
       - jaeger
     command: [ "--config", "/etc/otel-config.yml" ]
@@ -291,7 +291,7 @@ services:
     profiles:
       - infra
 
-  blueprint-server:
+  blueprint:
     <<: *default
     image: indrasaputra/arjuna-blueprint-server:latest
     container_name: arjuna-blueprint-server
@@ -300,7 +300,7 @@ services:
     profiles:
       - service
 
-  gateway-server:
+  gateway:
     <<: *arjuna-backend-default
     image: indrasaputra/arjuna-gateway-server:latest
     container_name: arjuna-gateway-server
@@ -308,9 +308,10 @@ services:
       - postgres
     ports:
       - 8000:8000
-    env_file:
-      - gateway/.env
     environment:
+      - SERVICE_NAME=gateway-server
+      - APP_ENV=development
+      - PORT=8000
       - USER_SERVICE_ADDRESS=user-server:8001
       - AUTH_SERVICE_ADDRESS=auth-server:8002
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
@@ -322,19 +323,23 @@ services:
     image: indrasaputra/arjuna-auth-server:latest
     container_name: arjuna-auth-server
     depends_on:
-      - postgres
-      - keycloak
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
     ports:
       - 8002:8002
       - 7002:7002
-    env_file:
-      - service/auth/.env
     environment:
+      - SERVICE_NAME=auth-server
+      - APP_ENV=development
+      - PORT=8002
+      - PROMETHEUS_PORT=7002
       - KEYCLOAK_ADDRESS=http://keycloak:8080
       - KEYCLOAK_REALM=arjuna
       - KEYCLOAK_TIMEOUT_SECONDS=5
-      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
     profiles:
       - service
 
@@ -352,15 +357,28 @@ services:
     ports:
       - 8001:8001
       - 7001:7001
-    env_file:
-      - service/user/.env
     environment:
+      - SERVICE_NAME=user-server
+      - APP_ENV=development
+      - PORT=8001
+      - PROMETHEUS_PORT=7001
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgresuser
+      - POSTGRES_PASSWORD=postgrespassword
+      - POSTGRES_NAME=arjuna_user
+      - POSTGRES_MAX_OPEN_CONNS=50
+      - POSTGRES_MAX_CONN_LIFETIME=10m
+      - POSTGRES_MAX_IDLE_LIFETIME=5m
+      - POSTGRES_SSL_MODE=disable
       - KEYCLOAK_ADDRESS=http://keycloak:8080
-      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - KEYCLOAK_REALM=arjuna
+      - KEYCLOAK_ADMIN_USER=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KEYCLOAK_TIMEOUT_SECONDS=5
       - TEMPORAL_ADDRESS=temporal:7233
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
     profiles:
       - service
 
@@ -375,15 +393,28 @@ services:
         condition: service_healthy
       temporal:
         condition: service_started
-    env_file:
-      - service/user/.env
     environment:
+      - SERVICE_NAME=user-worker
+      - APP_ENV=development
+      - PORT=8001
+      - PROMETHEUS_PORT=7001
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgresuser
+      - POSTGRES_PASSWORD=postgrespassword
+      - POSTGRES_NAME=arjuna_user
+      - POSTGRES_MAX_OPEN_CONNS=50
+      - POSTGRES_MAX_CONN_LIFETIME=10m
+      - POSTGRES_MAX_IDLE_LIFETIME=5m
+      - POSTGRES_SSL_MODE=disable
       - KEYCLOAK_ADDRESS=http://keycloak:8080
-      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - KEYCLOAK_REALM=arjuna
+      - KEYCLOAK_ADMIN_USER=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KEYCLOAK_TIMEOUT_SECONDS=5
       - TEMPORAL_ADDRESS=temporal:7233
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
     profiles:
       - service
 
@@ -398,16 +429,29 @@ services:
         condition: service_healthy
       temporal:
         condition: service_started
-    env_file:
-      - service/user/.env
     environment:
+      - SERVICE_NAME=user-relayer
+      - APP_ENV=development
+      - PORT=8001
+      - PROMETHEUS_PORT=7001
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgresuser
+      - POSTGRES_PASSWORD=postgrespassword
+      - POSTGRES_NAME=arjuna_user
+      - POSTGRES_MAX_OPEN_CONNS=50
+      - POSTGRES_MAX_CONN_LIFETIME=10m
+      - POSTGRES_MAX_IDLE_LIFETIME=5m
+      - POSTGRES_SSL_MODE=disable
       - KEYCLOAK_ADDRESS=http://keycloak:8080
-      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - KEYCLOAK_REALM=arjuna
+      - KEYCLOAK_ADMIN_USER=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KEYCLOAK_TIMEOUT_SECONDS=5
+      - RELAYER_SLEEP_TIME_MILLISECONDS=1000
       - TEMPORAL_ADDRESS=temporal:7233
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
-      - RELAYER_SLEEP_TIME_MILLISECONDS=1000
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
     profiles:
       - service
 
