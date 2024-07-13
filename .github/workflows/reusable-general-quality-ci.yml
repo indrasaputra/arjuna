@@ -22,8 +22,8 @@ jobs:
       - name: Format proto files using clang-format
         uses: DoozyX/clang-format-lint-action@v0.11
         with:
-          source: '.'
-          extensions: 'proto'
+          source: "."
+          extensions: "proto"
           clangFormatVersion: 11
       - name: Lint proto files
         uses: plexsystems/protolint-action@v0.2.0

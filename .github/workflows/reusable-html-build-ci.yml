@@ -18,7 +18,7 @@ on:
         required: false
         type: string
         default: "linux/amd64, linux/arm64, linux/arm/v7"
-    
+
     secrets:
       DOCKER_HUB_USERNAME:
         required: true

@@ -3,28 +3,28 @@ name: Auth service - CI
 on:
   push:
     paths:
-      - '.github/workflows/reusable-general-quality-ci.yml'
-      - '.github/workflows/reusable-go-build-ci.yml'
-      - '.github/workflows/reusable-go-quality-ci.yml'
-      - '.github/workflows/service-auth.yml'
-      - 'pkg/**'
-      - 'openapiv2/**'
-      - 'proto/**'
-      - 'tool/**'
-      - 'gateway/**'
-      - 'service/auth/**'
+      - ".github/workflows/reusable-general-quality-ci.yml"
+      - ".github/workflows/reusable-go-build-ci.yml"
+      - ".github/workflows/reusable-go-quality-ci.yml"
+      - ".github/workflows/service-auth.yml"
+      - "pkg/**"
+      - "openapiv2/**"
+      - "proto/**"
+      - "tool/**"
+      - "gateway/**"
+      - "service/auth/**"
   pull_request:
     paths:
-      - '.github/workflows/reusable-general-quality-ci.yml'
-      - '.github/workflows/reusable-go-build-ci.yml'
-      - '.github/workflows/reusable-go-quality-ci.yml'
-      - '.github/workflows/service-auth.yml'
-      - 'pkg/**'
-      - 'openapiv2/**'
-      - 'proto/**'
-      - 'tool/**'
-      - 'gateway/**'
-      - 'service/auth/**'
+      - ".github/workflows/reusable-general-quality-ci.yml"
+      - ".github/workflows/reusable-go-build-ci.yml"
+      - ".github/workflows/reusable-go-quality-ci.yml"
+      - ".github/workflows/service-auth.yml"
+      - "pkg/**"
+      - "openapiv2/**"
+      - "proto/**"
+      - "tool/**"
+      - "gateway/**"
+      - "service/auth/**"
 
 jobs:
   general-quality-check:
