@@ -54,13 +54,13 @@ jobs:
 
   general-quality-check:
     name: General quality check
-    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@fix-workflow-filter
+    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@main
 
   go-code-quality:
     name: Go code quality check
     needs: [change-check]
     if: ${{ needs.change-check.outputs.has-change == 'true' }}
-    uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@fix-workflow-filter
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@main
     with:
       target: service/user
 
@@ -68,7 +68,7 @@ jobs:
     name: Build and push docker
     needs: [general-quality-check, go-code-quality, change-check]
     if: ${{ needs.change-check.outputs.has-change == 'true' }}
-    uses: indrasaputra/arjuna/.github/workflows/reusable-go-build-ci.yml@fix-workflow-filter
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-build-ci.yml@main
     with:
       target: service/user
       service: user

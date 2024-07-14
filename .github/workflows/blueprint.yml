@@ -39,13 +39,13 @@ jobs:
 
   general-quality-check:
     name: General quality check
-    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@fix-workflow-filter
+    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@main
 
   build-push-docker:
     name: Build and push docker
     needs: [general-quality-check, change-check]
     if: ${{ needs.change-check.outputs.has-change == 'true' }}
-    uses: indrasaputra/arjuna/.github/workflows/reusable-html-build-ci.yml@fix-workflow-filter
+    uses: indrasaputra/arjuna/.github/workflows/reusable-html-build-ci.yml@main
     with:
       service: blueprint
       dockerfile: ./blueprint/dockerfile/blueprint.dockerfile
