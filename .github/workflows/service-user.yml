@@ -13,18 +13,18 @@ on:
       - "tool/**"
       - "gateway/**"
       - "service/user/**"
-  # pull_request:
-  #   paths:
-  #     - ".github/workflows/reusable-general-quality-ci.yml"
-  #     - ".github/workflows/reusable-go-build-ci.yml"
-  #     - ".github/workflows/reusable-go-quality-ci.yml"
-  #     - ".github/workflows/service-user.yml"
-  #     - "pkg/**"
-  #     - "openapiv2/**"
-  #     - "proto/**"
-  #     - "tool/**"
-  #     - "gateway/**"
-  #     - "service/user/**"
+  pull_request:
+    paths:
+      - ".github/workflows/reusable-general-quality-ci.yml"
+      - ".github/workflows/reusable-go-build-ci.yml"
+      - ".github/workflows/reusable-go-quality-ci.yml"
+      - ".github/workflows/service-user.yml"
+      - "pkg/**"
+      - "openapiv2/**"
+      - "proto/**"
+      - "tool/**"
+      - "gateway/**"
+      - "service/user/**"
 
 jobs:
   change-check:
@@ -52,25 +52,24 @@ jobs:
             - 'gateway/**'
             - 'service/user/**'
 
-  # general-quality-check:
-  #   name: General quality check
-  #   uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@build-service-cmd
+  general-quality-check:
+    name: General quality check
+    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@build-service-cmd
 
-  # go-code-quality:
-  #   name: Go code quality check
-  #   needs: [change-check]
-  #   if: ${{ needs.change-check.outputs.has-change == 'true' }}
-  #   uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@build-service-cmd
-  #   with:
-  #     target: service/user
-  #   secrets:
-  #     SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
-  #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  go-code-quality:
+    name: Go code quality check
+    needs: [change-check]
+    if: ${{ needs.change-check.outputs.has-change == 'true' }}
+    uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@build-service-cmd
+    with:
+      target: service/user
+    secrets:
+      SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   compile-binary:
     name: Build and push docker
-    # needs: [general-quality-check, go-code-quality, change-check]
-    needs: [change-check]
+    needs: [general-quality-check, go-code-quality, change-check]
     if: ${{ needs.change-check.outputs.has-change == 'true' }}
     uses: indrasaputra/arjuna/.github/workflows/reusable-go-compile-ci.yml@build-service-cmd
     with:
