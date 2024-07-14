@@ -1,10 +1,6 @@
 on:
   workflow_call:
     inputs:
-      filters:
-        description: The paths to decide if the workflow steps should run.
-        required: true
-        type: string
       target:
         description: The target project to run the check against.
         required: true
@@ -31,7 +27,7 @@ on:
         description: Platforms to build the target project
         required: false
         type: string
-        default: "linux/amd64, linux/arm64, linux/arm/v7"
+        default: "linux/amd64,linux/arm64,linux/arm/v7"
 
     secrets:
       DOCKER_HUB_USERNAME:
@@ -46,12 +42,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ^1.22.x
       - name: Clone repository
-        uses: actions/checkout@v3
-      - uses: actions/cache@v3
+        uses: actions/checkout@v4
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cache/go-build
@@ -63,7 +59,7 @@ jobs:
         run: |
           make compile svc=${{ inputs.service }}
       - name: Upload go binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: go-binary-${{ inputs.service }}-${{ github.sha }}
           path: ${{ inputs.target }}/${{ inputs.output_dir }}
@@ -75,10 +71,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Docker metadata
         id: docker-metadata
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: |
             docker.io/${{ github.repository }}-${{ inputs.service }}
@@ -92,19 +88,19 @@ jobs:
           name: go-binary-${{ inputs.service }}-${{ github.sha }}
           path: ${{ inputs.target }}/${{ inputs.output_dir }}
       - name: Setup QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           image: tonistiigi/binfmt:latest
           platforms: all
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
       - name: Login to DockerHub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
       - name: Build and push ${{ inputs.service }}
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           context: ./
           file: ${{ inputs.dockerfile }}

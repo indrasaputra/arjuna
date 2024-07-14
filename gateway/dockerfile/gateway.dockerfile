@@ -1,4 +1,4 @@
-FROM golang:1.17 AS builder
+FROM golang:1.22 AS builder
 ARG SERVICE=gateway
 ARG OUTPUT_DIR=deploy/output
 ARG CMD=server
@@ -6,7 +6,7 @@ WORKDIR /app
 COPY . .
 RUN if [ ! -f ${SERVICE}/${OUTPUT_DIR}/${CMD}/${SERVICE} ] ; then make compile svc=gateway ; fi
 
-FROM alpine:3.13
+FROM alpine:3.16
 ARG SERVICE=gateway
 ARG OUTPUT_DIR=deploy/output
 ARG CMD=server

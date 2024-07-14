@@ -4,32 +4,49 @@ on:
   push:
     paths:
       - ".github/workflows/blueprint.yml"
+      - ".github/workflows/reusable-go-build-ci.yml"
       - "openapiv2/**"
       - "proto/**"
       - "blueprint/**"
   pull_request:
     paths:
       - ".github/workflows/blueprint.yml"
+      - ".github/workflows/reusable-go-build-ci.yml"
       - "openapiv2/**"
       - "proto/**"
       - "blueprint/**"
 
 jobs:
+  change-check:
+    name: Check changes
+    runs-on: ubuntu-latest
+    outputs:
+      has-change: ${{ steps.filter.outputs.changed }}
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - name: Check path filters
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            changed:
+            - '.github/workflows/blueprint.yml'
+            - '.github/workflows/reusable-go-build-ci.yml'
+            - 'openapiv2/**'
+            - 'proto/**'
+            - 'blueprint/**'
+
   general-quality-check:
     name: General quality check
-    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@main
+    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@fix-workflow-filter
 
   build-push-docker:
     name: Build and push docker
-    needs: [general-quality-check]
-    uses: indrasaputra/arjuna/.github/workflows/reusable-html-build-ci.yml@main
+    needs: [general-quality-check, change-check]
+    if: ${{ needs.change-check.outputs.has-change == 'true' }}
+    uses: indrasaputra/arjuna/.github/workflows/reusable-html-build-ci.yml@fix-workflow-filter
     with:
-      filters: |
-        changed:
-          - '.github/workflows/blueprint.yml'
-          - 'openapiv2/**'
-          - 'proto/**'
-          - 'blueprint/**'
       service: blueprint
       dockerfile: ./blueprint/dockerfile/blueprint.dockerfile
     secrets:

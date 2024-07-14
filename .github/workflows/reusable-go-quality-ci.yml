@@ -1,10 +1,6 @@
 on:
   workflow_call:
     inputs:
-      filters:
-        description: The paths to decide if the workflow steps should run.
-        required: true
-        type: string
       target:
         description: The target project to run the check against.
         required: true
@@ -19,14 +15,14 @@ jobs:
         working-directory: ${{ inputs.target }}
     steps:
       - name: Setup Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ^1.22.x
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Download module
         run: go mod download
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cache/go-build
@@ -43,7 +39,7 @@ jobs:
       image: indrasaputra/protogen:2024-07-13
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check import blocks
         run: |
           make format
@@ -54,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Scan using Semgrep
         uses: returntocorp/semgrep-action@v1
         with:
@@ -64,19 +60,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
-      - name: Filter paths
-        uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          initial-fetch-depth: 10
-          filters: ${{ inputs.filters }}
+        uses: actions/checkout@v4
       - name: Setup Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ^1.22.x
       - name: Lint using golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v6
         with:
           version: v1.59.1
           args: --config=${GITHUB_WORKSPACE}/.golangci.yml
@@ -87,14 +77,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ^1.22.x
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       # TODO: move this after lint
       - name: Cache vendor
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/go-build
