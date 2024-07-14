@@ -1,76 +1,76 @@
-name: gRPC Gateway - CI
+# name: gRPC Gateway - CI
 
-on:
-  push:
-    paths:
-      - ".github/workflows/reusable-general-quality-ci.yml"
-      - ".github/workflows/reusable-go-build-ci.yml"
-      - ".github/workflows/reusable-go-quality-ci.yml"
-      - ".github/workflows/gateway.yml"
-      - "pkg/**"
-      - "openapiv2/**"
-      - "proto/**"
-      - "tool/**"
-      - "gateway/**"
-  # pull_request:
-  #   paths:
-  #     - ".github/workflows/reusable-general-quality-ci.yml"
-  #     - ".github/workflows/reusable-go-build-ci.yml"
-  #     - ".github/workflows/reusable-go-quality-ci.yml"
-  #     - ".github/workflows/gateway.yml"
-  #     - "pkg/**"
-  #     - "openapiv2/**"
-  #     - "proto/**"
-  #     - "tool/**"
-  #     - "gateway/**"
+# on:
+#   push:
+#     paths:
+#       - ".github/workflows/reusable-general-quality-ci.yml"
+#       - ".github/workflows/reusable-go-build-ci.yml"
+#       - ".github/workflows/reusable-go-quality-ci.yml"
+#       - ".github/workflows/gateway.yml"
+#       - "pkg/**"
+#       - "openapiv2/**"
+#       - "proto/**"
+#       - "tool/**"
+#       - "gateway/**"
+#   pull_request:
+#     paths:
+#       - ".github/workflows/reusable-general-quality-ci.yml"
+#       - ".github/workflows/reusable-go-build-ci.yml"
+#       - ".github/workflows/reusable-go-quality-ci.yml"
+#       - ".github/workflows/gateway.yml"
+#       - "pkg/**"
+#       - "openapiv2/**"
+#       - "proto/**"
+#       - "tool/**"
+#       - "gateway/**"
 
-jobs:
-  change-check:
-    name: Check changes
-    runs-on: ubuntu-latest
-    outputs:
-      has-change: ${{ steps.filter.outputs.changed }}
-    steps:
-      - name: Clone repository
-        uses: actions/checkout@v4
-      - name: Check path filters
-        uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            changed:
-            - '.github/workflows/reusable-general-quality-ci.yml'
-            - '.github/workflows/reusable-go-build-ci.yml'
-            - '.github/workflows/reusable-go-quality-ci.yml'
-            - '.github/workflows/gateway.yml'
-            - 'pkg/**'
-            - 'openapiv2/**'
-            - 'proto/**'
-            - 'tool/**'
-            - 'gateway/**'
+# jobs:
+#   change-check:
+#     name: Check changes
+#     runs-on: ubuntu-latest
+#     outputs:
+#       has-change: ${{ steps.filter.outputs.changed }}
+#     steps:
+#       - name: Clone repository
+#         uses: actions/checkout@v4
+#       - name: Check path filters
+#         uses: dorny/paths-filter@v3
+#         id: filter
+#         with:
+#           filters: |
+#             changed:
+#             - '.github/workflows/reusable-general-quality-ci.yml'
+#             - '.github/workflows/reusable-go-build-ci.yml'
+#             - '.github/workflows/reusable-go-quality-ci.yml'
+#             - '.github/workflows/gateway.yml'
+#             - 'pkg/**'
+#             - 'openapiv2/**'
+#             - 'proto/**'
+#             - 'tool/**'
+#             - 'gateway/**'
 
-  general-quality-check:
-    name: General quality check
-    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@build-service-cmd
+#   general-quality-check:
+#     name: General quality check
+#     uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@build-service-cmd
 
-  go-code-quality:
-    name: Go code quality check
-    needs: [change-check]
-    if: ${{ needs.change-check.outputs.has-change == 'true' }}
-    uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@build-service-cmd
-    with:
-      target: gateway
+#   go-code-quality:
+#     name: Go code quality check
+#     needs: [change-check]
+#     if: ${{ needs.change-check.outputs.has-change == 'true' }}
+#     uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@build-service-cmd
+#     with:
+#       target: gateway
 
-  build-push-docker:
-    name: Build and push docker
-    needs: [general-quality-check, go-code-quality, change-check]
-    if: ${{ needs.change-check.outputs.has-change == 'true' }}
-    uses: indrasaputra/arjuna/.github/workflows/reusable-go-build-ci.yml@build-service-cmd
-    with:
-      target: gateway
-      service: gateway
-      dockerfile: ./gateway/dockerfile/gateway.dockerfile
-      need_go_binary: true
-    secrets:
-      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-      DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+#   build-push-docker:
+#     name: Build and push docker
+#     needs: [general-quality-check, go-code-quality, change-check]
+#     if: ${{ needs.change-check.outputs.has-change == 'true' }}
+#     uses: indrasaputra/arjuna/.github/workflows/reusable-go-build-ci.yml@build-service-cmd
+#     with:
+#       target: gateway
+#       service: gateway
+#       dockerfile: ./gateway/dockerfile/gateway.dockerfile
+#       need_go_binary: true
+#     secrets:
+#       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+#       DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
