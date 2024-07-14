@@ -39,7 +39,7 @@ jobs:
 
   general-quality-check:
     name: General quality check
-    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@build-service-cmd
+    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@main
 
   build-push-docker:
     name: Build and push docker
@@ -48,7 +48,7 @@ jobs:
     strategy:
       matrix:
         cmd: [server]
-    uses: indrasaputra/arjuna/.github/workflows/reusable-html-build-ci.yml@build-service-cmd
+    uses: indrasaputra/arjuna/.github/workflows/reusable-html-build-ci.yml@main
     with:
       service: blueprint
       dockerfile: ./blueprint/dockerfile/blueprint.dockerfile
