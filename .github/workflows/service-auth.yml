@@ -63,6 +63,9 @@
 #     uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@build-service-cmd
 #     with:
 #       target: service/auth
+#     secrets:
+#       SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+#       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
 #   build-push-docker:
 #     name: Build and push docker
