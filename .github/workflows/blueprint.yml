@@ -4,14 +4,14 @@ on:
   push:
     paths:
       - ".github/workflows/blueprint.yml"
-      - ".github/workflows/reusable-go-build-ci.yml"
+      - ".github/workflows/reusable-html-build-ci.yml.yml"
       - "openapiv2/**"
       - "proto/**"
       - "blueprint/**"
   pull_request:
     paths:
       - ".github/workflows/blueprint.yml"
-      - ".github/workflows/reusable-go-build-ci.yml"
+      - ".github/workflows/reusable-html-build-ci.yml.yml"
       - "openapiv2/**"
       - "proto/**"
       - "blueprint/**"
@@ -32,7 +32,7 @@ jobs:
           filters: |
             changed:
             - '.github/workflows/blueprint.yml'
-            - '.github/workflows/reusable-go-build-ci.yml'
+            - '.github/workflows/reusable-html-build-ci.yml.yml'
             - 'openapiv2/**'
             - 'proto/**'
             - 'blueprint/**'
@@ -45,10 +45,14 @@ jobs:
     name: Build and push docker
     needs: [general-quality-check, change-check]
     if: ${{ needs.change-check.outputs.has-change == 'true' }}
+    strategy:
+      matrix:
+        cmd: [server]
     uses: indrasaputra/arjuna/.github/workflows/reusable-html-build-ci.yml@main
     with:
       service: blueprint
       dockerfile: ./blueprint/dockerfile/blueprint.dockerfile
+      cmd: ${{ matrix.cmd }}
     secrets:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}

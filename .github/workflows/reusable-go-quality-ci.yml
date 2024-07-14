@@ -6,6 +6,12 @@ on:
         required: true
         type: string
 
+    secrets:
+      SEMGREP_APP_TOKEN:
+        required: true
+      CODECOV_TOKEN:
+        required: true
+
 jobs:
   download-module:
     name: Download go module
@@ -48,13 +54,15 @@ jobs:
   security-check:
     name: Semgrep scan
     runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
       - name: Scan using Semgrep
-        uses: returntocorp/semgrep-action@v1
-        with:
-          publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
+        run: semgrep ci
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
 
   go-code-lint:
     runs-on: ubuntu-latest
@@ -99,5 +107,3 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
