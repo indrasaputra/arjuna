@@ -83,7 +83,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
       - name: Download go binary
         if: ${{ inputs.need_go_binary }}
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: go-binary-${{ inputs.service }}-${{ github.sha }}
           path: ${{ inputs.target }}/${{ inputs.output_dir }}
