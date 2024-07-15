@@ -16,14 +16,16 @@ import (
 )
 
 var (
-	testCtx = context.Background()
-	testEnv = "development"
+	testCtx            = context.Background()
+	testEnv            = "development"
+	testIdempotencyKey = "key"
 )
 
 type UserRegistrarSuite struct {
 	registrar      *service.UserRegistrar
 	userRepo       *mock_service.MockRegisterUserRepository
 	userOutboxRepo *mock_service.MockRegisterUserOutboxRepository
+	keyRepo        *mock_service.MockIdempotencyKeyRepository
 	unit           *mock_uow.MockUnitOfWork
 	tx             *mock_uow.MockTx
 }
@@ -43,10 +45,31 @@ func TestUserRegistrar_Register(t *testing.T) {
 	defer ctrl.Finish()
 	app.Logger = sdklog.NewLogger(testEnv)
 
+	t.Run("validate idempotency key returns error", func(t *testing.T) {
+		st := createUserRegistrarSuite(ctrl)
+		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, entity.ErrInternal("error"))
+
+		id, err := st.registrar.Register(testCtx, nil, testIdempotencyKey)
+
+		assert.Error(t, err)
+		assert.Empty(t, id)
+	})
+
+	t.Run("idempotency key has been used", func(t *testing.T) {
+		st := createUserRegistrarSuite(ctrl)
+		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(true, nil)
+
+		id, err := st.registrar.Register(testCtx, nil, testIdempotencyKey)
+
+		assert.Error(t, err)
+		assert.Empty(t, id)
+	})
+
 	t.Run("empty user is prohibited", func(t *testing.T) {
 		st := createUserRegistrarSuite(ctrl)
+		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
-		id, err := st.registrar.Register(testCtx, nil)
+		id, err := st.registrar.Register(testCtx, nil, testIdempotencyKey)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyUser(), err)
@@ -64,8 +87,9 @@ func TestUserRegistrar_Register(t *testing.T) {
 
 		for _, name := range names {
 			user := &entity.User{Name: name}
+			st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
-			id, err := st.registrar.Register(testCtx, user)
+			id, err := st.registrar.Register(testCtx, user, testIdempotencyKey)
 
 			assert.Error(t, err)
 			assert.Equal(t, entity.ErrInvalidName(), err)
@@ -85,7 +109,9 @@ func TestUserRegistrar_Register(t *testing.T) {
 			user := createTestUser()
 			user.Email = email
 
-			id, err := st.registrar.Register(testCtx, user)
+			st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
+
+			id, err := st.registrar.Register(testCtx, user, testIdempotencyKey)
 
 			assert.Error(t, err)
 			assert.Equal(t, entity.ErrInvalidEmail(), err)
@@ -98,9 +124,10 @@ func TestUserRegistrar_Register(t *testing.T) {
 		user := createTestUser()
 		errReturn := entity.ErrInternal("")
 
+		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 		st.unit.EXPECT().Begin(testCtx).Return(nil, errReturn)
 
-		id, err := st.registrar.Register(testCtx, user)
+		id, err := st.registrar.Register(testCtx, user, testIdempotencyKey)
 
 		assert.Error(t, err)
 		assert.Empty(t, id)
@@ -111,11 +138,12 @@ func TestUserRegistrar_Register(t *testing.T) {
 		user := createTestUser()
 		errReturn := entity.ErrInternal("")
 
+		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
 		st.userRepo.EXPECT().InsertWithTx(testCtx, st.tx, user).Return(errReturn)
 		st.unit.EXPECT().Finish(testCtx, st.tx, errReturn).Return(nil)
 
-		id, err := st.registrar.Register(testCtx, user)
+		id, err := st.registrar.Register(testCtx, user, testIdempotencyKey)
 
 		assert.Error(t, err)
 		assert.Empty(t, id)
@@ -126,12 +154,13 @@ func TestUserRegistrar_Register(t *testing.T) {
 		user := createTestUser()
 		errReturn := entity.ErrInternal("")
 
+		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
 		st.userRepo.EXPECT().InsertWithTx(testCtx, st.tx, user).Return(nil)
 		st.userOutboxRepo.EXPECT().InsertWithTx(testCtx, st.tx, gomock.Any()).Return(errReturn)
 		st.unit.EXPECT().Finish(testCtx, st.tx, errReturn).Return(nil)
 
-		id, err := st.registrar.Register(testCtx, user)
+		id, err := st.registrar.Register(testCtx, user, testIdempotencyKey)
 
 		assert.Error(t, err)
 		assert.Empty(t, id)
@@ -142,12 +171,13 @@ func TestUserRegistrar_Register(t *testing.T) {
 		user := createTestUser()
 		errReturn := entity.ErrInternal("")
 
+		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
 		st.userRepo.EXPECT().InsertWithTx(testCtx, st.tx, user).Return(nil)
 		st.userOutboxRepo.EXPECT().InsertWithTx(testCtx, st.tx, gomock.Any()).Return(nil)
 		st.unit.EXPECT().Finish(testCtx, st.tx, nil).Return(errReturn)
 
-		id, err := st.registrar.Register(testCtx, user)
+		id, err := st.registrar.Register(testCtx, user, testIdempotencyKey)
 
 		assert.Error(t, err)
 		assert.Empty(t, id)
@@ -157,12 +187,13 @@ func TestUserRegistrar_Register(t *testing.T) {
 		st := createUserRegistrarSuite(ctrl)
 		user := createTestUser()
 
+		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
 		st.userRepo.EXPECT().InsertWithTx(testCtx, st.tx, user).Return(nil)
 		st.userOutboxRepo.EXPECT().InsertWithTx(testCtx, st.tx, gomock.Any()).Return(nil)
 		st.unit.EXPECT().Finish(testCtx, st.tx, nil).Return(nil)
 
-		id, err := st.registrar.Register(testCtx, user)
+		id, err := st.registrar.Register(testCtx, user, testIdempotencyKey)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, id)
@@ -172,13 +203,15 @@ func TestUserRegistrar_Register(t *testing.T) {
 func createUserRegistrarSuite(ctrl *gomock.Controller) *UserRegistrarSuite {
 	ur := mock_service.NewMockRegisterUserRepository(ctrl)
 	uor := mock_service.NewMockRegisterUserOutboxRepository(ctrl)
+	ik := mock_service.NewMockIdempotencyKeyRepository(ctrl)
 	u := mock_uow.NewMockUnitOfWork(ctrl)
 	tx := mock_uow.NewMockTx(ctrl)
-	r := service.NewUserRegistrar(ur, uor, u)
+	r := service.NewUserRegistrar(ur, uor, u, ik)
 	return &UserRegistrarSuite{
 		registrar:      r,
 		userRepo:       ur,
 		userOutboxRepo: uor,
+		keyRepo:        ik,
 		unit:           u,
 		tx:             tx,
 	}

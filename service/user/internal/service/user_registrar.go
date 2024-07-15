@@ -27,7 +27,7 @@ type RegisterUser interface {
 	// Register registers a user and store it in the storage.
 	// It returns the ID of the newly created user.
 	// It must check the uniqueness of the user.
-	Register(ctx context.Context, user *entity.User) (string, error)
+	Register(ctx context.Context, user *entity.User, key string) (string, error)
 }
 
 // RegisterUserRepository defines interface to register user to repository.
@@ -42,26 +42,39 @@ type RegisterUserOutboxRepository interface {
 	InsertWithTx(ctx context.Context, tx uow.Tx, payload *entity.UserOutbox) error
 }
 
+// IdempotencyKeyRepository defines  interface for idempotency check flow and repository.
+type IdempotencyKeyRepository interface {
+	// Exists check if given key exists in repository.
+	Exists(ctx context.Context, key string) (bool, error)
+}
+
 // UserRegistrar is responsible for registering a new user.
 type UserRegistrar struct {
 	userRepo       RegisterUserRepository
 	userOutboxRepo RegisterUserOutboxRepository
 	unit           uow.UnitOfWork
+	keyRepo        IdempotencyKeyRepository
 }
 
 // NewUserRegistrar creates an instance of UserRegistrar.
-func NewUserRegistrar(ur RegisterUserRepository, uor RegisterUserOutboxRepository, u uow.UnitOfWork) *UserRegistrar {
+func NewUserRegistrar(ur RegisterUserRepository, uor RegisterUserOutboxRepository, u uow.UnitOfWork, k IdempotencyKeyRepository) *UserRegistrar {
 	return &UserRegistrar{
 		userRepo:       ur,
 		userOutboxRepo: uor,
 		unit:           u,
+		keyRepo:        k,
 	}
 }
 
 // Register registers a user and store it in the storage.
 // It returns the ID of the newly created user.
 // It checks the email for duplication.
-func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User) (string, error) {
+func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User, key string) (string, error) {
+	if err := ur.validateIdempotencyKey(ctx, key); err != nil {
+		app.Logger.Errorf(ctx, "[UserRegistrar-Register] fail check idempotency key: %s - %v", key, err)
+		return "", err
+	}
+
 	sanitizeUser(user)
 	if err := validateUser(user); err != nil {
 		app.Logger.Errorf(ctx, "[UserRegistrar-Register] user is invalid: %v", err)
@@ -108,6 +121,17 @@ func (ur *UserRegistrar) saveUserToRepository(ctx context.Context, user *entity.
 		return err
 	}
 	return ur.unit.Finish(ctx, tx, err)
+}
+
+func (ur *UserRegistrar) validateIdempotencyKey(ctx context.Context, key string) error {
+	res, err := ur.keyRepo.Exists(ctx, key)
+	if err != nil {
+		return err
+	}
+	if res {
+		return entity.ErrAlreadyExists()
+	}
+	return nil
 }
 
 func validateUser(user *entity.User) error {

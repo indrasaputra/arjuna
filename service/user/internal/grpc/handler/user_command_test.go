@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
+	"google.golang.org/grpc/metadata"
 
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
@@ -12,6 +13,15 @@ import (
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/grpc/handler"
 	mock_service "github.com/indrasaputra/arjuna/service/user/test/mock/service"
+)
+
+const (
+	testIdempotencyKey = "key"
+)
+
+var (
+	testCtxWithValidKey   = metadata.NewIncomingContext(testCtx, metadata.Pairs("X-Idempotency-Key", testIdempotencyKey))
+	testCtxWithInvalidKey = metadata.NewIncomingContext(testCtx, metadata.Pairs("another-key", ""))
 )
 
 type UserCommandSuite struct {
@@ -34,10 +44,20 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 	defer ctrl.Finish()
 	app.Logger = sdklog.NewLogger(testEnv)
 
+	t.Run("idempotency key is missing", func(t *testing.T) {
+		st := createUserCommandSuite(ctrl)
+
+		res, err := st.handler.RegisterUser(testCtxWithInvalidKey, nil)
+
+		assert.Error(t, err)
+		assert.Equal(t, entity.ErrMissingIdempotencyKey(), err)
+		assert.Nil(t, res)
+	})
+
 	t.Run("nil request is prohibited", func(t *testing.T) {
 		st := createUserCommandSuite(ctrl)
 
-		res, err := st.handler.RegisterUser(testCtx, nil)
+		res, err := st.handler.RegisterUser(testCtxWithValidKey, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyUser(), err)
@@ -47,7 +67,7 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 	t.Run("empty user is prohibited", func(t *testing.T) {
 		st := createUserCommandSuite(ctrl)
 
-		res, err := st.handler.RegisterUser(testCtx, &apiv1.RegisterUserRequest{})
+		res, err := st.handler.RegisterUser(testCtxWithValidKey, &apiv1.RegisterUserRequest{})
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyUser(), err)
@@ -72,9 +92,9 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 			entity.ErrInternal("error"),
 		}
 		for _, errRet := range errors {
-			st.registrar.EXPECT().Register(testCtx, gomock.Any()).Return("", errRet)
+			st.registrar.EXPECT().Register(testCtxWithValidKey, gomock.Any(), testIdempotencyKey).Return("", errRet)
 
-			res, err := st.handler.RegisterUser(testCtx, request)
+			res, err := st.handler.RegisterUser(testCtxWithValidKey, request)
 
 			assert.Error(t, err)
 			assert.Equal(t, errRet, err)
@@ -84,7 +104,7 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 
 	t.Run("success register user", func(t *testing.T) {
 		st := createUserCommandSuite(ctrl)
-		st.registrar.EXPECT().Register(testCtx, gomock.Any()).Return("id", nil)
+		st.registrar.EXPECT().Register(testCtxWithValidKey, gomock.Any(), testIdempotencyKey).Return("id", nil)
 		request := &apiv1.RegisterUserRequest{
 			User: &apiv1.User{
 				Name:     "First User",
@@ -93,7 +113,7 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 			},
 		}
 
-		res, err := st.handler.RegisterUser(testCtx, request)
+		res, err := st.handler.RegisterUser(testCtxWithValidKey, request)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, res)

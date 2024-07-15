@@ -33,11 +33,14 @@ func main() {
 	defer temporalClient.Close()
 	bunDB, err := builder.BuildBunDB(cfg.Postgres)
 	checkError(err)
+	redisClient, err := builder.BuildRedisClient(&cfg.Redis)
+	checkError(err)
 
 	dep := &builder.Dependency{
 		TemporalClient: temporalClient,
 		Config:         cfg,
 		DB:             bunDB,
+		RedisClient:    redisClient,
 	}
 
 	grpcServer := server.NewGrpcServer(cfg.ServiceName, cfg.Port)

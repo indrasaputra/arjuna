@@ -34,6 +34,7 @@ type UserCommandServiceClient interface {
 	// Register a new user.
 	//
 	// This endpoint registers a new user.
+	// The X-Idempotency-Key header must be present.
 	RegisterUser(ctx context.Context, in *RegisterUserRequest, opts ...grpc.CallOption) (*RegisterUserResponse, error)
 }
 
@@ -64,6 +65,7 @@ type UserCommandServiceServer interface {
 	// Register a new user.
 	//
 	// This endpoint registers a new user.
+	// The X-Idempotency-Key header must be present.
 	RegisterUser(context.Context, *RegisterUserRequest) (*RegisterUserResponse, error)
 	mustEmbedUnimplementedUserCommandServiceServer()
 }

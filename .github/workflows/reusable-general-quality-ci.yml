@@ -26,6 +26,6 @@ jobs:
           extensions: "proto"
           clangFormatVersion: 11
       - name: Lint proto files
-        uses: plexsystems/protolint-action@v0.2.0
+        uses: plexsystems/protolint-action@v0.7.0
         with:
           configDirectory: .

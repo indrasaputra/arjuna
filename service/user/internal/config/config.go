@@ -14,6 +14,7 @@ type Config struct {
 	Postgres                    sdkpg.Config
 	Tracer                      trace.Config
 	Temporal                    Temporal
+	Redis                       Redis
 	ServiceName                 string `env:"SERVICE_NAME,default=user-server"`
 	AppEnv                      string `env:"APP_ENV,default=development"`
 	Port                        string `env:"PORT,default=8001"`
@@ -25,6 +26,11 @@ type Config struct {
 // Temporal holds configuration for Temporal.
 type Temporal struct {
 	Address string `env:"TEMPORAL_ADDRESS,default=localhost:7233"`
+}
+
+// Redis holds configuration for Redis.
+type Redis struct {
+	Address string `env:"REDIS_ADDRESS,default=localhost:6379"`
 }
 
 // NewConfig creates an instance of Config.

@@ -76,6 +76,18 @@ services:
     profiles:
       - infra
 
+  redis:
+    <<: *default
+    image: redis:7.2-alpine
+    container_name: arjuna-redis
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 60s
+      retries: 5
+
   elasticsearch:
     <<: *default
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.8
@@ -312,6 +324,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
       temporal:
         condition: service_started
     ports:
@@ -335,6 +349,7 @@ services:
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - AUTH_SERVICE_HOST=auth-server:8002
+      - REDIS_ADDRESS=redis:6379
     profiles:
       - service
 
@@ -365,6 +380,7 @@ services:
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - AUTH_SERVICE_HOST=auth-server:8002
+      - REDIS_ADDRESS=redis:6379
     profiles:
       - service
 
@@ -396,6 +412,7 @@ services:
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - AUTH_SERVICE_HOST=auth-server:8002
+      - REDIS_ADDRESS=redis:6379
     profiles:
       - service
 
