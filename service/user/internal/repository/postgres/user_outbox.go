@@ -3,7 +3,7 @@ package postgres
 import (
 	"context"
 
-	pgsdk "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
+	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
@@ -43,7 +43,7 @@ func (uo *UserOutbox) InsertWithTx(ctx context.Context, tx uow.Tx, payload *enti
 		payload.UpdatedBy,
 	)
 
-	if err == pgsdk.ErrAlreadyExist {
+	if err == sdkpg.ErrAlreadyExist {
 		return entity.ErrAlreadyExists()
 	}
 	if err != nil {

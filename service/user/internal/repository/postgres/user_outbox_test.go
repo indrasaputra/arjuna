@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	pgsdk "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
+	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
@@ -76,7 +76,7 @@ func TestUserOutbox_InsertWithTx(t *testing.T) {
 		out := createTestUserOutbox()
 		st.tx.EXPECT().
 			Exec(testCtx, query, out.ID, out.Status, out.Payload, out.CreatedAt, out.UpdatedAt, out.CreatedBy, out.UpdatedBy).
-			Return(int64(0), pgsdk.ErrAlreadyExist)
+			Return(int64(0), sdkpg.ErrAlreadyExist)
 
 		err := st.outbox.InsertWithTx(testCtx, st.tx, out)
 

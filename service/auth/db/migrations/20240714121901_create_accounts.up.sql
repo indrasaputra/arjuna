@@ -13,6 +13,6 @@ CREATE TABLE IF NOT EXISTS accounts (
   deleted_by    VARCHAR(50)
 );
 
-CREATE INDEX IF NOT EXISTS index_on_accounts_on_email_and_password ON accounts USING btree (email, password);
+CREATE INDEX IF NOT EXISTS index_on_accounts_on_email ON accounts USING btree (email);
 
 COMMIT;
