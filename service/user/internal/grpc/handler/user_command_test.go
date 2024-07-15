@@ -32,7 +32,6 @@ func TestNewUserCommand(t *testing.T) {
 func TestUserCommand_RegisterUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("nil request is prohibited", func(t *testing.T) {

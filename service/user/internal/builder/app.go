@@ -1,17 +1,15 @@
 package builder
 
 import (
-	"net/http"
-	"time"
-
 	"go.temporal.io/sdk/client"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
-	pgsdk "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
-	kcsdk "github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
+	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
+	sdkauth "github.com/indrasaputra/arjuna/service/auth/pkg/sdk/auth"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
 	"github.com/indrasaputra/arjuna/service/user/internal/grpc/handler"
-	"github.com/indrasaputra/arjuna/service/user/internal/repository/keycloak"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
 )
@@ -19,7 +17,6 @@ import (
 // Dependency holds any dependency to build full use cases.
 type Dependency struct {
 	Config         *config.Config
-	KeycloakClient kcsdk.Keycloak
 	TemporalClient client.Client
 	DB             uow.DB
 }
@@ -35,22 +32,11 @@ func BuildUserCommandHandler(dep *Dependency) *handler.UserCommand {
 }
 
 // BuildUserCommandInternalHandler builds user command handler including all of its dependencies.
-func BuildUserCommandInternalHandler(dep *Dependency) (*handler.UserCommandInternal, error) {
-	kcconf := &keycloak.Config{
-		Client:        dep.KeycloakClient,
-		Realm:         dep.Config.Keycloak.Realm,
-		AdminUsername: dep.Config.Keycloak.AdminUser,
-		AdminPassword: dep.Config.Keycloak.AdminPassword,
-	}
-	kc, err := keycloak.NewUser(kcconf)
-	if err != nil {
-		return nil, err
-	}
-
+func BuildUserCommandInternalHandler(dep *Dependency) *handler.UserCommandInternal {
 	pg := postgres.NewUser(dep.DB)
 	u := uow.NewUnitWorker(dep.DB)
-	d := service.NewUserDeleter(u, pg, kc)
-	return handler.NewUserCommandInternal(d), nil
+	d := service.NewUserDeleter(u, pg)
+	return handler.NewUserCommandInternal(d)
 }
 
 // BuildUserQueryHandler builds user query handler including all of its dependencies.
@@ -61,22 +47,24 @@ func BuildUserQueryHandler(dep *Dependency) *handler.UserQuery {
 }
 
 // BuildBunDB builds BunDB.
-func BuildBunDB(cfg pgsdk.Config) (*pgsdk.BunDB, error) {
-	pdb, err := pgsdk.NewDBWithPgx(cfg)
+func BuildBunDB(cfg sdkpg.Config) (*sdkpg.BunDB, error) {
+	pdb, err := sdkpg.NewDBWithPgx(cfg)
 	if err != nil {
 		return nil, err
 	}
-	return pgsdk.NewBunDB(pdb)
-}
-
-// BuildKeycloakClient builds a keycloak client.
-func BuildKeycloakClient(cfg config.Keycloak) kcsdk.Keycloak {
-	hc := &http.Client{Timeout: time.Duration(cfg.Timeout) * time.Second}
-	client := kcsdk.NewClient(hc, cfg.Address)
-	return client
+	return sdkpg.NewBunDB(pdb)
 }
 
 // BuildTemporalClient builds temporal client.
 func BuildTemporalClient(address string) (client.Client, error) {
 	return client.Dial(client.Options{HostPort: address})
+}
+
+// BuildAuthClient builds auth service client.
+func BuildAuthClient(host string) (*sdkauth.Client, error) {
+	dc := &sdkauth.DialConfig{
+		Host:    host,
+		Options: []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())},
+	}
+	return sdkauth.NewClient(dc)
 }

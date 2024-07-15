@@ -44,7 +44,7 @@
     "/v1/auth/login": {
       "post": {
         "summary": "Login.",
-        "description": "This endpoint logs in a user.",
+        "description": "This endpoint logs in an account.\nAs of now, refresh token is not implemented and it only returns access token.",
         "operationId": "Login",
         "responses": {
           "200": {
@@ -208,20 +208,38 @@
         }
       }
     },
-    "v1Credential": {
+    "v1Account": {
       "type": "object",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "id represents unique id."
+        },
+        "userId": {
+          "type": "string",
+          "description": "user_id represents user's id."
+        },
         "email": {
           "type": "string",
           "description": "email represents user's email."
         },
         "password": {
           "type": "string",
-          "description": "password represents user's password."
-        },
-        "clientId": {
+          "title": "password represents user's password"
+        }
+      },
+      "description": "Account represents account."
+    },
+    "v1Credential": {
+      "type": "object",
+      "properties": {
+        "email": {
           "type": "string",
-          "description": "client_id represents client ID."
+          "description": "email represents account's email."
+        },
+        "password": {
+          "type": "string",
+          "description": "password represents account's password."
         }
       },
       "description": "Credential represents login credential."
@@ -253,6 +271,10 @@
         }
       },
       "description": "LoginResponse represents response from login."
+    },
+    "v1RegisterAccountResponse": {
+      "type": "object",
+      "description": "RegisterAccountResponse represents response for account registration."
     },
     "v1RegisterUserResponse": {
       "type": "object",
@@ -287,11 +309,6 @@
           "type": "integer",
           "format": "int64",
           "description": "refresh_token_expires_in represents how many seconds left before refresh token expired.",
-          "readOnly": true
-        },
-        "tokenType": {
-          "type": "string",
-          "description": "token_type represents the type of token.",
           "readOnly": true
         }
       },

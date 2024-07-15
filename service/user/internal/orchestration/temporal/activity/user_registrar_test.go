@@ -7,20 +7,23 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
+	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/service/user/entity"
+	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/activity"
 	mock_activity "github.com/indrasaputra/arjuna/service/user/test/mock/orchestration/temporal/activity"
 )
 
 var (
 	testCtx = context.Background()
+	testEnv = "development"
 )
 
 type RegisterUserActivitySuite struct {
 	activity *activity.RegisterUserActivity
 
-	vendor *mock_activity.MockRegisterUserVendor
-	db     *mock_activity.MockRegisterUserDatabase
+	conn *mock_activity.MockRegisterUserConnection
+	db   *mock_activity.MockRegisterUserDatabase
 }
 
 func TestNewRegisterUserActivity(t *testing.T) {
@@ -33,78 +36,52 @@ func TestNewRegisterUserActivity(t *testing.T) {
 	})
 }
 
-func TestRegisterUserActivity_CreateInKeycloak(t *testing.T) {
+func TestRegisterUserActivity_CreateInAuth(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	t.Run("user already exists", func(t *testing.T) {
 		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
-		st.vendor.EXPECT().Create(testCtx, user).Return("", entity.ErrAlreadyExists())
+		st.conn.EXPECT().CreateAccount(testCtx, user).Return(entity.ErrAlreadyExists())
 
-		id, err := st.activity.CreateInKeycloak(testCtx, user)
+		err := st.activity.CreateInAuth(testCtx, user)
 
 		assert.Error(t, err)
-		assert.Empty(t, id)
 	})
 
 	t.Run("success create user", func(t *testing.T) {
 		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
-		st.vendor.EXPECT().Create(testCtx, user).Return("1", nil)
+		st.conn.EXPECT().CreateAccount(testCtx, user).Return(nil)
 
-		id, err := st.activity.CreateInKeycloak(testCtx, user)
-
-		assert.NoError(t, err)
-		assert.NotEmpty(t, id)
-	})
-}
-
-func TestRegisterUserActivity_HardDeleteFromKeycloak(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	t.Run("error when delete user from vendor", func(t *testing.T) {
-		st := createRegisterUserActivitySuite(ctrl)
-		user := createTestUser()
-		st.vendor.EXPECT().HardDelete(testCtx, user.ID).Return(entity.ErrInternal(""))
-
-		err := st.activity.HardDeleteFromKeycloak(testCtx, user.ID)
-
-		assert.Error(t, err)
-	})
-
-	t.Run("success delete user from vendor", func(t *testing.T) {
-		st := createRegisterUserActivitySuite(ctrl)
-		user := createTestUser()
-		st.vendor.EXPECT().HardDelete(testCtx, user.ID).Return(nil)
-
-		err := st.activity.HardDeleteFromKeycloak(testCtx, user.ID)
+		err := st.activity.CreateInAuth(testCtx, user)
 
 		assert.NoError(t, err)
 	})
 }
 
-func TestRegisterUserActivity_UpdateKeycloakID(t *testing.T) {
+func TestRegisterUserActivity_HardDeleteInUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	app.Logger = sdklog.NewLogger(testEnv)
 
-	t.Run("keycloak id already exists in database", func(t *testing.T) {
+	t.Run("error when delete user from database", func(t *testing.T) {
 		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
-		st.db.EXPECT().UpdateKeycloakID(testCtx, user.ID, user.KeycloakID).Return(entity.ErrAlreadyExists())
+		st.db.EXPECT().HardDelete(testCtx, user.ID).Return(entity.ErrInternal(""))
 
-		err := st.activity.UpdateKeycloakID(testCtx, user)
+		err := st.activity.HardDeleteInUser(testCtx, user.ID)
 
 		assert.Error(t, err)
 	})
 
-	t.Run("success update keycloak id to database", func(t *testing.T) {
+	t.Run("success delete user from conn", func(t *testing.T) {
 		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
-		st.db.EXPECT().UpdateKeycloakID(testCtx, user.ID, user.KeycloakID).Return(nil)
+		st.db.EXPECT().HardDelete(testCtx, user.ID).Return(nil)
 
-		err := st.activity.UpdateKeycloakID(testCtx, user)
+		err := st.activity.HardDeleteInUser(testCtx, user.ID)
 
 		assert.NoError(t, err)
 	})
@@ -119,12 +96,12 @@ func createTestUser() *entity.User {
 }
 
 func createRegisterUserActivitySuite(ctrl *gomock.Controller) *RegisterUserActivitySuite {
-	kc := mock_activity.NewMockRegisterUserVendor(ctrl)
+	co := mock_activity.NewMockRegisterUserConnection(ctrl)
 	db := mock_activity.NewMockRegisterUserDatabase(ctrl)
-	a := activity.NewRegisterUserActivity(kc, db)
+	a := activity.NewRegisterUserActivity(co, db)
 	return &RegisterUserActivitySuite{
 		activity: a,
-		vendor:   kc,
+		conn:     co,
 		db:       db,
 	}
 }

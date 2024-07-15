@@ -41,7 +41,6 @@ func TestNewUserRegistrar(t *testing.T) {
 func TestUserRegistrar_Register(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("empty user is prohibited", func(t *testing.T) {
@@ -187,9 +186,8 @@ func createUserRegistrarSuite(ctrl *gomock.Controller) *UserRegistrarSuite {
 
 func createTestUser() *entity.User {
 	return &entity.User{
-		ID:         "1",
-		KeycloakID: "1",
-		Name:       "First User",
-		Email:      "first@user.com",
+		ID:    "1",
+		Name:  "First User",
+		Email: "first@user.com",
 	}
 }

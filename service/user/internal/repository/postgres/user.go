@@ -3,7 +3,7 @@ package postgres
 import (
 	"context"
 
-	pgsdk "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
+	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
@@ -30,21 +30,19 @@ func (u *User) InsertWithTx(ctx context.Context, tx uow.Tx, user *entity.User) e
 	}
 
 	query := "INSERT INTO " +
-		"users (id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by) " +
-		"VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+		"users (id, name, created_at, updated_at, created_by, updated_by) " +
+		"VALUES (?, ?, ?, ?, ?, ?)"
 
 	_, err := tx.Exec(ctx, query,
 		user.ID,
-		user.ID, // Set Keycloak ID as ID to maintenance uniqueness
 		user.Name,
-		user.Email,
 		user.CreatedAt,
 		user.UpdatedAt,
 		user.CreatedBy,
 		user.UpdatedBy,
 	)
 
-	if err == pgsdk.ErrAlreadyExist {
+	if err == sdkpg.ErrAlreadyExist {
 		return entity.ErrAlreadyExists()
 	}
 	if err != nil {
@@ -57,7 +55,7 @@ func (u *User) InsertWithTx(ctx context.Context, tx uow.Tx, user *entity.User) e
 // GetByID gets a user from database.
 // It returns entity.ErrNotFound if user can't be found.
 func (u *User) GetByID(ctx context.Context, id string) (*entity.User, error) {
-	query := "SELECT id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by FROM users WHERE id = ? LIMIT 1"
+	query := "SELECT id, name, created_at, updated_at, created_by, updated_by FROM users WHERE id = ? LIMIT 1"
 	var res entity.User
 	err := u.db.Query(ctx, &res, query, id)
 	if err != nil {
@@ -69,7 +67,7 @@ func (u *User) GetByID(ctx context.Context, id string) (*entity.User, error) {
 
 // GetAll gets all users in users table.
 func (u *User) GetAll(ctx context.Context, limit uint) ([]*entity.User, error) {
-	query := "SELECT id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by FROM users LIMIT ?"
+	query := "SELECT id, name, created_at, updated_at, created_by, updated_by FROM users LIMIT ?"
 	res := []*entity.User{}
 	err := u.db.Query(ctx, &res, query, limit)
 	if err != nil {
@@ -79,17 +77,6 @@ func (u *User) GetAll(ctx context.Context, limit uint) ([]*entity.User, error) {
 	return res, nil
 }
 
-// UpdateKeycloakID updates user's keycloak id in database.
-func (u *User) UpdateKeycloakID(ctx context.Context, id, keycloakID string) error {
-	query := "UPDATE users SET keycloak_id = ? WHERE id = ?"
-	_, err := u.db.Exec(ctx, query, keycloakID, id)
-	if err != nil {
-		app.Logger.Errorf(ctx, "[PostgresUser-UpdateKeycloakID] fail update user's keycloak id: %v", err)
-		return entity.ErrInternal(err.Error())
-	}
-	return nil
-}
-
 // HardDeleteWithTx deletes a user from database.
 // If the user doesn't exist, it doesn't returns error.
 func (u *User) HardDeleteWithTx(ctx context.Context, tx uow.Tx, id string) error {
@@ -97,11 +84,20 @@ func (u *User) HardDeleteWithTx(ctx context.Context, tx uow.Tx, id string) error
 		app.Logger.Errorf(ctx, "[PostgresUser-HardDeleteWithTx] transaction is not set")
 		return entity.ErrInternal("transaction is not set")
 	}
+	return u.doHardDelete(ctx, tx, id)
+}
 
+// HardDelete deletes a user from database.
+// If the user doesn't exist, it doesn't returns error.
+func (u *User) HardDelete(ctx context.Context, id string) error {
+	return u.doHardDelete(ctx, u.db, id)
+}
+
+func (u *User) doHardDelete(ctx context.Context, db uow.DB, id string) error {
 	query := "DELETE FROM users WHERE id = ?"
-	_, err := tx.Exec(ctx, query, id)
+	_, err := db.Exec(ctx, query, id)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[PostgresUser-HardDeleteWithTx] fail delete user: %v", err)
+		app.Logger.Errorf(ctx, "[PostgresUser-doHardDelete] fail delete user: %v", err)
 		return entity.ErrInternal(err.Error())
 	}
 	return nil

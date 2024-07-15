@@ -22,7 +22,8 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	AuthService_Login_FullMethodName = "/api.v1.AuthService/Login"
+	AuthService_Login_FullMethodName           = "/api.v1.AuthService/Login"
+	AuthService_RegisterAccount_FullMethodName = "/api.v1.AuthService/RegisterAccount"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -33,8 +34,13 @@ const (
 type AuthServiceClient interface {
 	// Login.
 	//
-	// This endpoint logs in a user.
+	// This endpoint logs in an account.
+	// As of now, refresh token is not implemented and it only returns access token.
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	// Register a new account.
+	//
+	// This endpoint register an account.
+	RegisterAccount(ctx context.Context, in *RegisterAccountRequest, opts ...grpc.CallOption) (*RegisterAccountResponse, error)
 }
 
 type authServiceClient struct {
@@ -55,6 +61,16 @@ func (c *authServiceClient) Login(ctx context.Context, in *LoginRequest, opts ..
 	return out, nil
 }
 
+func (c *authServiceClient) RegisterAccount(ctx context.Context, in *RegisterAccountRequest, opts ...grpc.CallOption) (*RegisterAccountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RegisterAccountResponse)
+	err := c.cc.Invoke(ctx, AuthService_RegisterAccount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
@@ -63,8 +79,13 @@ func (c *authServiceClient) Login(ctx context.Context, in *LoginRequest, opts ..
 type AuthServiceServer interface {
 	// Login.
 	//
-	// This endpoint logs in a user.
+	// This endpoint logs in an account.
+	// As of now, refresh token is not implemented and it only returns access token.
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
+	// Register a new account.
+	//
+	// This endpoint register an account.
+	RegisterAccount(context.Context, *RegisterAccountRequest) (*RegisterAccountResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -74,6 +95,9 @@ type UnimplementedAuthServiceServer struct {
 
 func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
+}
+func (UnimplementedAuthServiceServer) RegisterAccount(context.Context, *RegisterAccountRequest) (*RegisterAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterAccount not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 
@@ -106,6 +130,24 @@ func _AuthService_Login_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_RegisterAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).RegisterAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_RegisterAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).RegisterAccount(ctx, req.(*RegisterAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -116,6 +158,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Login",
 			Handler:    _AuthService_Login_Handler,
+		},
+		{
+			MethodName: "RegisterAccount",
+			Handler:    _AuthService_RegisterAccount_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

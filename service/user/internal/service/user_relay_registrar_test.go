@@ -36,7 +36,6 @@ func TestNewUserRelayRegistrar(t *testing.T) {
 func TestUserRelayRegistrar_Register(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("user outbox get all ready record returns error", func(t *testing.T) {

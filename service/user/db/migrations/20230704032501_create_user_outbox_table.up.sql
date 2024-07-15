@@ -14,6 +14,6 @@ CREATE TABLE IF NOT EXISTS users_outbox (
   deleted_by        VARCHAR(50)
 );
 
-CREATE INDEX IF NOT EXISTS index_on_status_and_created_at_on_users_outbox ON users_outbox USING btree (status, created_at);
+CREATE INDEX IF NOT EXISTS index_on_users_outbox_on_status_and_created_at ON users_outbox USING btree (status, created_at);
 
 COMMIT;

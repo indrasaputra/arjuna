@@ -18,56 +18,41 @@ import (
 	entity "github.com/indrasaputra/arjuna/service/user/entity"
 )
 
-// MockRegisterUserVendor is a mock of RegisterUserVendor interface.
-type MockRegisterUserVendor struct {
+// MockRegisterUserConnection is a mock of RegisterUserConnection interface.
+type MockRegisterUserConnection struct {
 	ctrl     *gomock.Controller
-	recorder *MockRegisterUserVendorMockRecorder
+	recorder *MockRegisterUserConnectionMockRecorder
 }
 
-// MockRegisterUserVendorMockRecorder is the mock recorder for MockRegisterUserVendor.
-type MockRegisterUserVendorMockRecorder struct {
-	mock *MockRegisterUserVendor
+// MockRegisterUserConnectionMockRecorder is the mock recorder for MockRegisterUserConnection.
+type MockRegisterUserConnectionMockRecorder struct {
+	mock *MockRegisterUserConnection
 }
 
-// NewMockRegisterUserVendor creates a new mock instance.
-func NewMockRegisterUserVendor(ctrl *gomock.Controller) *MockRegisterUserVendor {
-	mock := &MockRegisterUserVendor{ctrl: ctrl}
-	mock.recorder = &MockRegisterUserVendorMockRecorder{mock}
+// NewMockRegisterUserConnection creates a new mock instance.
+func NewMockRegisterUserConnection(ctrl *gomock.Controller) *MockRegisterUserConnection {
+	mock := &MockRegisterUserConnection{ctrl: ctrl}
+	mock.recorder = &MockRegisterUserConnectionMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRegisterUserVendor) EXPECT() *MockRegisterUserVendorMockRecorder {
+func (m *MockRegisterUserConnection) EXPECT() *MockRegisterUserConnectionMockRecorder {
 	return m.recorder
 }
 
-// Create mocks base method.
-func (m *MockRegisterUserVendor) Create(ctx context.Context, user *entity.User) (string, error) {
+// CreateAccount mocks base method.
+func (m *MockRegisterUserConnection) CreateAccount(ctx context.Context, user *entity.User) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, user)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Create indicates an expected call of Create.
-func (mr *MockRegisterUserVendorMockRecorder) Create(ctx, user any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRegisterUserVendor)(nil).Create), ctx, user)
-}
-
-// HardDelete mocks base method.
-func (m *MockRegisterUserVendor) HardDelete(ctx context.Context, id string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HardDelete", ctx, id)
+	ret := m.ctrl.Call(m, "CreateAccount", ctx, user)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// HardDelete indicates an expected call of HardDelete.
-func (mr *MockRegisterUserVendorMockRecorder) HardDelete(ctx, id any) *gomock.Call {
+// CreateAccount indicates an expected call of CreateAccount.
+func (mr *MockRegisterUserConnectionMockRecorder) CreateAccount(ctx, user any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HardDelete", reflect.TypeOf((*MockRegisterUserVendor)(nil).HardDelete), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccount", reflect.TypeOf((*MockRegisterUserConnection)(nil).CreateAccount), ctx, user)
 }
 
 // MockRegisterUserDatabase is a mock of RegisterUserDatabase interface.
@@ -93,16 +78,16 @@ func (m *MockRegisterUserDatabase) EXPECT() *MockRegisterUserDatabaseMockRecorde
 	return m.recorder
 }
 
-// UpdateKeycloakID mocks base method.
-func (m *MockRegisterUserDatabase) UpdateKeycloakID(ctx context.Context, id, keycloakID string) error {
+// HardDelete mocks base method.
+func (m *MockRegisterUserDatabase) HardDelete(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateKeycloakID", ctx, id, keycloakID)
+	ret := m.ctrl.Call(m, "HardDelete", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateKeycloakID indicates an expected call of UpdateKeycloakID.
-func (mr *MockRegisterUserDatabaseMockRecorder) UpdateKeycloakID(ctx, id, keycloakID any) *gomock.Call {
+// HardDelete indicates an expected call of HardDelete.
+func (mr *MockRegisterUserDatabaseMockRecorder) HardDelete(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateKeycloakID", reflect.TypeOf((*MockRegisterUserDatabase)(nil).UpdateKeycloakID), ctx, id, keycloakID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HardDelete", reflect.TypeOf((*MockRegisterUserDatabase)(nil).HardDelete), ctx, id)
 }

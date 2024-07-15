@@ -57,6 +57,13 @@ services:
       - SQLPAD_AUTH_DISABLED=true
       - SQLPAD_AUTH_DISABLED_DEFAULT_ROLE=admin
       - SQLPAD_DB_IN_MEMORY=true
+      - SQLPAD_CONNECTIONS__auth_postgres__name=Postgres - Auth
+      - SQLPAD_CONNECTIONS__auth_postgres__driver=postgres
+      - SQLPAD_CONNECTIONS__auth_postgres__host=postgres
+      - SQLPAD_CONNECTIONS__auth_postgres__port=5432
+      - SQLPAD_CONNECTIONS__auth_postgres__database=arjuna_auth
+      - SQLPAD_CONNECTIONS__auth_postgres__username=postgresuser
+      - SQLPAD_CONNECTIONS__auth_postgres__password=postgrespassword
       - SQLPAD_CONNECTIONS__user_postgres__name=Postgres - User
       - SQLPAD_CONNECTIONS__user_postgres__driver=postgres
       - SQLPAD_CONNECTIONS__user_postgres__host=postgres
@@ -64,58 +71,8 @@ services:
       - SQLPAD_CONNECTIONS__user_postgres__database=arjuna_user
       - SQLPAD_CONNECTIONS__user_postgres__username=postgresuser
       - SQLPAD_CONNECTIONS__user_postgres__password=postgrespassword
-      - SQLPAD_CONNECTIONS__keycloak_postgres__name=Postgres - Keycloak
-      - SQLPAD_CONNECTIONS__keycloak_postgres__driver=postgres
-      - SQLPAD_CONNECTIONS__keycloak_postgres__host=postgres
-      - SQLPAD_CONNECTIONS__keycloak_postgres__port=5432
-      - SQLPAD_CONNECTIONS__keycloak_postgres__database=keycloak
-      - SQLPAD_CONNECTIONS__keycloak_postgres__username=postgresuser
-      - SQLPAD_CONNECTIONS__keycloak_postgres__password=postgrespassword
     ports:
       - 3000:3000
-    profiles:
-      - infra
-
-  keycloak:
-    <<: *default
-    image: quay.io/keycloak/keycloak:19.0.1
-    container_name: arjuna-keycloak
-    depends_on:
-      - postgres
-      - sqlpad
-    environment:
-      - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
-      - KC_HEALTH_ENABLED=true
-      - KC_METRICS_ENABLED=true
-      - KC_DB_USERNAME=postgresuser
-      - KC_DB_PASSWORD=postgrespassword
-      - KC_DB_URL_HOST=postgres
-      - KC_DB_URL_PORT=5432
-      - KC_DB=postgres
-    ports:
-      - 8080:8080
-    healthcheck:
-      test: ["CMD-SHELL", "curl http://localhost:8080/health"]
-      interval: 10s
-      timeout: 60s
-      retries: 5
-    command: start-dev
-    profiles:
-      - infra
-  
-  keycloak-init:
-    <<: *default
-    image: golang:1.22
-    container_name: arjuna-keycloak-init
-    depends_on:
-      keycloak:
-        condition: service_healthy
-    volumes:
-      - $PWD:/app
-    working_dir: /app/tool/script/keycloak
-    entrypoint: [""]
-    command: ["go", "run", "main.go"]
     profiles:
       - infra
 
@@ -325,8 +282,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      keycloak:
-        condition: service_healthy
     ports:
       - 8002:8002
       - 7002:7002
@@ -335,11 +290,18 @@ services:
       - APP_ENV=development
       - PORT=8002
       - PROMETHEUS_PORT=7002
-      - KEYCLOAK_ADDRESS=http://keycloak:8080
-      - KEYCLOAK_REALM=arjuna
-      - KEYCLOAK_TIMEOUT_SECONDS=5
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgresuser
+      - POSTGRES_PASSWORD=postgrespassword
+      - POSTGRES_NAME=arjuna_auth
+      - POSTGRES_MAX_OPEN_CONNS=50
+      - POSTGRES_MAX_CONN_LIFETIME=10m
+      - POSTGRES_MAX_IDLE_LIFETIME=5m
+      - POSTGRES_SSL_MODE=disable
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
-      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - TOKEN_SIGNING_KEY=arjuna-secret-key
+      - TOKEN_EXPIRY_TIME_IN_MINUTE=30
     profiles:
       - service
 
@@ -349,8 +311,6 @@ services:
     container_name: arjuna-user-server
     depends_on:
       postgres:
-        condition: service_healthy
-      keycloak:
         condition: service_healthy
       temporal:
         condition: service_started
@@ -371,14 +331,10 @@ services:
       - POSTGRES_MAX_CONN_LIFETIME=10m
       - POSTGRES_MAX_IDLE_LIFETIME=5m
       - POSTGRES_SSL_MODE=disable
-      - KEYCLOAK_ADDRESS=http://keycloak:8080
-      - KEYCLOAK_REALM=arjuna
-      - KEYCLOAK_ADMIN_USER=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
-      - KEYCLOAK_TIMEOUT_SECONDS=5
       - TEMPORAL_ADDRESS=temporal:7233
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - AUTH_SERVICE_HOST=auth-server:8002
     profiles:
       - service
 
@@ -388,8 +344,6 @@ services:
     container_name: arjuna-user-worker
     depends_on:
       postgres:
-        condition: service_healthy
-      keycloak:
         condition: service_healthy
       temporal:
         condition: service_started
@@ -407,14 +361,10 @@ services:
       - POSTGRES_MAX_CONN_LIFETIME=10m
       - POSTGRES_MAX_IDLE_LIFETIME=5m
       - POSTGRES_SSL_MODE=disable
-      - KEYCLOAK_ADDRESS=http://keycloak:8080
-      - KEYCLOAK_REALM=arjuna
-      - KEYCLOAK_ADMIN_USER=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
-      - KEYCLOAK_TIMEOUT_SECONDS=5
       - TEMPORAL_ADDRESS=temporal:7233
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - AUTH_SERVICE_HOST=auth-server:8002
     profiles:
       - service
 
@@ -424,8 +374,6 @@ services:
     container_name: arjuna-user-relayer
     depends_on:
       postgres:
-        condition: service_healthy
-      keycloak:
         condition: service_healthy
       temporal:
         condition: service_started
@@ -443,15 +391,11 @@ services:
       - POSTGRES_MAX_CONN_LIFETIME=10m
       - POSTGRES_MAX_IDLE_LIFETIME=5m
       - POSTGRES_SSL_MODE=disable
-      - KEYCLOAK_ADDRESS=http://keycloak:8080
-      - KEYCLOAK_REALM=arjuna
-      - KEYCLOAK_ADMIN_USER=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
-      - KEYCLOAK_TIMEOUT_SECONDS=5
       - RELAYER_SLEEP_TIME_MILLISECONDS=1000
       - TEMPORAL_ADDRESS=temporal:7233
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - AUTH_SERVICE_HOST=auth-server:8002
     profiles:
       - service
 

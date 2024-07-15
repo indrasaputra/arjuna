@@ -41,7 +41,6 @@ func TestNewUserQuery(t *testing.T) {
 func TestUserQuery_GetAllUsers(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("nil request is prohibited", func(t *testing.T) {

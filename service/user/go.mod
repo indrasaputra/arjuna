@@ -1,17 +1,17 @@
 module github.com/indrasaputra/arjuna/service/user
 
-go 1.21
-
-toolchain go1.22.4
+go 1.22.4
 
 replace (
 	github.com/indrasaputra/arjuna/pkg/sdk v0.0.0 => ../../pkg/sdk
 	github.com/indrasaputra/arjuna/proto v0.0.0 => ../../proto
+	github.com/indrasaputra/arjuna/service/auth v0.0.0 => ../../service/auth
 )
 
 require (
 	github.com/indrasaputra/arjuna/pkg/sdk v0.0.0
 	github.com/indrasaputra/arjuna/proto v0.0.0
+	github.com/indrasaputra/arjuna/service/auth v0.0.0
 	github.com/stretchr/testify v1.9.0
 	google.golang.org/grpc v1.65.0
 )
@@ -27,6 +27,7 @@ require google.golang.org/protobuf v1.34.2
 
 require (
 	github.com/cucumber/godog v0.12.5
+	github.com/gogo/status v1.1.1
 	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd
 	github.com/joho/godotenv v1.4.0
 	github.com/pkg/errors v0.9.1
@@ -47,7 +48,7 @@ require (
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/gogo/status v1.1.1 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect

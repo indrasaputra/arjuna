@@ -15,9 +15,9 @@ import (
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
+	"github.com/indrasaputra/arjuna/service/user/internal/connection/auth"
 	orcact "github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/activity"
 	"github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/workflow"
-	"github.com/indrasaputra/arjuna/service/user/internal/repository/keycloak"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
 )
 
@@ -140,26 +140,12 @@ func TestRegisterUser(t *testing.T) {
 		assert.Error(t, st.env.GetWorkflowError())
 	})
 
-	t.Run("KeycloakCreate activity returns error", func(t *testing.T) {
+	t.Run("AuthCreate activity returns error", func(t *testing.T) {
 		st := createRegisterUserSuite()
 		input := createRegisterUserInput()
 
-		st.env.OnActivity(workflow.ActivityKeycloakCreate, mock.Anything, input.User).Return("", errors.New("keycloak error"))
-
-		st.env.ExecuteWorkflow(workflow.RegisterUser, input)
-
-		assert.True(t, st.env.IsWorkflowCompleted())
-		assert.Error(t, st.env.GetWorkflowError())
-	})
-
-	t.Run("PostgresInsert activity returns error", func(t *testing.T) {
-		st := createRegisterUserSuite()
-		input := createRegisterUserInput()
-		id := "1"
-
-		st.env.OnActivity(workflow.ActivityKeycloakCreate, mock.Anything, mock.Anything).Return(id, nil)
-		st.env.OnActivity(workflow.ActivityPostgresUpdateKeycloakID, mock.Anything, mock.Anything).Return(errors.New("keycloak error"))
-		st.env.OnActivity(workflow.ActivityKeycloakHardDelete, mock.Anything, id).Return(nil)
+		st.env.OnActivity(workflow.ActivityAuthCreate, mock.Anything, input.User).Return(errors.New("auth error"))
+		st.env.OnActivity(workflow.ActivityUserHardDelete, mock.Anything, input.User.ID).Return(nil)
 
 		st.env.ExecuteWorkflow(workflow.RegisterUser, input)
 
@@ -170,10 +156,8 @@ func TestRegisterUser(t *testing.T) {
 	t.Run("workflow is executed successfully", func(t *testing.T) {
 		st := createRegisterUserSuite()
 		input := createRegisterUserInput()
-		id := input.User.ID
 
-		st.env.OnActivity(workflow.ActivityKeycloakCreate, mock.Anything, mock.Anything).Return(id, nil)
-		st.env.OnActivity(workflow.ActivityPostgresUpdateKeycloakID, mock.Anything, mock.Anything).Return(nil)
+		st.env.OnActivity(workflow.ActivityAuthCreate, mock.Anything, mock.Anything).Return(nil)
 
 		st.env.ExecuteWorkflow(workflow.RegisterUser, input)
 
@@ -213,9 +197,9 @@ func createRegisterUserSuite() *RegisterUserSuite {
 	s := &RegisterUserSuite{}
 	s.env = s.NewTestWorkflowEnvironment()
 
-	kc := &keycloak.User{}
+	at := &auth.Auth{}
 	pg := &postgres.User{}
-	uc := orcact.NewRegisterUserActivity(kc, pg)
+	uc := orcact.NewRegisterUserActivity(at, pg)
 
 	s.env.RegisterActivityWithOptions(uc, activity.RegisterOptions{Name: "RegisterUserActivity", SkipInvalidStructFunctions: true})
 

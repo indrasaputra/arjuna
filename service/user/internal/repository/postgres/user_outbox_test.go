@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	pgsdk "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
+	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
@@ -37,7 +37,6 @@ func TestNewUserOutbox(t *testing.T) {
 func TestUserOutbox_InsertWithTx(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	query := "INSERT INTO " +
@@ -77,7 +76,7 @@ func TestUserOutbox_InsertWithTx(t *testing.T) {
 		out := createTestUserOutbox()
 		st.tx.EXPECT().
 			Exec(testCtx, query, out.ID, out.Status, out.Payload, out.CreatedAt, out.UpdatedAt, out.CreatedBy, out.UpdatedBy).
-			Return(int64(0), pgsdk.ErrAlreadyExist)
+			Return(int64(0), sdkpg.ErrAlreadyExist)
 
 		err := st.outbox.InsertWithTx(testCtx, st.tx, out)
 
@@ -113,9 +112,7 @@ func TestUserOutbox_InsertWithTx(t *testing.T) {
 func TestUserOutbox_GetAllReady(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
-
 	query := "SELECT id, status, payload FROM users_outbox WHERE status = ? ORDER BY created_at ASC LIMIT ? FOR UPDATE"
 	limit := uint(10)
 
@@ -147,7 +144,6 @@ func TestUserOutbox_GetAllReady(t *testing.T) {
 func TestUserOutbox_SetProcessed(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("set processed returns error", func(t *testing.T) {
@@ -178,7 +174,6 @@ func TestUserOutbox_SetProcessed(t *testing.T) {
 func TestUserOutbox_SetDelivered(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("set delivered returns error", func(t *testing.T) {
@@ -209,7 +204,6 @@ func TestUserOutbox_SetDelivered(t *testing.T) {
 func TestUserOutbox_SetFailed(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("set failed returns error", func(t *testing.T) {
@@ -240,7 +234,6 @@ func TestUserOutbox_SetFailed(t *testing.T) {
 func TestUserOutbox_SetRecordStatus(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("set status returns error", func(t *testing.T) {

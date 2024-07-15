@@ -2,8 +2,6 @@ package service
 
 import (
 	"context"
-	"crypto/rand"
-	"math/big"
 	"net/mail"
 	"regexp"
 	"strings"
@@ -14,11 +12,6 @@ import (
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
-)
-
-const (
-	allowedUsernameCharacters = "abcdefghijklmnopqrstuvwxyz0123456789"
-	usernameLength            = 10
 )
 
 var (
@@ -69,17 +62,13 @@ func NewUserRegistrar(ur RegisterUserRepository, uor RegisterUserOutboxRepositor
 // It returns the ID of the newly created user.
 // It checks the email for duplication.
 func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User) (string, error) {
+	sanitizeUser(user)
 	if err := validateUser(user); err != nil {
 		app.Logger.Errorf(ctx, "[UserRegistrar-Register] user is invalid: %v", err)
 		return "", err
 	}
-	sanitizeUser(user)
 
-	// username is mandatory for Keycloak, but not for this current business.
-	// hence, generating a random username is fine.
-	user.Username = generateUsername(usernameLength)
-
-	if err := setUserID(user); err != nil {
+	if err := setUserID(ctx, user); err != nil {
 		app.Logger.Errorf(ctx, "[UserRegistrar-Register] fail set user id: %v", err)
 		return "", err
 	}
@@ -97,7 +86,7 @@ func (ur *UserRegistrar) saveUserToRepository(ctx context.Context, user *entity.
 	tx, err := ur.unit.Begin(ctx)
 	if err != nil {
 		app.Logger.Errorf(ctx, "[UserRegistrar-saveUserToRepository] fail init transaction: %v", err)
-		return err
+		return entity.ErrInternal("fail to begin transaction")
 	}
 
 	if err = ur.userRepo.InsertWithTx(ctx, tx, user); err != nil {
@@ -106,7 +95,7 @@ func (ur *UserRegistrar) saveUserToRepository(ctx context.Context, user *entity.
 		return err
 	}
 
-	payload, err := createUserOutbox(user)
+	payload, err := createUserOutbox(ctx, user)
 	if err != nil {
 		_ = ur.unit.Finish(ctx, tx, err)
 		return err
@@ -135,22 +124,28 @@ func validateUser(user *entity.User) error {
 }
 
 func sanitizeUser(user *entity.User) {
+	if user == nil {
+		return
+	}
 	user.Name = strings.TrimSpace(user.Name)
 	user.Email = strings.TrimSpace(user.Email)
+	user.Password = strings.TrimSpace(user.Password)
 }
 
-func setUserID(user *entity.User) error {
-	id, err := generateUniqueID()
+func setUserID(ctx context.Context, user *entity.User) error {
+	id, err := generateUniqueID(ctx)
 	if err != nil {
+		app.Logger.Errorf(ctx, "[setUserID] fail generate unique id: %v", err)
 		return entity.ErrInternal("fail to create user's ID")
 	}
 	user.ID = id
 	return nil
 }
 
-func generateUniqueID() (string, error) {
+func generateUniqueID(ctx context.Context) (string, error) {
 	id, err := ksuid.NewRandom()
 	if err != nil {
+		app.Logger.Errorf(ctx, "[setUserID] fail generate ksuid: %v", err)
 		return "", entity.ErrInternal("fail to generate unique ID")
 	}
 	return id.String(), err
@@ -163,23 +158,10 @@ func setUserAuditableProperties(user *entity.User) {
 	user.UpdatedBy = user.ID
 }
 
-func generateUsername(n int) string {
-	username := ""
-	length := len(allowedUsernameCharacters)
-	for i := 0; i < n; i++ {
-		username += string(allowedUsernameCharacters[cryptoRandSecure(int64(length))])
-	}
-	return username
-}
-
-func cryptoRandSecure(max int64) int64 {
-	nBig, _ := rand.Int(rand.Reader, big.NewInt(max))
-	return nBig.Int64()
-}
-
-func createUserOutbox(user *entity.User) (*entity.UserOutbox, error) {
-	id, err := generateUniqueID()
+func createUserOutbox(ctx context.Context, user *entity.User) (*entity.UserOutbox, error) {
+	id, err := generateUniqueID(ctx)
 	if err != nil {
+		app.Logger.Errorf(ctx, "[createUserOutbox] fail generate unique id: %v", err)
 		return nil, entity.ErrInternal("fail to generate user outbox id")
 	}
 

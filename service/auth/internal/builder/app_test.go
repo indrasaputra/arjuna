@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	mock_keycloak "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/keycloak"
+	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/service/auth/internal/builder"
 	"github.com/indrasaputra/arjuna/service/auth/internal/config"
 )
@@ -13,26 +13,7 @@ import (
 func TestBuildAuthHandler(t *testing.T) {
 	t.Run("fail create auth handler", func(t *testing.T) {
 		dep := &builder.Dependency{
-			KeycloakClient: nil,
-			Config: &config.Config{
-				Keycloak: config.Keycloak{},
-			},
-		}
-
-		handler, err := builder.BuildAuthHandler(dep)
-
-		assert.Error(t, err)
-		assert.Nil(t, handler)
-	})
-
-	t.Run("success create auth handler", func(t *testing.T) {
-		dep := &builder.Dependency{
-			KeycloakClient: &mock_keycloak.MockKeycloak{},
-			Config: &config.Config{
-				Keycloak: config.Keycloak{
-					Realm: "realm",
-				},
-			},
+			Config: &config.Config{},
 		}
 
 		handler, err := builder.BuildAuthHandler(dep)
@@ -42,13 +23,13 @@ func TestBuildAuthHandler(t *testing.T) {
 	})
 }
 
-func TestBuildKeycloakClient(t *testing.T) {
-	cfg := config.Keycloak{
-		Timeout: 5,
-	}
+func TestBuildBunDB(t *testing.T) {
+	t.Run("success create bundb", func(t *testing.T) {
+		cfg := sdkpg.Config{}
 
-	t.Run("success build a keycloak client", func(t *testing.T) {
-		client := builder.BuildKeycloakClient(cfg)
-		assert.NotNil(t, client)
+		db, err := builder.BuildBunDB(cfg)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, db)
 	})
 }
