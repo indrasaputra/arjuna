@@ -54,7 +54,7 @@ jobs:
 
   general-quality-check:
     name: General quality check
-    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@implement-idempotency
+    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@main
 
   go-code-quality:
     name: Go code quality check
