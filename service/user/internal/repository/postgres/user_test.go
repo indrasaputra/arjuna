@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	pgsdk "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
+	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
@@ -45,8 +45,8 @@ func TestUser_InsertWithTx(t *testing.T) {
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	query := "INSERT INTO " +
-		"users (id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by) " +
-		"VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+		"users (id, name, created_at, updated_at, created_by, updated_by) " +
+		"VALUES (?, ?, ?, ?, ?, ?)"
 
 	t.Run("nil tx is prohibited", func(t *testing.T) {
 		st := createUserSuite(ctrl)
@@ -69,8 +69,8 @@ func TestUser_InsertWithTx(t *testing.T) {
 		user := createTestUser()
 		st := createUserSuite(ctrl)
 		st.tx.EXPECT().
-			Exec(testCtx, query, user.ID, user.KeycloakID, user.Name, user.Email, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).
-			Return(int64(0), pgsdk.ErrAlreadyExist)
+			Exec(testCtx, query, user.ID, user.Name, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).
+			Return(int64(0), sdkpg.ErrAlreadyExist)
 
 		err := st.user.InsertWithTx(testCtx, st.tx, user)
 
@@ -82,7 +82,7 @@ func TestUser_InsertWithTx(t *testing.T) {
 		user := createTestUser()
 		st := createUserSuite(ctrl)
 		st.tx.EXPECT().
-			Exec(testCtx, query, user.ID, user.KeycloakID, user.Name, user.Email, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).
+			Exec(testCtx, query, user.ID, user.Name, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).
 			Return(int64(0), entity.ErrInternal(""))
 
 		err := st.user.InsertWithTx(testCtx, st.tx, user)
@@ -94,7 +94,7 @@ func TestUser_InsertWithTx(t *testing.T) {
 		user := createTestUser()
 		st := createUserSuite(ctrl)
 		st.tx.EXPECT().
-			Exec(testCtx, query, user.ID, user.KeycloakID, user.Name, user.Email, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).
+			Exec(testCtx, query, user.ID, user.Name, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).
 			Return(int64(1), nil)
 
 		err := st.user.InsertWithTx(testCtx, st.tx, user)
@@ -109,7 +109,7 @@ func TestUser_GetByID(t *testing.T) {
 
 	app.Logger = sdklog.NewLogger(testEnv)
 
-	query := `SELECT id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by FROM users WHERE id = ? LIMIT 1`
+	query := `SELECT id, name, created_at, updated_at, created_by, updated_by FROM users WHERE id = ? LIMIT 1`
 
 	t.Run("select by id returns empty row", func(t *testing.T) {
 		user := createTestUser()
@@ -157,7 +157,7 @@ func TestUser_GetAll(t *testing.T) {
 
 	app.Logger = sdklog.NewLogger(testEnv)
 
-	query := `SELECT id, keycloak_id, name, email, created_at, updated_at, created_by, updated_by FROM users LIMIT ?`
+	query := `SELECT id, name, created_at, updated_at, created_by, updated_by FROM users LIMIT ?`
 	limit := uint(10)
 
 	t.Run("get all returns error", func(t *testing.T) {
@@ -182,39 +182,6 @@ func TestUser_GetAll(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Empty(t, res)
-	})
-}
-
-func TestUser_UpdateKeycloakID(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	app.Logger = sdklog.NewLogger(testEnv)
-
-	query := "UPDATE users SET keycloak_id = ? WHERE id = ?"
-
-	t.Run("update keycloak id returns error", func(t *testing.T) {
-		user := createTestUser()
-		st := createUserSuite(ctrl)
-		st.db.EXPECT().
-			Exec(testCtx, query, user.KeycloakID, user.ID).
-			Return(int64(0), errPostgresInternal)
-
-		err := st.user.UpdateKeycloakID(testCtx, user.ID, user.KeycloakID)
-
-		assert.Error(t, err)
-	})
-
-	t.Run("update keycloak id success", func(t *testing.T) {
-		user := createTestUser()
-		st := createUserSuite(ctrl)
-		st.db.EXPECT().
-			Exec(testCtx, query, user.KeycloakID, user.ID).
-			Return(int64(0), nil)
-
-		err := st.user.UpdateKeycloakID(testCtx, user.ID, user.KeycloakID)
-
-		assert.NoError(t, err)
 	})
 }
 
@@ -260,12 +227,44 @@ func TestUser_HardDeleteWithTx(t *testing.T) {
 	})
 }
 
+func TestUser_HardDelete(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	app.Logger = sdklog.NewLogger(testEnv)
+
+	query := "DELETE FROM users WHERE id = ?"
+
+	t.Run("hard delete returns error", func(t *testing.T) {
+		user := createTestUser()
+		st := createUserSuite(ctrl)
+		st.db.EXPECT().
+			Exec(testCtx, query, user.ID).
+			Return(int64(0), errPostgresInternal)
+
+		err := st.user.HardDelete(testCtx, user.ID)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("success hard delete", func(t *testing.T) {
+		user := createTestUser()
+		st := createUserSuite(ctrl)
+		st.db.EXPECT().
+			Exec(testCtx, query, user.ID).
+			Return(int64(0), nil)
+
+		err := st.user.HardDelete(testCtx, user.ID)
+
+		assert.NoError(t, err)
+	})
+}
+
 func createTestUser() *entity.User {
 	return &entity.User{
-		ID:         "1",
-		KeycloakID: "1",
-		Name:       "First User",
-		Email:      "first@user.com",
+		ID:    "1",
+		Name:  "First User",
+		Email: "first@user.com",
 	}
 }
 

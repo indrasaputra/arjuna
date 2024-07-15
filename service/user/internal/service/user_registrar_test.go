@@ -187,9 +187,8 @@ func createUserRegistrarSuite(ctrl *gomock.Controller) *UserRegistrarSuite {
 
 func createTestUser() *entity.User {
 	return &entity.User{
-		ID:         "1",
-		KeycloakID: "1",
-		Name:       "First User",
-		Email:      "first@user.com",
+		ID:    "1",
+		Name:  "First User",
+		Email: "first@user.com",
 	}
 }

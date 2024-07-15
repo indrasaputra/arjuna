@@ -65,6 +65,58 @@ func ErrInvalidArgument(message string) error {
 	return res.Err()
 }
 
+// ErrInvalidEmail returns codes.InvalidArgument explained that email is invalid.
+func ErrInvalidEmail() error {
+	st := status.New(codes.InvalidArgument, "email is invalid")
+	te := &apiv1.AuthError{
+		ErrorCode: apiv1.AuthErrorCode_AUTH_ERROR_CODE_INVALID_EMAIL,
+	}
+	res, err := st.WithDetails(te)
+	if err != nil {
+		return st.Err()
+	}
+	return res.Err()
+}
+
+// ErrInvalidPassword returns codes.InvalidArgument explained that password is invalid.
+func ErrInvalidPassword() error {
+	st := status.New(codes.InvalidArgument, "password is invalid")
+	te := &apiv1.AuthError{
+		ErrorCode: apiv1.AuthErrorCode_AUTH_ERROR_CODE_INVALID_EMAIL,
+	}
+	res, err := st.WithDetails(te)
+	if err != nil {
+		return st.Err()
+	}
+	return res.Err()
+}
+
+// ErrEmptyAccount returns codes.InvalidArgument explained that the account is empty.
+func ErrEmptyAccount() error {
+	st := status.New(codes.InvalidArgument, "empty account")
+	te := &apiv1.AuthError{
+		ErrorCode: apiv1.AuthErrorCode_AUTH_ERROR_CODE_EMPTY_ACCOUNT,
+	}
+	res, err := st.WithDetails(te)
+	if err != nil {
+		return st.Err()
+	}
+	return res.Err()
+}
+
+// ErrAlreadyExists returns codes.AlreadyExists explained that the account already exists.
+func ErrAlreadyExists() error {
+	st := status.New(codes.AlreadyExists, "")
+	te := &apiv1.AuthError{
+		ErrorCode: apiv1.AuthErrorCode_AUTH_ERROR_CODE_ALREADY_EXISTS,
+	}
+	res, err := st.WithDetails(te)
+	if err != nil {
+		return st.Err()
+	}
+	return res.Err()
+}
+
 func createBadRequest(details ...*errdetails.BadRequest_FieldViolation) *errdetails.BadRequest {
 	return &errdetails.BadRequest{
 		FieldViolations: details,

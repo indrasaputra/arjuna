@@ -7,53 +7,47 @@ import (
 	"go.temporal.io/sdk/temporal"
 
 	"github.com/indrasaputra/arjuna/service/user/entity"
+	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/workflow"
 )
 
-// RegisterUserVendor defines interface to register user to vendor.
-type RegisterUserVendor interface {
-	// Create creates a user in vendor. It must returns the user's ID in vendor's side.
-	Create(ctx context.Context, user *entity.User) (string, error)
-	// HardDelete hard-deletes the user. It must be called when a creation is failing and need a clean up or rollback.
-	HardDelete(ctx context.Context, id string) error
+// RegisterUserConnection defines interface to register user to 3rd party.
+type RegisterUserConnection interface {
+	// CreateAccount creates an account in 3rd party.
+	CreateAccount(ctx context.Context, user *entity.User) error
 }
 
 // RegisterUserDatabase defines interface to register user to database.
 type RegisterUserDatabase interface {
-	// UpdateKeycloakID updates user's keycloak id in database.
-	UpdateKeycloakID(ctx context.Context, id, keycloakID string) error
+	// HardDelete hard-deletes the user. It must be called when a creation is failing and need a clean up or rollback.
+	HardDelete(ctx context.Context, id string) error
 }
 
 // RegisterUserActivity is responsible to execute register user workflow.
 type RegisterUserActivity struct {
-	vendor   RegisterUserVendor
+	conn     RegisterUserConnection
 	database RegisterUserDatabase
 }
 
 // NewRegisterUserActivity creates an instance of RegisterUserActivity.
-func NewRegisterUserActivity(pvd RegisterUserVendor, db RegisterUserDatabase) *RegisterUserActivity {
-	return &RegisterUserActivity{vendor: pvd, database: db}
+func NewRegisterUserActivity(conn RegisterUserConnection, db RegisterUserDatabase) *RegisterUserActivity {
+	return &RegisterUserActivity{conn: conn, database: db}
 }
 
-// CreateInKeycloak creates a user in Keycloak (vendor).
-func (r *RegisterUserActivity) CreateInKeycloak(ctx context.Context, user *entity.User) (string, error) {
-	id, err := r.vendor.Create(ctx, user)
-	if errors.Is(err, entity.ErrAlreadyExists()) {
-		return "", temporal.NewNonRetryableApplicationError(err.Error(), workflow.ErrNonRetryableUserExist, err)
-	}
-	return id, err
-}
-
-// HardDeleteFromKeycloak hard-deletes user from Keycloak.
-func (r *RegisterUserActivity) HardDeleteFromKeycloak(ctx context.Context, id string) error {
-	return r.vendor.HardDelete(ctx, id)
-}
-
-// UpdateKeycloakID updates user's keycloak id in database.
-func (r *RegisterUserActivity) UpdateKeycloakID(ctx context.Context, user *entity.User) error {
-	err := r.database.UpdateKeycloakID(ctx, user.ID, user.KeycloakID)
+// CreateInAuth creates a user in auth service.
+func (r *RegisterUserActivity) CreateInAuth(ctx context.Context, user *entity.User) error {
+	err := r.conn.CreateAccount(ctx, user)
 	if errors.Is(err, entity.ErrAlreadyExists()) {
 		return temporal.NewNonRetryableApplicationError(err.Error(), workflow.ErrNonRetryableUserExist, err)
+	}
+	return err
+}
+
+// HardDeleteInUser hard-deletes user from database.
+func (r *RegisterUserActivity) HardDeleteInUser(ctx context.Context, id string) error {
+	err := r.database.HardDelete(ctx, id)
+	if err != nil {
+		app.Logger.Errorf(ctx, "[RegisterUserActivity-HardDeleteInUser] fail hard delete in user: %v", err)
 	}
 	return err
 }

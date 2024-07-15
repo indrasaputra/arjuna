@@ -8,7 +8,7 @@ import (
 
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/temporal"
-	"go.temporal.io/sdk/workflow"
+	tempflow "go.temporal.io/sdk/workflow"
 
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
@@ -20,16 +20,14 @@ const (
 
 	// ActivityTimeoutDefault sets to 2 seconds.
 	ActivityTimeoutDefault = 2 * time.Second
-	// ActivityKeycloakCreate is derived from struct name + method name. See activity registration in worker.
-	ActivityKeycloakCreate = "RegisterUserActivityCreateInKeycloak"
-	// ActivityKeycloakHardDelete is derived from struct name + method name. See activity registration in worker.
-	ActivityKeycloakHardDelete = "RegisterUserActivityHardDeleteFromKeycloak"
-	// ActivityPostgresUpdateKeycloakID is derived from struct name + method name. See activity registration in worker.
-	ActivityPostgresUpdateKeycloakID = "RegisterUserActivityUpdateKeycloakID"
+	// ActivityAuthCreate is derived from struct name + method name. See activity registration in worker.
+	ActivityAuthCreate = "RegisterUserActivityCreateInAuth"
+	// ActivityUserHardDelete is derived from struct name + method name. See activity registration in worker.
+	ActivityUserHardDelete = "RegisterUserActivityHardDeleteInUser"
 	// ActivityRetryBackoffCoefficient sets to 2.
 	ActivityRetryBackoffCoefficient = 2
 	// ActivityRetryMaximumAttempts sets to 3.
-	ActivityRetryMaximumAttempts = 3
+	ActivityRetryMaximumAttempts = 1
 	// ActivityRetryInitialInterval sets to 1 second.
 	ActivityRetryInitialInterval = 1 * time.Second
 
@@ -88,36 +86,28 @@ func (r *RegisterUserWorkflow) RegisterUser(ctx context.Context, input *entity.R
 }
 
 // RegisterUser runs the user registration workflow.
-func RegisterUser(ctx workflow.Context, input *entity.RegisterUserInput) (*entity.RegisterUserOutput, error) {
+func RegisterUser(ctx tempflow.Context, input *entity.RegisterUserInput) (*entity.RegisterUserOutput, error) {
 	if err := validateRegisterUserInput(input); err != nil {
 		return nil, err
 	}
 
-	var id string
 	ctx = createContextWithActivityOptions(ctx, ActivityTimeoutDefault, TaskQueueRegisterUser)
-	err := workflow.ExecuteActivity(ctx, ActivityKeycloakCreate, input.User).Get(ctx, &id)
-	if err != nil {
-		return nil, err
-	}
-	input.User.KeycloakID = id
-
-	ctx = createContextWithActivityOptions(ctx, ActivityTimeoutDefault, TaskQueueRegisterUser)
-	err = workflow.ExecuteActivity(ctx, ActivityPostgresUpdateKeycloakID, input.User).Get(ctx, nil)
+	err := tempflow.ExecuteActivity(ctx, ActivityAuthCreate, input.User).Get(ctx, nil)
 	if err != nil {
 		ctx = createContextWithActivityOptions(ctx, ActivityTimeoutDefault, TaskQueueRegisterUser)
-		_ = workflow.ExecuteActivity(ctx, ActivityKeycloakHardDelete, id).Get(ctx, nil)
+		_ = tempflow.ExecuteActivity(ctx, ActivityUserHardDelete, input.User.ID).Get(ctx, nil)
 		return nil, entity.ErrInternal("Something went wrong within our server. Please try again")
 	}
 	return &entity.RegisterUserOutput{}, nil
 }
 
-func createContextWithActivityOptions(tempoCtx workflow.Context, timeout time.Duration, queue string) workflow.Context {
+func createContextWithActivityOptions(tempoCtx tempflow.Context, timeout time.Duration, queue string) tempflow.Context {
 	opts := createActivityOptions(timeout, queue)
-	return workflow.WithActivityOptions(tempoCtx, opts)
+	return tempflow.WithActivityOptions(tempoCtx, opts)
 }
 
-func createActivityOptions(timeout time.Duration, queue string) workflow.ActivityOptions {
-	return workflow.ActivityOptions{
+func createActivityOptions(timeout time.Duration, queue string) tempflow.ActivityOptions {
+	return tempflow.ActivityOptions{
 		StartToCloseTimeout: timeout,
 		TaskQueue:           queue,
 		RetryPolicy: &temporal.RetryPolicy{

@@ -56,43 +56,6 @@ func (mr *MockDeleteUserMockRecorder) HardDelete(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HardDelete", reflect.TypeOf((*MockDeleteUser)(nil).HardDelete), ctx, id)
 }
 
-// MockDeleteUserProvider is a mock of DeleteUserProvider interface.
-type MockDeleteUserProvider struct {
-	ctrl     *gomock.Controller
-	recorder *MockDeleteUserProviderMockRecorder
-}
-
-// MockDeleteUserProviderMockRecorder is the mock recorder for MockDeleteUserProvider.
-type MockDeleteUserProviderMockRecorder struct {
-	mock *MockDeleteUserProvider
-}
-
-// NewMockDeleteUserProvider creates a new mock instance.
-func NewMockDeleteUserProvider(ctrl *gomock.Controller) *MockDeleteUserProvider {
-	mock := &MockDeleteUserProvider{ctrl: ctrl}
-	mock.recorder = &MockDeleteUserProviderMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockDeleteUserProvider) EXPECT() *MockDeleteUserProviderMockRecorder {
-	return m.recorder
-}
-
-// HardDelete mocks base method.
-func (m *MockDeleteUserProvider) HardDelete(ctx context.Context, id string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HardDelete", ctx, id)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// HardDelete indicates an expected call of HardDelete.
-func (mr *MockDeleteUserProviderMockRecorder) HardDelete(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HardDelete", reflect.TypeOf((*MockDeleteUserProvider)(nil).HardDelete), ctx, id)
-}
-
 // MockDeleteUserRepository is a mock of DeleteUserRepository interface.
 type MockDeleteUserRepository struct {
 	ctrl     *gomock.Controller

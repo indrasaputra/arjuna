@@ -5,19 +5,20 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
 
-	pgsdk "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
+	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
 )
 
 // Config holds configuration for the project.
 type Config struct {
-	Postgres                    pgsdk.Config
+	Postgres                    sdkpg.Config
 	Tracer                      trace.Config
 	Temporal                    Temporal
 	ServiceName                 string `env:"SERVICE_NAME,default=user-server"`
 	AppEnv                      string `env:"APP_ENV,default=development"`
 	Port                        string `env:"PORT,default=8001"`
 	PrometheusPort              string `env:"PROMETHEUS_PORT,default=7001"`
+	AuthServiceHost             string `env:"AUTH_SERVICE_HOST,required"`
 	Keycloak                    Keycloak
 	RelayerSleepTimeMillisecond int `env:"RELAYER_SLEEP_TIME_MILLISECONDS,default=1000"`
 }

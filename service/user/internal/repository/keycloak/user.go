@@ -120,7 +120,6 @@ func getFirstAndLastName(name string) (string, string) {
 func createUserRepresentation(user *entity.User) *kcsdk.UserRepresentation {
 	firstName, lastName := getFirstAndLastName(user.Name)
 	return &kcsdk.UserRepresentation{
-		Username:  user.Username,
 		FirstName: firstName,
 		LastName:  lastName,
 		Email:     user.Email,

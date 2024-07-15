@@ -37,6 +37,83 @@ func TestNewAuth(t *testing.T) {
 	})
 }
 
+func TestAuth_Register(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	app.Logger = sdklog.NewLogger(testEnv)
+
+	t.Run("empty account is prohibited", func(t *testing.T) {
+		st := createAuthSuite(ctrl)
+
+		err := st.auth.Register(testCtx, nil)
+
+		assert.Error(t, err)
+		assert.Equal(t, entity.ErrEmptyAccount(), err)
+	})
+
+	t.Run("user id is invalid", func(t *testing.T) {
+		st := createAuthSuite(ctrl)
+		account := createTestAccount()
+		account.UserID = ""
+
+		err := st.auth.Register(testCtx, account)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("email is invalid", func(t *testing.T) {
+		st := createAuthSuite(ctrl)
+		emails := []string{
+			"@domain",
+			"@domain.com",
+			"domain.com",
+		}
+
+		for _, email := range emails {
+			account := createTestAccount()
+			account.Email = email
+
+			err := st.auth.Register(testCtx, account)
+
+			assert.Error(t, err)
+			assert.Equal(t, entity.ErrInvalidEmail(), err)
+		}
+	})
+
+	t.Run("password is invalid", func(t *testing.T) {
+		st := createAuthSuite(ctrl)
+		account := createTestAccount()
+		account.Password = ""
+
+		err := st.auth.Register(testCtx, account)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("account repo insert returns error", func(t *testing.T) {
+		st := createAuthSuite(ctrl)
+		account := createTestAccount()
+
+		st.repo.EXPECT().Insert(testCtx, account).Return(entity.ErrInternal(""))
+
+		err := st.auth.Register(testCtx, account)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("success register an account", func(t *testing.T) {
+		st := createAuthSuite(ctrl)
+		account := createTestAccount()
+
+		st.repo.EXPECT().Insert(testCtx, account).Return(nil)
+
+		err := st.auth.Register(testCtx, account)
+
+		assert.NoError(t, err)
+	})
+}
+
 func TestAuth_Login(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -94,5 +171,14 @@ func createAuthSuite(ctrl *gomock.Controller) *AuthSuite {
 	return &AuthSuite{
 		auth: a,
 		repo: r,
+	}
+}
+
+func createTestAccount() *entity.Account {
+	return &entity.Account{
+		ID:       "1",
+		UserID:   "1",
+		Email:    "first@account.com",
+		Password: "password",
 	}
 }

@@ -31,20 +31,6 @@ func TestBuildUserCommandHandler(t *testing.T) {
 }
 
 func TestBuildUserCommandInternalHandler(t *testing.T) {
-	t.Run("fail create user command internal handler", func(t *testing.T) {
-		dep := &builder.Dependency{
-			KeycloakClient: nil,
-			Config: &config.Config{
-				Keycloak: config.Keycloak{},
-			},
-		}
-
-		handler, err := builder.BuildUserCommandInternalHandler(dep)
-
-		assert.Error(t, err)
-		assert.Nil(t, handler)
-	})
-
 	t.Run("success create user command internal handler", func(t *testing.T) {
 		dep := &builder.Dependency{
 			KeycloakClient: &mock_keycloak.MockKeycloak{},
@@ -57,9 +43,8 @@ func TestBuildUserCommandInternalHandler(t *testing.T) {
 			},
 		}
 
-		handler, err := builder.BuildUserCommandInternalHandler(dep)
+		handler := builder.BuildUserCommandInternalHandler(dep)
 
-		assert.NoError(t, err)
 		assert.NotNil(t, handler)
 	})
 }

@@ -17,7 +17,6 @@ import (
 type UserDeleterSuite struct {
 	deleter  *service.UserDeleter
 	database *mock_service.MockDeleteUserRepository
-	keycloak *mock_service.MockDeleteUserProvider
 	unit     *mock_uow.MockUnitOfWork
 	tx       *mock_uow.MockTx
 }
@@ -80,23 +79,6 @@ func TestUserDeleter_HardDelete(t *testing.T) {
 		assert.Equal(t, errReturn, err)
 	})
 
-	t.Run("delete from keycloak returns error and rollback", func(t *testing.T) {
-		user := createTestUser()
-		errReturn := entity.ErrInternal("")
-
-		st := createUserDeleterSuite(ctrl)
-		st.database.EXPECT().GetByID(testCtx, user.ID).Return(user, nil)
-		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
-		st.database.EXPECT().HardDeleteWithTx(testCtx, st.tx, user.ID).Return(nil)
-		st.keycloak.EXPECT().HardDelete(testCtx, user.KeycloakID).Return(errReturn)
-		st.unit.EXPECT().Finish(testCtx, st.tx, errReturn).Return(errReturn)
-
-		err := st.deleter.HardDelete(testCtx, user.ID)
-
-		assert.Error(t, err)
-		assert.Equal(t, errReturn, err)
-	})
-
 	t.Run("finish returns error", func(t *testing.T) {
 		user := createTestUser()
 		errReturn := entity.ErrInternal("")
@@ -105,7 +87,6 @@ func TestUserDeleter_HardDelete(t *testing.T) {
 		st.database.EXPECT().GetByID(testCtx, user.ID).Return(user, nil)
 		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
 		st.database.EXPECT().HardDeleteWithTx(testCtx, st.tx, user.ID).Return(nil)
-		st.keycloak.EXPECT().HardDelete(testCtx, user.KeycloakID).Return(nil)
 		st.unit.EXPECT().Finish(testCtx, st.tx, nil).Return(errReturn)
 
 		err := st.deleter.HardDelete(testCtx, user.ID)
@@ -121,7 +102,6 @@ func TestUserDeleter_HardDelete(t *testing.T) {
 		st.database.EXPECT().GetByID(testCtx, user.ID).Return(user, nil)
 		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
 		st.database.EXPECT().HardDeleteWithTx(testCtx, st.tx, user.ID).Return(nil)
-		st.keycloak.EXPECT().HardDelete(testCtx, user.KeycloakID).Return(nil)
 		st.unit.EXPECT().Finish(testCtx, st.tx, nil).Return(nil)
 
 		err := st.deleter.HardDelete(testCtx, user.ID)
@@ -131,15 +111,13 @@ func TestUserDeleter_HardDelete(t *testing.T) {
 }
 
 func createUserDeleterSuite(ctrl *gomock.Controller) *UserDeleterSuite {
-	kc := mock_service.NewMockDeleteUserProvider(ctrl)
 	db := mock_service.NewMockDeleteUserRepository(ctrl)
 	u := mock_uow.NewMockUnitOfWork(ctrl)
 	tx := mock_uow.NewMockTx(ctrl)
-	d := service.NewUserDeleter(u, db, kc)
+	d := service.NewUserDeleter(u, db)
 	return &UserDeleterSuite{
 		deleter:  d,
 		database: db,
-		keycloak: kc,
 		unit:     u,
 		tx:       tx,
 	}

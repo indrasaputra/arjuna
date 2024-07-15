@@ -44,7 +44,7 @@
     "/v1/auth/login": {
       "post": {
         "summary": "Login.",
-        "description": "This endpoint logs in a user.",
+        "description": "This endpoint logs in an account.",
         "operationId": "Login",
         "responses": {
           "200": {
@@ -208,16 +208,38 @@
         }
       }
     },
-    "v1Credential": {
+    "v1Account": {
       "type": "object",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "id represents unique id."
+        },
+        "userId": {
+          "type": "string",
+          "description": "user_id represents user's id."
+        },
         "email": {
           "type": "string",
           "description": "email represents user's email."
         },
         "password": {
           "type": "string",
-          "description": "password represents user's password."
+          "title": "password represents user's password"
+        }
+      },
+      "description": "Account represents account."
+    },
+    "v1Credential": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "email represents account's email."
+        },
+        "password": {
+          "type": "string",
+          "description": "password represents account's password."
         },
         "clientId": {
           "type": "string",
@@ -253,6 +275,10 @@
         }
       },
       "description": "LoginResponse represents response from login."
+    },
+    "v1RegisterResponse": {
+      "type": "object",
+      "description": "RegisterResponse represents response for registration."
     },
     "v1RegisterUserResponse": {
       "type": "object",

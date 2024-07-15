@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	"log"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -29,7 +28,6 @@ func main() {
 	_, err = trace.NewProvider(ctx, cfg.Tracer)
 	checkError(err)
 
-	keycloakClient := builder.BuildKeycloakClient(cfg.Keycloak)
 	temporalClient, err := builder.BuildTemporalClient(cfg.Temporal.Address)
 	checkError(err)
 	defer temporalClient.Close()
@@ -37,7 +35,6 @@ func main() {
 	checkError(err)
 
 	dep := &builder.Dependency{
-		KeycloakClient: keycloakClient,
 		TemporalClient: temporalClient,
 		Config:         cfg,
 		DB:             bunDB,
@@ -54,10 +51,7 @@ func main() {
 func registerGrpcService(grpcServer *server.GrpcServer, dep *builder.Dependency) {
 	// start register all module's gRPC handlers
 	command := builder.BuildUserCommandHandler(dep)
-	commandInternal, err := builder.BuildUserCommandInternalHandler(dep)
-	if err != nil {
-		log.Fatalf("fail build user command internal handler: %v", err)
-	}
+	commandInternal := builder.BuildUserCommandInternalHandler(dep)
 	query := builder.BuildUserQueryHandler(dep)
 	health := handler.NewHealth()
 

@@ -42,3 +42,35 @@ func TestErrInvalidArgument(t *testing.T) {
 		assert.Contains(t, err.Error(), "rpc error: code = InvalidArgument")
 	})
 }
+
+func TestErrAlreadyExists(t *testing.T) {
+	t.Run("success get already exists error", func(t *testing.T) {
+		err := entity.ErrAlreadyExists()
+
+		assert.Contains(t, err.Error(), "rpc error: code = AlreadyExists")
+	})
+}
+
+func TestErrEmptyAccount(t *testing.T) {
+	t.Run("success get empty account error", func(t *testing.T) {
+		err := entity.ErrEmptyAccount()
+
+		assert.Contains(t, err.Error(), "rpc error: code = AlreadyExists")
+	})
+}
+
+func TestErrInvalidPassword(t *testing.T) {
+	t.Run("success get invalid password error", func(t *testing.T) {
+		err := entity.ErrInvalidPassword()
+
+		assert.Contains(t, err.Error(), "rpc error: code = AlreadyExists")
+	})
+}
+
+func TestErrInvalidEmail(t *testing.T) {
+	t.Run("success get invalid email error", func(t *testing.T) {
+		err := entity.ErrInvalidEmail()
+
+		assert.Contains(t, err.Error(), "rpc error: code = AlreadyExists")
+	})
+}

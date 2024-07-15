@@ -56,6 +56,20 @@ func (mr *MockAuthenticationMockRecorder) Login(ctx, clientID, email, password a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockAuthentication)(nil).Login), ctx, clientID, email, password)
 }
 
+// Register mocks base method.
+func (m *MockAuthentication) Register(ctx context.Context, account *entity.Account) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Register", ctx, account)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Register indicates an expected call of Register.
+func (mr *MockAuthenticationMockRecorder) Register(ctx, account any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockAuthentication)(nil).Register), ctx, account)
+}
+
 // MockAuthRepository is a mock of AuthRepository interface.
 type MockAuthRepository struct {
 	ctrl     *gomock.Controller
@@ -77,6 +91,20 @@ func NewMockAuthRepository(ctrl *gomock.Controller) *MockAuthRepository {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockAuthRepository) EXPECT() *MockAuthRepositoryMockRecorder {
 	return m.recorder
+}
+
+// Insert mocks base method.
+func (m *MockAuthRepository) Insert(ctx context.Context, account *entity.Account) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Insert", ctx, account)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Insert indicates an expected call of Insert.
+func (mr *MockAuthRepositoryMockRecorder) Insert(ctx, account any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockAuthRepository)(nil).Insert), ctx, account)
 }
 
 // Login mocks base method.

@@ -40,6 +40,21 @@ func (a *Auth) Login(ctx context.Context, request *apiv1.LoginRequest) (*apiv1.L
 	return &apiv1.LoginResponse{Data: createTokenProto(token)}, nil
 }
 
+// Register handles HTTP/2 gRPC request similar to POST in HTTP/1.1.
+func (a *Auth) Register(ctx context.Context, request *apiv1.RegisterRequest) (*apiv1.RegisterResponse, error) {
+	if err := validateRegisterRequest(request); err != nil {
+		app.Logger.Errorf(ctx, "[AuthHandler-Register] request invalid: %v", err)
+		return nil, err
+	}
+
+	err := a.auth.Register(ctx, createAccountFromRegisterRequest(request))
+	if err != nil {
+		app.Logger.Errorf(ctx, "[AuthHandler-Register] login fail: %v", err)
+		return nil, err
+	}
+	return &apiv1.RegisterResponse{}, nil
+}
+
 func validateLoginRequest(request *apiv1.LoginRequest) error {
 	if request == nil || request.GetCredential() == nil {
 		return entity.ErrEmptyField("request body")
@@ -54,6 +69,30 @@ func validateLoginRequest(request *apiv1.LoginRequest) error {
 		return entity.ErrEmptyField("password")
 	}
 	return nil
+}
+
+func validateRegisterRequest(request *apiv1.RegisterRequest) error {
+	if request == nil || request.GetAccount() == nil {
+		return entity.ErrEmptyField("request body")
+	}
+	if strings.TrimSpace(request.GetAccount().GetUserId()) == "" {
+		return entity.ErrEmptyField("user id")
+	}
+	if strings.TrimSpace(request.GetAccount().GetEmail()) == "" {
+		return entity.ErrEmptyField("email")
+	}
+	if strings.TrimSpace(request.GetAccount().GetPassword()) == "" {
+		return entity.ErrEmptyField("password")
+	}
+	return nil
+}
+
+func createAccountFromRegisterRequest(request *apiv1.RegisterRequest) *entity.Account {
+	return &entity.Account{
+		UserID:   request.GetAccount().GetUserId(),
+		Email:    request.GetAccount().GetEmail(),
+		Password: request.GetAccount().GetPassword(),
+	}
 }
 
 func createTokenProto(token *entity.Token) *apiv1.Token {

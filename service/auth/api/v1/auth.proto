@@ -36,7 +36,7 @@ service AuthService {
 
   // Login.
   //
-  // This endpoint logs in a user.
+  // This endpoint logs in an account.
   rpc Login(LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
       post : "/v1/auth/login",
@@ -48,6 +48,12 @@ service AuthService {
       tags : "Auth"
     };
   };
+
+  // Register.
+  //
+  // This endpoint register an account.
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+  }
 }
 
 // LoginRequest represents request for login.
@@ -62,11 +68,33 @@ message LoginResponse {
   Token data = 1;
 }
 
+// RegisterRequest represents request for registration.
+message RegisterRequest {
+  // Account represents account to register.
+  Account account = 1;
+}
+
+// RegisterResponse represents response for registration.
+message RegisterResponse {
+}
+
+// Account represents account.
+message Account {
+  // id represents unique id.
+  string id = 1;
+  // user_id represents user's id.
+  string user_id = 2;
+  // email represents user's email.
+  string email = 3;
+  // password represents user's password
+  string password = 4;
+}
+
 // Credential represents login credential.
 message Credential {
-  // email represents user's email.
+  // email represents account's email.
   string email = 1;
-  // password represents user's password.
+  // password represents account's password.
   string password = 2;
   // client_id represents client ID.
   string client_id = 3;
@@ -109,4 +137,17 @@ enum AuthErrorCode {
 
   // Some arguments must be invalid.
   AUTH_ERROR_CODE_INVALID_ARGUMENT = 4;
+
+  // Account instance is empty or nil.
+  AUTH_ERROR_CODE_EMPTY_ACCOUNT = 5;
+
+  // Account's email is invalid.
+  AUTH_ERROR_CODE_INVALID_EMAIL = 6;
+
+  // Account's password is invalid.
+  AUTH_ERROR_CODE_INVALID_PASSWORD = 7;
+
+  // Account already exists.
+  // The uniqueness of an account is represented by email.
+  AUTH_ERROR_CODE_ALREADY_EXISTS = 8;
 }

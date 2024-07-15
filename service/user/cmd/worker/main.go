@@ -13,9 +13,9 @@ import (
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/builder"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
+	connauth "github.com/indrasaputra/arjuna/service/user/internal/connection/auth"
 	orcact "github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/activity"
 	orcwork "github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/workflow"
-	"github.com/indrasaputra/arjuna/service/user/internal/repository/keycloak"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
 )
 
@@ -33,25 +33,15 @@ func main() {
 	temporalClient, err := builder.BuildTemporalClient(cfg.Temporal.Address)
 	checkError(err)
 	defer temporalClient.Close()
-	keycloakClient := builder.BuildKeycloakClient(cfg.Keycloak)
 	bunDB, err := builder.BuildBunDB(cfg.Postgres)
 	checkError(err)
+	authClient, err := builder.BuildAuthClient(cfg.AuthServiceHost)
+	checkError(err)
 
-	dep := &builder.Dependency{
-		KeycloakClient: keycloakClient,
-		Config:         cfg,
-	}
-
-	kcConfig := &keycloak.Config{
-		Client:        dep.KeycloakClient,
-		Realm:         dep.Config.Keycloak.Realm,
-		AdminUsername: dep.Config.Keycloak.AdminUser,
-		AdminPassword: dep.Config.Keycloak.AdminPassword,
-	}
-	kc, _ := keycloak.NewUser(kcConfig)
+	co := connauth.NewAuth(authClient)
 	db := postgres.NewUser(bunDB)
 
-	act := orcact.NewRegisterUserActivity(kc, db)
+	act := orcact.NewRegisterUserActivity(co, db)
 
 	w := worker.New(temporalClient, orcwork.TaskQueueRegisterUser, worker.Options{
 		DisableRegistrationAliasing: true,

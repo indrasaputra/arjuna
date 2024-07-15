@@ -14,13 +14,6 @@ type DeleteUser interface {
 	HardDelete(ctx context.Context, id string) error
 }
 
-// DeleteUserProvider defines the interface to delete user from the provider.
-type DeleteUserProvider interface {
-	// HardDelete hard-deletes a single user from the provider.
-	// If the user can't be found, it doesn't return error.
-	HardDelete(ctx context.Context, id string) error
-}
-
 // DeleteUserRepository defines interface to delete user from repository.
 type DeleteUserRepository interface {
 	// GetByID gets a user by ID.
@@ -33,20 +26,19 @@ type DeleteUserRepository interface {
 // UserDeleter is responsible for deleting a user.
 type UserDeleter struct {
 	database DeleteUserRepository
-	keycloak DeleteUserProvider
 	unit     uow.UnitOfWork
 }
 
 // NewUserDeleter creates an instance of UserDeleter.
-func NewUserDeleter(unit uow.UnitOfWork, db DeleteUserRepository, kc DeleteUserProvider) *UserDeleter {
+func NewUserDeleter(unit uow.UnitOfWork, db DeleteUserRepository) *UserDeleter {
 	return &UserDeleter{
 		database: db,
-		keycloak: kc,
 		unit:     unit,
 	}
 }
 
 // HardDelete hard-deletes a user in system.
+// TODO: Use temporal to call auth service.
 func (td *UserDeleter) HardDelete(ctx context.Context, id string) error {
 	user, err := td.database.GetByID(ctx, id)
 	if err != nil {
@@ -68,8 +60,5 @@ func (td *UserDeleter) HardDelete(ctx context.Context, id string) error {
 }
 
 func (td *UserDeleter) hardDelete(ctx context.Context, tx uow.Tx, user *entity.User) error {
-	if err := td.database.HardDeleteWithTx(ctx, tx, user.ID); err != nil {
-		return err
-	}
-	return td.keycloak.HardDelete(ctx, user.KeycloakID)
+	return td.database.HardDeleteWithTx(ctx, tx, user.ID)
 }
