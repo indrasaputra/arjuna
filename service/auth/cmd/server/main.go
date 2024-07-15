@@ -30,14 +30,14 @@ func main() {
 
 	app.Logger = sdklog.NewLogger(cfg.AppEnv)
 
-	keycloakClient := builder.BuildKeycloakClient(cfg.Keycloak)
 	bunDB, err := builder.BuildBunDB(cfg.Postgres)
 	checkError(err)
 
 	dep := &builder.Dependency{
-		KeycloakClient: keycloakClient,
-		Config:         cfg,
-		DB:             bunDB,
+		Config:             cfg,
+		DB:                 bunDB,
+		SigningKey:         cfg.Token.SigningKey,
+		ExpiryTimeInMinute: cfg.Token.ExpiryTimeInMinutes,
 	}
 
 	grpcServer := server.NewGrpcServer(cfg.ServiceName, cfg.Port)

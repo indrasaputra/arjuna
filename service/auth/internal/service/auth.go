@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/segmentio/ksuid"
 	"golang.org/x/crypto/bcrypt"
 
@@ -13,39 +14,59 @@ import (
 	"github.com/indrasaputra/arjuna/service/auth/internal/app"
 )
 
+const (
+	tokenIssuer = "auth-service"
+	timeMinute  = 60
+)
+
 // Authentication defines the interface to authenticate.
 type Authentication interface {
 	// Login logs in a user using email and password.
-	Login(ctx context.Context, clientID, email, password string) (*entity.Token, error)
+	Login(ctx context.Context, email, password string) (*entity.Token, error)
 	// Register registers an account.
 	Register(ctx context.Context, account *entity.Account) error
 }
 
 // AuthRepository defines the interface to authenticate.
 type AuthRepository interface {
-	// Login logs in a user.
-	Login(ctx context.Context, clientID, email, password string) (*entity.Token, error)
+	// GetByEmail gets an account by email.
+	GetByEmail(ctx context.Context, email string) (*entity.Account, error)
 	// Insert inserts an account.
 	Insert(ctx context.Context, account *entity.Account) error
 }
 
 // Auth is responsible for authentication.
 type Auth struct {
-	repo AuthRepository
+	repo            AuthRepository
+	signingKey      []byte
+	tokenExpiration int
 }
 
 // NewAuth creates an instance of Auth.
-func NewAuth(repo AuthRepository) *Auth {
-	return &Auth{repo: repo}
+func NewAuth(repo AuthRepository, key []byte, exp int) *Auth {
+	return &Auth{repo: repo, tokenExpiration: exp, signingKey: key}
 }
 
 // Login logs in a user using email and password.
-func (a *Auth) Login(ctx context.Context, clientID, email, password string) (*entity.Token, error) {
-	if err := validateLoginParams(clientID, email, password); err != nil {
+// As of now, refresh token is not implemented and it only returns access token.
+func (a *Auth) Login(ctx context.Context, email, password string) (*entity.Token, error) {
+	if err := validateLoginParams(email, password); err != nil {
 		app.Logger.Errorf(ctx, "[Auth-Login] param invalid: %v", err)
 		return nil, err
 	}
-	return a.repo.Login(ctx, clientID, email, password)
+
+	account, err := a.repo.GetByEmail(ctx, email)
+	if err == entity.ErrNotFound() {
+		return nil, entity.ErrInvalidCredential()
+	}
+	if err != nil {
+		return nil, err
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password))
+	if err != nil {
+		return nil, entity.ErrInvalidCredential()
+	}
+	return createAccessToken(account, a.signingKey, a.tokenExpiration)
 }
 
 // Register registers an account.
@@ -98,10 +119,7 @@ func sanitizeAccount(account *entity.Account) {
 	account.Password = strings.TrimSpace(account.Password)
 }
 
-func validateLoginParams(clientID, email, password string) error {
-	if strings.TrimSpace(clientID) == "" {
-		return entity.ErrEmptyField("clientId")
-	}
+func validateLoginParams(email, password string) error {
 	if strings.TrimSpace(email) == "" {
 		return entity.ErrEmptyField("email")
 	}
@@ -144,4 +162,24 @@ func setAccountAuditableProperties(account *entity.Account) {
 	account.UpdatedAt = time.Now().UTC()
 	account.CreatedBy = account.ID
 	account.UpdatedBy = account.ID
+}
+
+func createAccessToken(account *entity.Account, key []byte, exp int) (*entity.Token, error) {
+	claims := entity.Claims{
+		AccountID: account.ID,
+		UserID:    account.UserID,
+		Email:     account.Email,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(exp) * time.Minute)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			Issuer:    tokenIssuer,
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	res, err := token.SignedString(key)
+	if err != nil {
+		return nil, entity.ErrInternal("fail signing token")
+	}
+	return &entity.Token{AccessToken: res, AccessTokenExpiresIn: uint32(exp * timeMinute)}, nil
 }

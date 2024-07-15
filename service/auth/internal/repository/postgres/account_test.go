@@ -2,6 +2,7 @@ package postgres_test
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,7 +24,6 @@ var (
 type AccountSuite struct {
 	account *postgres.Account
 	db      *mock_uow.MockDB
-	tx      *mock_uow.MockTx
 }
 
 func TestNewAccount(t *testing.T) {
@@ -39,12 +39,10 @@ func TestNewAccount(t *testing.T) {
 func TestAccount_Insert(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
-
 	query := "INSERT INTO " +
-		"accounts (id, name, created_at, updated_at, created_by, updated_by) " +
-		"VALUES (?, ?, ?, ?, ?, ?)"
+		"accounts (id, user_id, email, password, created_at, updated_at, created_by, updated_by) " +
+		"VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
 
 	t.Run("nil account is prohibited", func(t *testing.T) {
 		st := createAccountSuite(ctrl)
@@ -58,7 +56,7 @@ func TestAccount_Insert(t *testing.T) {
 	t.Run("insert duplicate account", func(t *testing.T) {
 		account := createTestAccount()
 		st := createAccountSuite(ctrl)
-		st.tx.EXPECT().
+		st.db.EXPECT().
 			Exec(testCtx, query, account.ID, account.UserID, account.Email, account.Password, account.CreatedAt, account.UpdatedAt, account.CreatedBy, account.UpdatedBy).
 			Return(int64(0), sdkpg.ErrAlreadyExist)
 
@@ -71,7 +69,7 @@ func TestAccount_Insert(t *testing.T) {
 	t.Run("insert returns error", func(t *testing.T) {
 		account := createTestAccount()
 		st := createAccountSuite(ctrl)
-		st.tx.EXPECT().
+		st.db.EXPECT().
 			Exec(testCtx, query, account.ID, account.UserID, account.Email, account.Password, account.CreatedAt, account.UpdatedAt, account.CreatedBy, account.UpdatedBy).
 			Return(int64(0), entity.ErrInternal(""))
 
@@ -83,13 +81,60 @@ func TestAccount_Insert(t *testing.T) {
 	t.Run("success insert account", func(t *testing.T) {
 		account := createTestAccount()
 		st := createAccountSuite(ctrl)
-		st.tx.EXPECT().
+		st.db.EXPECT().
 			Exec(testCtx, query, account.ID, account.UserID, account.Email, account.Password, account.CreatedAt, account.UpdatedAt, account.CreatedBy, account.UpdatedBy).
 			Return(int64(1), nil)
 
 		err := st.account.Insert(testCtx, account)
 
 		assert.NoError(t, err)
+	})
+}
+
+func TestAccount_GetByEmail(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	app.Logger = sdklog.NewLogger(testEnv)
+	query := `SELECT id, user_id, email, password FROM accounts WHERE email = ? LIMIT 1`
+
+	t.Run("get by email returns empty row", func(t *testing.T) {
+		acc := createTestAccount()
+		st := createAccountSuite(ctrl)
+		st.db.EXPECT().
+			Query(testCtx, gomock.Any(), query, acc.Email).
+			Return(sql.ErrNoRows)
+
+		res, err := st.account.GetByEmail(testCtx, acc.Email)
+
+		assert.Error(t, err)
+		assert.Equal(t, entity.ErrNotFound(), err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("get by email returns error", func(t *testing.T) {
+		acc := createTestAccount()
+		st := createAccountSuite(ctrl)
+		st.db.EXPECT().
+			Query(testCtx, gomock.Any(), query, acc.Email).
+			Return(entity.ErrInternal("error"))
+
+		res, err := st.account.GetByEmail(testCtx, acc.Email)
+
+		assert.Error(t, err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("success select by email", func(t *testing.T) {
+		acc := createTestAccount()
+		st := createAccountSuite(ctrl)
+		st.db.EXPECT().
+			Query(testCtx, gomock.Any(), query, acc.Email).
+			Return(nil)
+
+		res, err := st.account.GetByEmail(testCtx, acc.Email)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, res)
 	})
 }
 
@@ -104,11 +149,9 @@ func createTestAccount() *entity.Account {
 
 func createAccountSuite(ctrl *gomock.Controller) *AccountSuite {
 	db := mock_uow.NewMockDB(ctrl)
-	tx := mock_uow.NewMockTx(ctrl)
 	ac := postgres.NewAccount(db)
 	return &AccountSuite{
 		account: ac,
 		db:      db,
-		tx:      tx,
 	}
 }

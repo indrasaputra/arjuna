@@ -41,7 +41,6 @@ func TestNewUser(t *testing.T) {
 func TestUser_InsertWithTx(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	query := "INSERT INTO " +
@@ -106,7 +105,6 @@ func TestUser_InsertWithTx(t *testing.T) {
 func TestUser_GetByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	query := `SELECT id, name, created_at, updated_at, created_by, updated_by FROM users WHERE id = ? LIMIT 1`
@@ -154,7 +152,6 @@ func TestUser_GetByID(t *testing.T) {
 func TestUser_GetAll(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	query := `SELECT id, name, created_at, updated_at, created_by, updated_by FROM users LIMIT ?`
@@ -188,7 +185,6 @@ func TestUser_GetAll(t *testing.T) {
 func TestUser_HardDeleteWithTx(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	query := "DELETE FROM users WHERE id = ?"
@@ -230,7 +226,6 @@ func TestUser_HardDeleteWithTx(t *testing.T) {
 func TestUser_HardDelete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	query := "DELETE FROM users WHERE id = ?"

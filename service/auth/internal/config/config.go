@@ -17,14 +17,13 @@ type Config struct {
 	AppEnv         string `env:"APP_ENV,default=development"`
 	Port           string `env:"PORT,default=8002"`
 	PrometheusPort string `env:"PROMETHEUS_PORT,default=7002"`
-	Keycloak       Keycloak
+	Token          Token
 }
 
-// Keycloak holds configuration for Keycloak.
-type Keycloak struct {
-	Address string `env:"KEYCLOAK_ADDRESS,default=http://localhost:8080/"`
-	Realm   string `env:"KEYCLOAK_REALM,required"`
-	Timeout int    `env:"KEYCLOAK_TIMEOUT_SECONDS,default=5"`
+// Token holds configuration for Token.
+type Token struct {
+	SigningKey          []byte `env:"TOKEN_SIGNING_KEY,required"`
+	ExpiryTimeInMinutes int    `env:"TOKEN_EXPIRY_TIME_IN_MINUTE,default=5"`
 }
 
 // NewConfig creates an instance of Config.

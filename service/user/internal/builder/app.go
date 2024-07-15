@@ -1,15 +1,11 @@
 package builder
 
 import (
-	"net/http"
-	"time"
-
 	"go.temporal.io/sdk/client"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
 	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
-	sdkkc "github.com/indrasaputra/arjuna/pkg/sdk/keycloak"
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	sdkauth "github.com/indrasaputra/arjuna/service/auth/pkg/sdk/auth"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
@@ -21,7 +17,6 @@ import (
 // Dependency holds any dependency to build full use cases.
 type Dependency struct {
 	Config         *config.Config
-	KeycloakClient sdkkc.Keycloak
 	TemporalClient client.Client
 	DB             uow.DB
 }
@@ -58,13 +53,6 @@ func BuildBunDB(cfg sdkpg.Config) (*sdkpg.BunDB, error) {
 		return nil, err
 	}
 	return sdkpg.NewBunDB(pdb)
-}
-
-// BuildKeycloakClient builds a keycloak client.
-func BuildKeycloakClient(cfg config.Keycloak) sdkkc.Keycloak {
-	hc := &http.Client{Timeout: time.Duration(cfg.Timeout) * time.Second}
-	client := sdkkc.NewClient(hc, cfg.Address)
-	return client
 }
 
 // BuildTemporalClient builds temporal client.

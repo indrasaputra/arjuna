@@ -28,11 +28,10 @@ func (a *Auth) Login(ctx context.Context, request *apiv1.LoginRequest) (*apiv1.L
 		return nil, err
 	}
 
-	clientID := request.GetCredential().GetClientId()
 	email := request.GetCredential().GetEmail()
 	password := request.GetCredential().GetPassword()
 
-	token, err := a.auth.Login(ctx, clientID, email, password)
+	token, err := a.auth.Login(ctx, email, password)
 	if err != nil {
 		app.Logger.Errorf(ctx, "[AuthHandler-Login] login fail: %v", err)
 		return nil, err
@@ -58,9 +57,6 @@ func (a *Auth) Register(ctx context.Context, request *apiv1.RegisterRequest) (*a
 func validateLoginRequest(request *apiv1.LoginRequest) error {
 	if request == nil || request.GetCredential() == nil {
 		return entity.ErrEmptyField("request body")
-	}
-	if strings.TrimSpace(request.GetCredential().GetClientId()) == "" {
-		return entity.ErrEmptyField("client id")
 	}
 	if strings.TrimSpace(request.GetCredential().GetEmail()) == "" {
 		return entity.ErrEmptyField("email")
@@ -101,6 +97,5 @@ func createTokenProto(token *entity.Token) *apiv1.Token {
 		AccessTokenExpiresIn:  token.AccessTokenExpiresIn,
 		RefreshToken:          token.RefreshToken,
 		RefreshTokenExpiresIn: token.RefreshTokenExpiresIn,
-		TokenType:             token.TokenType,
 	}
 }

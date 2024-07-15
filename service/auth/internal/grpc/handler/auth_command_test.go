@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	testClientID = "client-id"
+	testUserID   = "1"
 	testEmail    = "email@email.com"
 	testPassword = "password"
 	testEnv      = "development"
@@ -51,9 +51,8 @@ func TestAuth_Login(t *testing.T) {
 		tests := []testSuite{
 			{request: nil, err: entity.ErrEmptyField("request body")},
 			{request: &apiv1.LoginRequest{Credential: nil}, err: entity.ErrEmptyField("request body")},
-			{request: &apiv1.LoginRequest{Credential: &apiv1.Credential{ClientId: "", Email: "a", Password: "a"}}, err: entity.ErrEmptyField("client id")},
-			{request: &apiv1.LoginRequest{Credential: &apiv1.Credential{ClientId: "a", Email: "", Password: "a"}}, err: entity.ErrEmptyField("email")},
-			{request: &apiv1.LoginRequest{Credential: &apiv1.Credential{ClientId: "a", Email: "a", Password: ""}}, err: entity.ErrEmptyField("password")},
+			{request: &apiv1.LoginRequest{Credential: &apiv1.Credential{Email: "", Password: "a"}}, err: entity.ErrEmptyField("email")},
+			{request: &apiv1.LoginRequest{Credential: &apiv1.Credential{Email: "a", Password: ""}}, err: entity.ErrEmptyField("password")},
 		}
 
 		st := createAuthSuite(ctrl)
@@ -68,9 +67,9 @@ func TestAuth_Login(t *testing.T) {
 
 	t.Run("auth service returns error", func(t *testing.T) {
 		st := createAuthSuite(ctrl)
-		st.auth.EXPECT().Login(testCtx, testClientID, testEmail, testPassword).Return(nil, errors.New("error"))
+		st.auth.EXPECT().Login(testCtx, testEmail, testPassword).Return(nil, errors.New("error"))
 
-		req := &apiv1.LoginRequest{Credential: &apiv1.Credential{ClientId: testClientID, Email: testEmail, Password: testPassword}}
+		req := &apiv1.LoginRequest{Credential: &apiv1.Credential{Email: testEmail, Password: testPassword}}
 		res, err := st.handler.Login(testCtx, req)
 
 		assert.Error(t, err)
@@ -79,10 +78,62 @@ func TestAuth_Login(t *testing.T) {
 
 	t.Run("success login", func(t *testing.T) {
 		st := createAuthSuite(ctrl)
-		st.auth.EXPECT().Login(testCtx, testClientID, testEmail, testPassword).Return(&entity.Token{}, nil)
+		st.auth.EXPECT().Login(testCtx, testEmail, testPassword).Return(&entity.Token{}, nil)
 
-		req := &apiv1.LoginRequest{Credential: &apiv1.Credential{ClientId: testClientID, Email: testEmail, Password: testPassword}}
+		req := &apiv1.LoginRequest{Credential: &apiv1.Credential{Email: testEmail, Password: testPassword}}
 		res, err := st.handler.Login(testCtx, req)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, res)
+	})
+}
+
+func TestAuth_Register(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	app.Logger = sdklog.NewLogger(testEnv)
+
+	t.Run("request is invalid", func(t *testing.T) {
+		type testSuite struct {
+			request *apiv1.RegisterRequest
+			err     error
+		}
+
+		tests := []testSuite{
+			{request: nil, err: entity.ErrEmptyField("request body")},
+			{request: &apiv1.RegisterRequest{Account: nil}, err: entity.ErrEmptyField("request body")},
+			{request: &apiv1.RegisterRequest{Account: &apiv1.Account{UserId: "", Email: "a", Password: "a"}}, err: entity.ErrEmptyField("user id")},
+			{request: &apiv1.RegisterRequest{Account: &apiv1.Account{UserId: "1", Email: "", Password: "a"}}, err: entity.ErrEmptyField("email")},
+			{request: &apiv1.RegisterRequest{Account: &apiv1.Account{UserId: "1", Email: "a", Password: ""}}, err: entity.ErrEmptyField("password")},
+		}
+
+		st := createAuthSuite(ctrl)
+		for _, test := range tests {
+			res, err := st.handler.Register(testCtx, test.request)
+
+			assert.Error(t, err)
+			assert.Equal(t, test.err, err)
+			assert.Nil(t, res)
+		}
+	})
+
+	t.Run("auth service returns error", func(t *testing.T) {
+		st := createAuthSuite(ctrl)
+		st.auth.EXPECT().Register(testCtx, gomock.Any()).Return(errors.New("error"))
+
+		req := &apiv1.RegisterRequest{Account: &apiv1.Account{UserId: testUserID, Email: testEmail, Password: testPassword}}
+		res, err := st.handler.Register(testCtx, req)
+
+		assert.Error(t, err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("success Register", func(t *testing.T) {
+		st := createAuthSuite(ctrl)
+		st.auth.EXPECT().Register(testCtx, gomock.Any()).Return(nil)
+
+		req := &apiv1.RegisterRequest{Account: &apiv1.Account{UserId: testUserID, Email: testEmail, Password: testPassword}}
+		res, err := st.handler.Register(testCtx, req)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, res)

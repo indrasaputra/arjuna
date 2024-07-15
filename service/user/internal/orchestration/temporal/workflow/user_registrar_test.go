@@ -140,11 +140,11 @@ func TestRegisterUser(t *testing.T) {
 		assert.Error(t, st.env.GetWorkflowError())
 	})
 
-	t.Run("KeycloakCreate activity returns error", func(t *testing.T) {
+	t.Run("AuthCreate activity returns error", func(t *testing.T) {
 		st := createRegisterUserSuite()
 		input := createRegisterUserInput()
 
-		st.env.OnActivity(workflow.ActivityAuthCreate, mock.Anything, input.User).Return(errors.New("keycloak error"))
+		st.env.OnActivity(workflow.ActivityAuthCreate, mock.Anything, input.User).Return(errors.New("auth error"))
 		st.env.OnActivity(workflow.ActivityUserHardDelete, mock.Anything, input.User.ID).Return(nil)
 
 		st.env.ExecuteWorkflow(workflow.RegisterUser, input)

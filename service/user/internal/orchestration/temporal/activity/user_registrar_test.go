@@ -7,13 +7,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
+	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/service/user/entity"
+	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/activity"
 	mock_activity "github.com/indrasaputra/arjuna/service/user/test/mock/orchestration/temporal/activity"
 )
 
 var (
 	testCtx = context.Background()
+	testEnv = "development"
 )
 
 type RegisterUserActivitySuite struct {
@@ -40,7 +43,7 @@ func TestRegisterUserActivity_CreateInAuth(t *testing.T) {
 	t.Run("user already exists", func(t *testing.T) {
 		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
-		st.conn.EXPECT().CreateAccount(testCtx, user).Return("", entity.ErrAlreadyExists())
+		st.conn.EXPECT().CreateAccount(testCtx, user).Return(entity.ErrAlreadyExists())
 
 		err := st.activity.CreateInAuth(testCtx, user)
 
@@ -50,7 +53,7 @@ func TestRegisterUserActivity_CreateInAuth(t *testing.T) {
 	t.Run("success create user", func(t *testing.T) {
 		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
-		st.conn.EXPECT().CreateAccount(testCtx, user).Return("1", nil)
+		st.conn.EXPECT().CreateAccount(testCtx, user).Return(nil)
 
 		err := st.activity.CreateInAuth(testCtx, user)
 
@@ -58,9 +61,10 @@ func TestRegisterUserActivity_CreateInAuth(t *testing.T) {
 	})
 }
 
-func TestRegisterUserActivity_HardDeleteFromKeycloak(t *testing.T) {
+func TestRegisterUserActivity_HardDeleteInUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("error when delete user from database", func(t *testing.T) {
 		st := createRegisterUserActivitySuite(ctrl)

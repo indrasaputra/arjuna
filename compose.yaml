@@ -76,49 +76,6 @@ services:
     profiles:
       - infra
 
-  # keycloak:
-  #   <<: *default
-  #   image: quay.io/keycloak/keycloak:19.0.1
-  #   container_name: arjuna-keycloak
-  #   depends_on:
-  #     - postgres
-  #     - sqlpad
-  #   environment:
-  #     - KEYCLOAK_ADMIN=admin
-  #     - KEYCLOAK_ADMIN_PASSWORD=admin
-  #     - KC_HEALTH_ENABLED=true
-  #     - KC_METRICS_ENABLED=true
-  #     - KC_DB_USERNAME=postgresuser
-  #     - KC_DB_PASSWORD=postgrespassword
-  #     - KC_DB_URL_HOST=postgres
-  #     - KC_DB_URL_PORT=5432
-  #     - KC_DB=postgres
-  #   ports:
-  #     - 8080:8080
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "curl http://localhost:8080/health"]
-  #     interval: 10s
-  #     timeout: 60s
-  #     retries: 5
-  #   command: start-dev
-  #   profiles:
-  #     - infra
-  
-  # keycloak-init:
-  #   <<: *default
-  #   image: golang:1.22
-  #   container_name: arjuna-keycloak-init
-  #   depends_on:
-  #     keycloak:
-  #       condition: service_healthy
-  #   volumes:
-  #     - $PWD:/app
-  #   working_dir: /app/tool/script/keycloak
-  #   entrypoint: [""]
-  #   command: ["go", "run", "main.go"]
-  #   profiles:
-  #     - infra
-
   elasticsearch:
     <<: *default
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.8
@@ -325,8 +282,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      # keycloak:
-      #   condition: service_healthy
     ports:
       - 8002:8002
       - 7002:7002
@@ -345,6 +300,8 @@ services:
       - POSTGRES_MAX_IDLE_LIFETIME=5m
       - POSTGRES_SSL_MODE=disable
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
+      - TOKEN_SIGNING_KEY=arjuna-secret-key
+      - TOKEN_EXPIRY_TIME_IN_MINUTE=30
     profiles:
       - service
 
@@ -374,11 +331,6 @@ services:
       - POSTGRES_MAX_CONN_LIFETIME=10m
       - POSTGRES_MAX_IDLE_LIFETIME=5m
       - POSTGRES_SSL_MODE=disable
-      - KEYCLOAK_ADDRESS=http://keycloak:8080
-      - KEYCLOAK_REALM=arjuna
-      - KEYCLOAK_ADMIN_USER=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
-      - KEYCLOAK_TIMEOUT_SECONDS=5
       - TEMPORAL_ADDRESS=temporal:7233
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
@@ -409,11 +361,6 @@ services:
       - POSTGRES_MAX_CONN_LIFETIME=10m
       - POSTGRES_MAX_IDLE_LIFETIME=5m
       - POSTGRES_SSL_MODE=disable
-      - KEYCLOAK_ADDRESS=http://keycloak:8080
-      - KEYCLOAK_REALM=arjuna
-      - KEYCLOAK_ADMIN_USER=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
-      - KEYCLOAK_TIMEOUT_SECONDS=5
       - TEMPORAL_ADDRESS=temporal:7233
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
@@ -444,11 +391,6 @@ services:
       - POSTGRES_MAX_CONN_LIFETIME=10m
       - POSTGRES_MAX_IDLE_LIFETIME=5m
       - POSTGRES_SSL_MODE=disable
-      - KEYCLOAK_ADDRESS=http://keycloak:8080
-      - KEYCLOAK_REALM=arjuna
-      - KEYCLOAK_ADMIN_USER=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
-      - KEYCLOAK_TIMEOUT_SECONDS=5
       - RELAYER_SLEEP_TIME_MILLISECONDS=1000
       - TEMPORAL_ADDRESS=temporal:7233
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317

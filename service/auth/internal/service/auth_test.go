@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
+	"golang.org/x/crypto/bcrypt"
 
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/service/auth/entity"
@@ -15,11 +16,12 @@ import (
 )
 
 var (
-	testCtx      = context.Background()
-	testClientID = "client-id"
-	testEmail    = "email@email.com"
-	testPassword = "password"
-	testEnv      = "development"
+	testCtx        = context.Background()
+	testEmail      = "email@email.com"
+	testPassword   = "password"
+	testEnv        = "development"
+	testSigningKey = "key"
+	testExpiry     = 5
 )
 
 type AuthSuite struct {
@@ -40,7 +42,6 @@ func TestNewAuth(t *testing.T) {
 func TestAuth_Register(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("empty account is prohibited", func(t *testing.T) {
@@ -91,6 +92,17 @@ func TestAuth_Register(t *testing.T) {
 		assert.Error(t, err)
 	})
 
+	t.Run("account repo insert returns not found", func(t *testing.T) {
+		st := createAuthSuite(ctrl)
+		account := createTestAccount()
+
+		st.repo.EXPECT().Insert(testCtx, account).Return(entity.ErrNotFound())
+
+		err := st.auth.Register(testCtx, account)
+
+		assert.Error(t, err)
+	})
+
 	t.Run("account repo insert returns error", func(t *testing.T) {
 		st := createAuthSuite(ctrl)
 		account := createTestAccount()
@@ -117,26 +129,23 @@ func TestAuth_Register(t *testing.T) {
 func TestAuth_Login(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("param is invalid", func(t *testing.T) {
 		type testSuite struct {
 			err      error
-			clientID string
 			email    string
 			password string
 		}
 
 		tests := []testSuite{
-			{clientID: "", email: "a", password: "a", err: entity.ErrEmptyField("clientId")},
-			{clientID: "a", email: "", password: "a", err: entity.ErrEmptyField("email")},
-			{clientID: "a", email: "a", password: "", err: entity.ErrEmptyField("password")},
+			{email: "", password: "a", err: entity.ErrEmptyField("email")},
+			{email: "a", password: "", err: entity.ErrEmptyField("password")},
 		}
 
 		st := createAuthSuite(ctrl)
 		for _, test := range tests {
-			token, err := st.auth.Login(testCtx, test.clientID, test.email, test.password)
+			token, err := st.auth.Login(testCtx, test.email, test.password)
 
 			assert.Error(t, err)
 			assert.Equal(t, test.err, err)
@@ -146,9 +155,20 @@ func TestAuth_Login(t *testing.T) {
 
 	t.Run("repository returns error", func(t *testing.T) {
 		st := createAuthSuite(ctrl)
-		st.repo.EXPECT().Login(testCtx, testClientID, testEmail, testPassword).Return(nil, entity.ErrInternal("error"))
+		st.repo.EXPECT().GetByEmail(testCtx, testEmail).Return(nil, entity.ErrInternal("error"))
 
-		token, err := st.auth.Login(testCtx, testClientID, testEmail, testPassword)
+		token, err := st.auth.Login(testCtx, testEmail, testPassword)
+
+		assert.Error(t, err)
+		assert.Nil(t, token)
+	})
+
+	t.Run("password is invalid", func(t *testing.T) {
+		st := createAuthSuite(ctrl)
+		acc := createTestAccount()
+		st.repo.EXPECT().GetByEmail(testCtx, testEmail).Return(acc, nil)
+
+		token, err := st.auth.Login(testCtx, testEmail, "testPassword")
 
 		assert.Error(t, err)
 		assert.Nil(t, token)
@@ -156,9 +176,10 @@ func TestAuth_Login(t *testing.T) {
 
 	t.Run("success login", func(t *testing.T) {
 		st := createAuthSuite(ctrl)
-		st.repo.EXPECT().Login(testCtx, testClientID, testEmail, testPassword).Return(&entity.Token{}, nil)
+		acc := createTestAccount()
+		st.repo.EXPECT().GetByEmail(testCtx, testEmail).Return(acc, nil)
 
-		token, err := st.auth.Login(testCtx, testClientID, testEmail, testPassword)
+		token, err := st.auth.Login(testCtx, testEmail, testPassword)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, token)
@@ -167,7 +188,7 @@ func TestAuth_Login(t *testing.T) {
 
 func createAuthSuite(ctrl *gomock.Controller) *AuthSuite {
 	r := mock_service.NewMockAuthRepository(ctrl)
-	a := service.NewAuth(r)
+	a := service.NewAuth(r, []byte(testSigningKey), testExpiry)
 	return &AuthSuite{
 		auth: a,
 		repo: r,
@@ -175,10 +196,11 @@ func createAuthSuite(ctrl *gomock.Controller) *AuthSuite {
 }
 
 func createTestAccount() *entity.Account {
+	hash, _ := bcrypt.GenerateFromPassword([]byte(testPassword), bcrypt.MinCost)
 	return &entity.Account{
 		ID:       "1",
 		UserID:   "1",
 		Email:    "first@account.com",
-		Password: "password",
+		Password: string(hash),
 	}
 }

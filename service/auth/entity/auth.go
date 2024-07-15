@@ -1,11 +1,14 @@
 package entity
 
-import "time"
+import (
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+)
 
 // Token represents token.
 type Token struct {
 	AccessToken           string
-	TokenType             string
 	RefreshToken          string
 	AccessTokenExpiresIn  uint32
 	RefreshTokenExpiresIn uint32
@@ -18,6 +21,14 @@ type Account struct {
 	Email    string
 	Password string
 	Auditable
+}
+
+// Claims represents token claims.
+type Claims struct {
+	AccountID string `json:"account_id"`
+	UserID    string `json:"user_id"`
+	Email     string `json:"email"`
+	jwt.RegisteredClaims
 }
 
 // Auditable defines logical data related to audit.

@@ -37,6 +37,7 @@ service AuthService {
   // Login.
   //
   // This endpoint logs in an account.
+  // As of now, refresh token is not implemented and it only returns access token.
   rpc Login(LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
       post : "/v1/auth/login",
@@ -96,8 +97,6 @@ message Credential {
   string email = 1;
   // password represents account's password.
   string password = 2;
-  // client_id represents client ID.
-  string client_id = 3;
 }
 
 // Token represents token.
@@ -110,8 +109,6 @@ message Token {
   string refresh_token = 3 [ (google.api.field_behavior) = OUTPUT_ONLY ];
   // refresh_token_expires_in represents how many seconds left before refresh token expired.
   uint32 refresh_token_expires_in = 4 [ (google.api.field_behavior) = OUTPUT_ONLY ];
-  // token_type represents the type of token.
-  string token_type = 5 [ (google.api.field_behavior) = OUTPUT_ONLY ];
 }
 
 // AuthError represents message for any error happening in auth service.
@@ -150,4 +147,10 @@ enum AuthErrorCode {
   // Account already exists.
   // The uniqueness of an account is represented by email.
   AUTH_ERROR_CODE_ALREADY_EXISTS = 8;
+
+  // Account's credential is invalid.
+  AUTH_ERROR_CODE_INVALID_CREDENTIAL = 9;
+
+  // Data is not found.
+  AUTH_ERROR_CODE_NOT_FOUND = 10;
 }

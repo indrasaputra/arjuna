@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 
 	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
@@ -50,7 +51,17 @@ func (a *Account) Insert(ctx context.Context, account *entity.Account) error {
 	return nil
 }
 
-// Login gets an account by email.
-func (a *Account) Login(_ context.Context, _, _, _ string) (*entity.Token, error) {
-	return nil, nil
+// GetByEmail gets an account by email.
+func (a *Account) GetByEmail(ctx context.Context, email string) (*entity.Account, error) {
+	query := "SELECT id, user_id, email, password FROM accounts WHERE email = ? LIMIT 1"
+	var res entity.Account
+	err := a.db.Query(ctx, &res, query, email)
+	if err == sql.ErrNoRows {
+		return nil, entity.ErrNotFound()
+	}
+	if err != nil {
+		app.Logger.Errorf(ctx, "[PostgresAccount-GetByEmail] fail get account: %v", err)
+		return nil, entity.ErrInternal(err.Error())
+	}
+	return &res, nil
 }

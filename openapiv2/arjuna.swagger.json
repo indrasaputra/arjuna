@@ -44,7 +44,7 @@
     "/v1/auth/login": {
       "post": {
         "summary": "Login.",
-        "description": "This endpoint logs in an account.",
+        "description": "This endpoint logs in an account.\nAs of now, refresh token is not implemented and it only returns access token.",
         "operationId": "Login",
         "responses": {
           "200": {
@@ -240,10 +240,6 @@
         "password": {
           "type": "string",
           "description": "password represents account's password."
-        },
-        "clientId": {
-          "type": "string",
-          "description": "client_id represents client ID."
         }
       },
       "description": "Credential represents login credential."
@@ -313,11 +309,6 @@
           "type": "integer",
           "format": "int64",
           "description": "refresh_token_expires_in represents how many seconds left before refresh token expired.",
-          "readOnly": true
-        },
-        "tokenType": {
-          "type": "string",
-          "description": "token_type represents the type of token.",
           "readOnly": true
         }
       },

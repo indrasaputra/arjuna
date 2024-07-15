@@ -35,6 +35,7 @@ type AuthServiceClient interface {
 	// Login.
 	//
 	// This endpoint logs in an account.
+	// As of now, refresh token is not implemented and it only returns access token.
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	// Register.
 	//
@@ -79,6 +80,7 @@ type AuthServiceServer interface {
 	// Login.
 	//
 	// This endpoint logs in an account.
+	// As of now, refresh token is not implemented and it only returns access token.
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	// Register.
 	//

@@ -117,6 +117,32 @@ func ErrAlreadyExists() error {
 	return res.Err()
 }
 
+// ErrInvalidCredential returns codes.InvalidArgument explained that the credential is invalid.
+func ErrInvalidCredential() error {
+	st := status.New(codes.InvalidArgument, "credential is invalid")
+	te := &apiv1.AuthError{
+		ErrorCode: apiv1.AuthErrorCode_AUTH_ERROR_CODE_INVALID_CREDENTIAL,
+	}
+	res, err := st.WithDetails(te)
+	if err != nil {
+		return st.Err()
+	}
+	return res.Err()
+}
+
+// ErrNotFound returns codes.NotFound explained that the data is not found.
+func ErrNotFound() error {
+	st := status.New(codes.NotFound, "data not found")
+	te := &apiv1.AuthError{
+		ErrorCode: apiv1.AuthErrorCode_AUTH_ERROR_CODE_NOT_FOUND,
+	}
+	res, err := st.WithDetails(te)
+	if err != nil {
+		return st.Err()
+	}
+	return res.Err()
+}
+
 func createBadRequest(details ...*errdetails.BadRequest_FieldViolation) *errdetails.BadRequest {
 	return &errdetails.BadRequest{
 		FieldViolations: details,

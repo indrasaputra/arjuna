@@ -1,5 +1,6 @@
 OUTPUT_DIR			= deploy/output
 PROTOGEN_IMAGE		= indrasaputra/protogen:2024-07-13
+SERVICES			= blueprint gateway auth user
 
 include Makefile.help.mk
 
@@ -59,9 +60,21 @@ gen.req: ## Generate requirement document.
 compile: ## Compile service.
 	tool/script/compile.sh $(svc)
 
+.PHONY: compile.all
+compile.all: ## Compile all services.
+	for svc in $(SERVICES); do \
+		tool/script/compile.sh $$svc; \
+	done
+
 .PHONY: build
 build: ## Build docker for service.
 	tool/script/docker-build.sh $(svc)
+
+.PHONY: build.all
+build.all: ## Build docker for all services.
+	for svc in $(SERVICES); do \
+		tool/script/docker-build.sh $$svc; \
+	done
 
 ##@ Test
 .PHONY: test.unit

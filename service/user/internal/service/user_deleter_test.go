@@ -34,7 +34,6 @@ func TestNewUserDeleter(t *testing.T) {
 func TestUserDeleter_HardDelete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("get user by id returns error", func(t *testing.T) {

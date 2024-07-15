@@ -19,17 +19,7 @@ type Config struct {
 	Port                        string `env:"PORT,default=8001"`
 	PrometheusPort              string `env:"PROMETHEUS_PORT,default=7001"`
 	AuthServiceHost             string `env:"AUTH_SERVICE_HOST,required"`
-	Keycloak                    Keycloak
-	RelayerSleepTimeMillisecond int `env:"RELAYER_SLEEP_TIME_MILLISECONDS,default=1000"`
-}
-
-// Keycloak holds configuration for Keycloak.
-type Keycloak struct {
-	Address       string `env:"KEYCLOAK_ADDRESS,default=http://localhost:8080/"`
-	Realm         string `env:"KEYCLOAK_REALM,required"`
-	AdminUser     string `env:"KEYCLOAK_ADMIN_USER,required"`
-	AdminPassword string `env:"KEYCLOAK_ADMIN_PASSWORD,required"`
-	Timeout       int    `env:"KEYCLOAK_TIMEOUT_SECONDS,default=5"`
+	RelayerSleepTimeMillisecond int    `env:"RELAYER_SLEEP_TIME_MILLISECONDS,default=1000"`
 }
 
 // Temporal holds configuration for Temporal.
