@@ -113,7 +113,7 @@
     "/v1/users/register": {
       "post": {
         "summary": "Register a new user.",
-        "description": "This endpoint registers a new user.",
+        "description": "This endpoint registers a new user.\nThe X-Idempotency-Key header must be present.",
         "operationId": "RegisterUser",
         "responses": {
           "200": {
@@ -138,6 +138,12 @@
             "schema": {
               "$ref": "#/definitions/v1User"
             }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [

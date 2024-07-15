@@ -13,6 +13,7 @@ import (
 const (
 	grpcGatewayServerName = "grpc-gateway server"
 	defaultTimeout        = 3 * time.Second
+	headerIdempotencyKey  = "X-Idempotency-Key"
 )
 
 // GrpcGateway is responsible to act as HTTP/1.1 server.
@@ -27,7 +28,7 @@ type GrpcGateway struct {
 // It enables Prometheus metrics by default.
 func NewGrpcGateway(port string) *GrpcGateway {
 	srv := &GrpcGateway{
-		mux:  runtime.NewServeMux(),
+		mux:  runtime.NewServeMux(runtime.WithIncomingHeaderMatcher(arjunaMatcher)),
 		port: port,
 	}
 	_ = srv.EnablePrometheus() // error is impossible, hence ignored.
@@ -94,6 +95,15 @@ func prometheusHandler() runtime.HandlerFunc {
 func healthHandler() runtime.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request, _ map[string]string) {
 		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func arjunaMatcher(key string) (string, bool) {
+	switch key {
+	case headerIdempotencyKey:
+		return key, true
+	default:
+		return runtime.DefaultHeaderMatcher(key)
 	}
 }
 

@@ -40,6 +40,7 @@ service UserCommandService {
   // Register a new user.
   //
   // This endpoint registers a new user.
+  // The X-Idempotency-Key header must be present.
   rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {
     option (google.api.http) = {
       post : "/v1/users/register",
@@ -48,7 +49,8 @@ service UserCommandService {
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id : "RegisterUser",
-      tags : "User"
+      tags : "User",
+      parameters : {headers : [ {name : "X-Idempotency-Key" type : STRING required : true} ]},
     };
   };
 }
@@ -238,4 +240,7 @@ enum UserErrorCode {
 
   // User not found.
   USER_ERROR_CODE_NOT_FOUND = 6;
+
+  // Idempotency key is missing.
+  USER_ERROR_CODE_MISSING_IDEMPOTENCY_KEY = 7;
 }
