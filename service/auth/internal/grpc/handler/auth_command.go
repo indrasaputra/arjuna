@@ -39,19 +39,19 @@ func (a *Auth) Login(ctx context.Context, request *apiv1.LoginRequest) (*apiv1.L
 	return &apiv1.LoginResponse{Data: createTokenProto(token)}, nil
 }
 
-// Register handles HTTP/2 gRPC request similar to POST in HTTP/1.1.
-func (a *Auth) Register(ctx context.Context, request *apiv1.RegisterRequest) (*apiv1.RegisterResponse, error) {
-	if err := validateRegisterRequest(request); err != nil {
+// RegisterAccount handles HTTP/2 gRPC request similar to POST in HTTP/1.1.
+func (a *Auth) RegisterAccount(ctx context.Context, request *apiv1.RegisterAccountRequest) (*apiv1.RegisterAccountResponse, error) {
+	if err := validateRegisterAccountRequest(request); err != nil {
 		app.Logger.Errorf(ctx, "[AuthHandler-Register] request invalid: %v", err)
 		return nil, err
 	}
 
-	err := a.auth.Register(ctx, createAccountFromRegisterRequest(request))
+	err := a.auth.Register(ctx, createAccountFromRegisterAccountRequest(request))
 	if err != nil {
 		app.Logger.Errorf(ctx, "[AuthHandler-Register] login fail: %v", err)
 		return nil, err
 	}
-	return &apiv1.RegisterResponse{}, nil
+	return &apiv1.RegisterAccountResponse{}, nil
 }
 
 func validateLoginRequest(request *apiv1.LoginRequest) error {
@@ -67,7 +67,7 @@ func validateLoginRequest(request *apiv1.LoginRequest) error {
 	return nil
 }
 
-func validateRegisterRequest(request *apiv1.RegisterRequest) error {
+func validateRegisterAccountRequest(request *apiv1.RegisterAccountRequest) error {
 	if request == nil || request.GetAccount() == nil {
 		return entity.ErrEmptyField("request body")
 	}
@@ -83,7 +83,7 @@ func validateRegisterRequest(request *apiv1.RegisterRequest) error {
 	return nil
 }
 
-func createAccountFromRegisterRequest(request *apiv1.RegisterRequest) *entity.Account {
+func createAccountFromRegisterAccountRequest(request *apiv1.RegisterAccountRequest) *entity.Account {
 	return &entity.Account{
 		UserID:   request.GetAccount().GetUserId(),
 		Email:    request.GetAccount().GetEmail(),

@@ -50,10 +50,10 @@ service AuthService {
     };
   };
 
-  // Register.
+  // Register a new account.
   //
   // This endpoint register an account.
-  rpc Register(RegisterRequest) returns (RegisterResponse) {
+  rpc RegisterAccount(RegisterAccountRequest) returns (RegisterAccountResponse) {
   }
 }
 
@@ -69,14 +69,14 @@ message LoginResponse {
   Token data = 1;
 }
 
-// RegisterRequest represents request for registration.
-message RegisterRequest {
+// RegisterAccountRequest represents request for account registration.
+message RegisterAccountRequest {
   // Account represents account to register.
   Account account = 1;
 }
 
-// RegisterResponse represents response for registration.
-message RegisterResponse {
+// RegisterAccountResponse represents response for account registration.
+message RegisterAccountResponse {
 }
 
 // Account represents account.

@@ -153,6 +153,16 @@ func TestAuth_Login(t *testing.T) {
 		}
 	})
 
+	t.Run("account not found", func(t *testing.T) {
+		st := createAuthSuite(ctrl)
+		st.repo.EXPECT().GetByEmail(testCtx, testEmail).Return(nil, entity.ErrNotFound())
+
+		token, err := st.auth.Login(testCtx, testEmail, testPassword)
+
+		assert.Error(t, err)
+		assert.Nil(t, token)
+	})
+
 	t.Run("repository returns error", func(t *testing.T) {
 		st := createAuthSuite(ctrl)
 		st.repo.EXPECT().GetByEmail(testCtx, testEmail).Return(nil, entity.ErrInternal("error"))

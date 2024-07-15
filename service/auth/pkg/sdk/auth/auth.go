@@ -38,12 +38,12 @@ func NewClient(cfg *DialConfig) (*Client, error) {
 
 // Register registers an account.
 func (c *Client) Register(ctx context.Context, account *entity.Account) error {
-	req := &apiv1.RegisterRequest{Account: &apiv1.Account{
+	req := &apiv1.RegisterAccountRequest{Account: &apiv1.Account{
 		UserId:   account.UserID,
 		Email:    account.Email,
 		Password: account.Password,
 	}}
 
-	_, err := c.handler.Register(ctx, req)
+	_, err := c.handler.RegisterAccount(ctx, req)
 	return err
 }

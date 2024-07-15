@@ -9,6 +9,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/segmentio/ksuid"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/indrasaputra/arjuna/service/auth/entity"
 	"github.com/indrasaputra/arjuna/service/auth/internal/app"
@@ -56,7 +58,7 @@ func (a *Auth) Login(ctx context.Context, email, password string) (*entity.Token
 	}
 
 	account, err := a.repo.GetByEmail(ctx, email)
-	if err == entity.ErrNotFound() {
+	if status.Code(err) == codes.NotFound {
 		return nil, entity.ErrInvalidCredential()
 	}
 	if err != nil {

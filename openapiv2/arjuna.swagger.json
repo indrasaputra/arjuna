@@ -272,9 +272,9 @@
       },
       "description": "LoginResponse represents response from login."
     },
-    "v1RegisterResponse": {
+    "v1RegisterAccountResponse": {
       "type": "object",
-      "description": "RegisterResponse represents response for registration."
+      "description": "RegisterAccountResponse represents response for account registration."
     },
     "v1RegisterUserResponse": {
       "type": "object",

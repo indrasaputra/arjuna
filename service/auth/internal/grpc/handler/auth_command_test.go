@@ -88,28 +88,28 @@ func TestAuth_Login(t *testing.T) {
 	})
 }
 
-func TestAuth_Register(t *testing.T) {
+func TestAuth_RegisterAccount(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("request is invalid", func(t *testing.T) {
 		type testSuite struct {
-			request *apiv1.RegisterRequest
+			request *apiv1.RegisterAccountRequest
 			err     error
 		}
 
 		tests := []testSuite{
 			{request: nil, err: entity.ErrEmptyField("request body")},
-			{request: &apiv1.RegisterRequest{Account: nil}, err: entity.ErrEmptyField("request body")},
-			{request: &apiv1.RegisterRequest{Account: &apiv1.Account{UserId: "", Email: "a", Password: "a"}}, err: entity.ErrEmptyField("user id")},
-			{request: &apiv1.RegisterRequest{Account: &apiv1.Account{UserId: "1", Email: "", Password: "a"}}, err: entity.ErrEmptyField("email")},
-			{request: &apiv1.RegisterRequest{Account: &apiv1.Account{UserId: "1", Email: "a", Password: ""}}, err: entity.ErrEmptyField("password")},
+			{request: &apiv1.RegisterAccountRequest{Account: nil}, err: entity.ErrEmptyField("request body")},
+			{request: &apiv1.RegisterAccountRequest{Account: &apiv1.Account{UserId: "", Email: "a", Password: "a"}}, err: entity.ErrEmptyField("user id")},
+			{request: &apiv1.RegisterAccountRequest{Account: &apiv1.Account{UserId: "1", Email: "", Password: "a"}}, err: entity.ErrEmptyField("email")},
+			{request: &apiv1.RegisterAccountRequest{Account: &apiv1.Account{UserId: "1", Email: "a", Password: ""}}, err: entity.ErrEmptyField("password")},
 		}
 
 		st := createAuthSuite(ctrl)
 		for _, test := range tests {
-			res, err := st.handler.Register(testCtx, test.request)
+			res, err := st.handler.RegisterAccount(testCtx, test.request)
 
 			assert.Error(t, err)
 			assert.Equal(t, test.err, err)
@@ -121,8 +121,8 @@ func TestAuth_Register(t *testing.T) {
 		st := createAuthSuite(ctrl)
 		st.auth.EXPECT().Register(testCtx, gomock.Any()).Return(errors.New("error"))
 
-		req := &apiv1.RegisterRequest{Account: &apiv1.Account{UserId: testUserID, Email: testEmail, Password: testPassword}}
-		res, err := st.handler.Register(testCtx, req)
+		req := &apiv1.RegisterAccountRequest{Account: &apiv1.Account{UserId: testUserID, Email: testEmail, Password: testPassword}}
+		res, err := st.handler.RegisterAccount(testCtx, req)
 
 		assert.Error(t, err)
 		assert.Nil(t, res)
@@ -132,8 +132,8 @@ func TestAuth_Register(t *testing.T) {
 		st := createAuthSuite(ctrl)
 		st.auth.EXPECT().Register(testCtx, gomock.Any()).Return(nil)
 
-		req := &apiv1.RegisterRequest{Account: &apiv1.Account{UserId: testUserID, Email: testEmail, Password: testPassword}}
-		res, err := st.handler.Register(testCtx, req)
+		req := &apiv1.RegisterAccountRequest{Account: &apiv1.Account{UserId: testUserID, Email: testEmail, Password: testPassword}}
+		res, err := st.handler.RegisterAccount(testCtx, req)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, res)
