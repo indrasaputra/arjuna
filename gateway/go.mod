@@ -5,6 +5,7 @@ go 1.22.4
 replace (
 	github.com/indrasaputra/arjuna/pkg/sdk v0.0.0 => ../pkg/sdk
 	github.com/indrasaputra/arjuna/proto v0.0.0 => ../proto
+	github.com/indrasaputra/arjuna/service/auth v0.0.0 => ../service/auth
 )
 
 require (
@@ -14,7 +15,7 @@ require (
 
 require (
 	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd
-	github.com/joho/godotenv v1.4.0
+	github.com/joho/godotenv v1.5.1
 	github.com/pkg/errors v0.9.1
 )
 
@@ -35,9 +36,10 @@ require (
 
 require go.uber.org/zap v1.27.0
 
-require github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
-
-require github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
+require (
+	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
+	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
+)
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -46,8 +48,9 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/indrasaputra/arjuna/service/auth v0.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/common v0.48.0 // indirect
