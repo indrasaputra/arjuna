@@ -18,6 +18,10 @@
       "description": "This service provides all use cases to work with auth."
     },
     {
+      "name": "TransactionService",
+      "description": "This service provides all use cases to work with transaction."
+    },
+    {
       "name": "UserCommandService",
       "description": "This service provides basic command or state-changing use cases to work with user.A user is represented by an email as its unique identifier."
     },
@@ -73,6 +77,41 @@
         ],
         "tags": [
           "Auth"
+        ]
+      }
+    },
+    "/v1/transactions": {
+      "post": {
+        "summary": "CreateTransaction.",
+        "description": "This endpoint creates a transaction.",
+        "operationId": "CreateTransaction",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateTransactionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "transaction",
+            "description": "transaction represents transaction data.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1Transaction"
+            }
+          }
+        ],
+        "tags": [
+          "Transaction"
         ]
       }
     },
@@ -219,33 +258,50 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "id represents unique id."
+          "example": "123",
+          "description": "id represents unique id.",
+          "readOnly": true
         },
-        "userId": {
+        "user_id": {
           "type": "string",
-          "description": "user_id represents user's id."
+          "format": "string",
+          "example": "1",
+          "description": "User's id"
         },
         "email": {
           "type": "string",
-          "description": "email represents user's email."
+          "example": "email@domain.com",
+          "description": "User's email",
+          "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
         },
         "password": {
           "type": "string",
+          "format": "string",
+          "example": "weakPassword",
+          "description": "User's password",
           "title": "password represents user's password"
         }
       },
       "description": "Account represents account."
+    },
+    "v1CreateTransactionResponse": {
+      "type": "object",
+      "description": "CreateTransactionResponse represents response from create transaction."
     },
     "v1Credential": {
       "type": "object",
       "properties": {
         "email": {
           "type": "string",
-          "description": "email represents account's email."
+          "example": "email@domain.com",
+          "description": "User's email",
+          "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
         },
         "password": {
           "type": "string",
-          "description": "password represents account's password."
+          "format": "string",
+          "example": "weakPassword",
+          "description": "User's password"
         }
       },
       "description": "Credential represents login credential."
@@ -295,23 +351,23 @@
     "v1Token": {
       "type": "object",
       "properties": {
-        "accessToken": {
+        "access_token": {
           "type": "string",
           "description": "access_token represents an access token.",
           "readOnly": true
         },
-        "accessTokenExpiresIn": {
+        "access_token_expires_in": {
           "type": "integer",
           "format": "int64",
           "description": "access_token_expires_in represents how many seconds left before access token expired.",
           "readOnly": true
         },
-        "refreshToken": {
+        "refresh_token": {
           "type": "string",
           "description": "refresh_token represents an refresh token.",
           "readOnly": true
         },
-        "refreshTokenExpiresIn": {
+        "refresh_token_expires_in": {
           "type": "integer",
           "format": "int64",
           "description": "refresh_token_expires_in represents how many seconds left before refresh token expired.",
@@ -319,6 +375,39 @@
         }
       },
       "description": "Token represents token."
+    },
+    "v1Transaction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "123",
+          "description": "id represents unique id.",
+          "readOnly": true
+        },
+        "sender_id": {
+          "type": "string",
+          "example": "1",
+          "description": "Transaction's sender's id"
+        },
+        "receiver_id": {
+          "type": "string",
+          "example": "2",
+          "description": "Transaction's receiver's id"
+        },
+        "amount": {
+          "type": "string",
+          "example": "10.23",
+          "description": "Transaction's amount"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "created_at represents when the transaction was created.",
+          "readOnly": true
+        }
+      },
+      "description": "Transaction represents transaction."
     },
     "v1User": {
       "type": "object",
@@ -347,13 +436,13 @@
           "maxLength": 255,
           "minLength": 1
         },
-        "createdAt": {
+        "created_at": {
           "type": "string",
           "format": "date-time",
           "description": "created_at represents when the user was registered.",
           "readOnly": true
         },
-        "updatedAt": {
+        "updated_at": {
           "type": "string",
           "format": "date-time",
           "description": "updated_at represents when the user was last updated.",

@@ -168,9 +168,11 @@ message User {
   } ];
 
   // created_at represents when the user was registered.
-  google.protobuf.Timestamp created_at = 5 [ (google.api.field_behavior) = OUTPUT_ONLY ];
+  google.protobuf.Timestamp created_at = 5
+      [ (google.api.field_behavior) = OUTPUT_ONLY, json_name = "created_at" ];
   // updated_at represents when the user was last updated.
-  google.protobuf.Timestamp updated_at = 6 [ (google.api.field_behavior) = OUTPUT_ONLY ];
+  google.protobuf.Timestamp updated_at = 6
+      [ (google.api.field_behavior) = OUTPUT_ONLY, json_name = "updated_at" ];
 }
 
 // UserOutboxStatus enumerates user outbox status code.
@@ -204,9 +206,11 @@ message UserOutbox {
   User payload = 3;
 
   // created_at represents when the user was registered.
-  google.protobuf.Timestamp created_at = 5 [ (google.api.field_behavior) = OUTPUT_ONLY ];
+  google.protobuf.Timestamp created_at = 5
+      [ (google.api.field_behavior) = OUTPUT_ONLY, json_name = "created_at" ];
   // updated_at represents when the user was last updated.
-  google.protobuf.Timestamp updated_at = 6 [ (google.api.field_behavior) = OUTPUT_ONLY ];
+  google.protobuf.Timestamp updated_at = 6
+      [ (google.api.field_behavior) = OUTPUT_ONLY, json_name = "updated_at" ];
 }
 
 // UserError represents message for any error happening in user.
