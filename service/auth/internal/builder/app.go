@@ -13,14 +13,14 @@ import (
 type Dependency struct {
 	Config             *config.Config
 	DB                 uow.DB
-	SigningKey         []byte
+	SigningKey         string
 	ExpiryTimeInMinute int
 }
 
 // BuildAuthHandler builds auth handler including all of its dependencies.
 func BuildAuthHandler(dep *Dependency) (*handler.Auth, error) {
 	acc := postgres.NewAccount(dep.DB)
-	auth := service.NewAuth(acc, dep.SigningKey, dep.ExpiryTimeInMinute)
+	auth := service.NewAuth(acc, []byte(dep.SigningKey), dep.ExpiryTimeInMinute)
 	return handler.NewAuth(auth), nil
 }
 

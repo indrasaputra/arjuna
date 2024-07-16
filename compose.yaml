@@ -312,8 +312,9 @@ services:
       - POSTGRES_MAX_IDLE_LIFETIME=5m
       - POSTGRES_SSL_MODE=disable
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
-      - TOKEN_SIGNING_KEY=arjuna-secret-key
+      - TOKEN_SECRET_KEY=arjuna-secret-key
       - TOKEN_EXPIRY_TIME_IN_MINUTE=30
+      - SKIPPED_AUTH=/api.v1.AuthService/Login,/api.v1.AuthService/RegisterAccount
     profiles:
       - service
 
@@ -350,6 +351,8 @@ services:
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - AUTH_SERVICE_HOST=auth-server:8002
       - REDIS_ADDRESS=redis:6379
+      - TOKEN_SECRET_KEY=arjuna-secret-key
+      - SKIPPED_AUTH=/api.v1.UserCommandService/RegisterUser
     profiles:
       - service
 
@@ -381,6 +384,7 @@ services:
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - AUTH_SERVICE_HOST=auth-server:8002
       - REDIS_ADDRESS=redis:6379
+      - TOKEN_SECRET_KEY=arjuna-secret-key
     profiles:
       - service
 
@@ -413,6 +417,7 @@ services:
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - AUTH_SERVICE_HOST=auth-server:8002
       - REDIS_ADDRESS=redis:6379
+      - TOKEN_SECRET_KEY=arjuna-secret-key
     profiles:
       - service
 

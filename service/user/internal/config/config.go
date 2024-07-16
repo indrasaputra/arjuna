@@ -20,6 +20,8 @@ type Config struct {
 	Port                        string `env:"PORT,default=8001"`
 	PrometheusPort              string `env:"PROMETHEUS_PORT,default=7001"`
 	AuthServiceHost             string `env:"AUTH_SERVICE_HOST,required"`
+	SecretKey                   string `env:"TOKEN_SECRET_KEY,required"`
+	SkippedAuth                 string `env:"SKIPPED_AUTH"`
 	RelayerSleepTimeMillisecond int    `env:"RELAYER_SLEEP_TIME_MILLISECONDS,default=1000"`
 }
 
