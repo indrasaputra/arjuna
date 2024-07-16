@@ -11,7 +11,9 @@ import (
 
 	grpclogsettable "github.com/grpc-ecosystem/go-grpc-middleware/logging/settable"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
-	grpcrecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/auth"
+	grpcrecovery "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -20,6 +22,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/indrasaputra/arjuna/pkg/sdk/grpc/interceptor"
 )
 
 const (
@@ -27,9 +31,9 @@ const (
 	prometheusReadHeaderTimeout = 5 * time.Second
 )
 
-// GrpcServer is responsible to act as gRPC server.
+// Server is responsible to act as gRPC server.
 // It composes grpc.Server.
-type GrpcServer struct {
+type Server struct {
 	listener    net.Listener
 	server      *grpc.Server
 	httpServer  *http.Server
@@ -38,55 +42,62 @@ type GrpcServer struct {
 	serviceFunc []func(*grpc.Server)
 }
 
-// newGrpc creates an instance of GrpcServer.
-func newGrpcServer(name, port string, options ...grpc.ServerOption) *GrpcServer {
-	return &GrpcServer{
+type Config struct {
+	Name           string
+	Port           string
+	SkippedMethods []string
+	Secret         []byte
+}
+
+// newGrpc creates an instance of Server.
+func newServer(name, port string, options ...grpc.ServerOption) *Server {
+	return &Server{
 		server: grpc.NewServer(options...),
 		name:   name,
 		port:   port,
 	}
 }
 
-// NewGrpcServer creates an instance of GrpcServer for used in development environment.
+// NewServer creates an instance of Server for used in development environment.
 //
 // These are list of interceptors that are attached (from innermost to outermost):
 //   - Metrics, using Prometheus.
 //   - Logging, using zap logger.
 //   - Recoverer, using grpcrecovery.
-func NewGrpcServer(name, port string) *GrpcServer {
+func NewServer(cfg *Config) *Server {
 	logger, _ := zap.NewProduction() // error is impossible, hence ignored.
 	grpczap.SetGrpcLoggerV2(grpclogsettable.ReplaceGrpcLoggerV2(), logger)
 	grpc_prometheus.EnableHandlingTimeHistogram()
 
-	unary := defaultUnaryServerInterceptors(logger)
-	stream := defaultStreamServerInterceptors(logger)
+	unary := defaultUnaryServerInterceptors(logger, cfg)
+	stream := defaultStreamServerInterceptors(logger, cfg)
 	unaryMdw := grpc.ChainUnaryInterceptor(unary...)
 	streamMdw := grpc.ChainStreamInterceptor(stream...)
 	trace := grpc.StatsHandler(otelgrpc.NewServerHandler(otelgrpc.WithTracerProvider(otel.GetTracerProvider())))
 
-	srv := newGrpcServer(name, port, trace, unaryMdw, streamMdw)
+	srv := newServer(cfg.Name, cfg.Port, trace, unaryMdw, streamMdw)
 	grpc_prometheus.Register(srv.server)
 	return srv
 }
 
 // Name returns server's name.
-func (gs *GrpcServer) Name() string {
+func (gs *Server) Name() string {
 	return gs.name
 }
 
 // Port returns server's port.
-func (gs *GrpcServer) Port() string {
+func (gs *Server) Port() string {
 	return gs.port
 }
 
 // AttachService attaches service to gRPC server.
 // It will be called before serve.
-func (gs *GrpcServer) AttachService(fn func(*grpc.Server)) {
+func (gs *Server) AttachService(fn func(*grpc.Server)) {
 	gs.serviceFunc = append(gs.serviceFunc, fn)
 }
 
 // EnablePrometheus registers prometheus metrics.
-func (gs *GrpcServer) EnablePrometheus(port string) {
+func (gs *Server) EnablePrometheus(port string) {
 	grpc_prometheus.Register(gs.server)
 	srv := &http.Server{
 		Addr:              fmt.Sprintf(":%s", port),
@@ -98,7 +109,7 @@ func (gs *GrpcServer) EnablePrometheus(port string) {
 
 // Serve runs the server.
 // It basically runs grpc.Server.Serve and is a blocking.
-func (gs *GrpcServer) Serve() error {
+func (gs *Server) Serve() error {
 	for _, service := range gs.serviceFunc {
 		service(gs.server)
 	}
@@ -124,7 +135,7 @@ func (gs *GrpcServer) Serve() error {
 // Once it receives one of those signals, the gRPC server will perform graceful stop and close the listener.
 //
 // It receives Closer and will perform all closers before closing itself.
-func (gs *GrpcServer) GracefulStop() {
+func (gs *Server) GracefulStop() {
 	sign := make(chan os.Signal, 1)
 	signal.Notify(sign, os.Interrupt)
 	signal.Notify(sign, syscall.SIGINT, syscall.SIGTERM)
@@ -139,23 +150,25 @@ func (gs *GrpcServer) GracefulStop() {
 // Stop immediately stops the gRPC server.
 // Currently, this method exists just for the sake of testing.
 // For production purpose, use GracefulStop().
-func (gs *GrpcServer) Stop() {
+func (gs *Server) Stop() {
 	gs.server.Stop()
 }
 
-func defaultUnaryServerInterceptors(logger *zap.Logger) []grpc.UnaryServerInterceptor {
+func defaultUnaryServerInterceptors(logger *zap.Logger, cfg *Config) []grpc.UnaryServerInterceptor {
 	return []grpc.UnaryServerInterceptor{
 		grpcrecovery.UnaryServerInterceptor(grpcrecovery.WithRecoveryHandler(recoveryHandler)),
 		grpczap.UnaryServerInterceptor(logger),
 		grpc_prometheus.UnaryServerInterceptor,
+		selector.UnaryServerInterceptor(auth.UnaryServerInterceptor(interceptor.AuthBearer(cfg.Secret)), selector.MatchFunc(interceptor.SkipMethod(cfg.SkippedMethods...))),
 	}
 }
 
-func defaultStreamServerInterceptors(logger *zap.Logger) []grpc.StreamServerInterceptor {
+func defaultStreamServerInterceptors(logger *zap.Logger, cfg *Config) []grpc.StreamServerInterceptor {
 	return []grpc.StreamServerInterceptor{
 		grpcrecovery.StreamServerInterceptor(grpcrecovery.WithRecoveryHandler(recoveryHandler)),
 		grpczap.StreamServerInterceptor(logger),
 		grpc_prometheus.StreamServerInterceptor,
+		selector.StreamServerInterceptor(auth.StreamServerInterceptor(interceptor.AuthBearer(cfg.Secret)), selector.MatchFunc(interceptor.SkipMethod(cfg.SkippedMethods...))),
 	}
 }
 

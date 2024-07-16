@@ -17,12 +17,13 @@ type Config struct {
 	AppEnv         string `env:"APP_ENV,default=development"`
 	Port           string `env:"PORT,default=8002"`
 	PrometheusPort string `env:"PROMETHEUS_PORT,default=7002"`
+	SkippedAuth    string `env:"SKIPPED_AUTH"`
 	Token          Token
 }
 
 // Token holds configuration for Token.
 type Token struct {
-	SigningKey          []byte `env:"TOKEN_SIGNING_KEY,required"`
+	SecretKey           string `env:"TOKEN_SECRET_KEY,required"`
 	ExpiryTimeInMinutes int    `env:"TOKEN_EXPIRY_TIME_IN_MINUTE,default=5"`
 }
 

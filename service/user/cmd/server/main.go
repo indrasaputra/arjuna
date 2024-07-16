@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -43,22 +44,28 @@ func main() {
 		RedisClient:    redisClient,
 	}
 
-	grpcServer := server.NewGrpcServer(cfg.ServiceName, cfg.Port)
-	registerGrpcService(grpcServer, dep)
-	grpcServer.EnablePrometheus(cfg.PrometheusPort)
+	c := &server.Config{
+		Name:           cfg.ServiceName,
+		Port:           cfg.Port,
+		Secret:         []byte(cfg.SecretKey),
+		SkippedMethods: strings.Split(cfg.SkippedAuth, ","),
+	}
+	srv := server.NewServer(c)
+	registerGrpcService(srv, dep)
+	srv.EnablePrometheus(cfg.PrometheusPort)
 
-	_ = grpcServer.Serve()
-	grpcServer.GracefulStop()
+	_ = srv.Serve()
+	srv.GracefulStop()
 }
 
-func registerGrpcService(grpcServer *server.GrpcServer, dep *builder.Dependency) {
+func registerGrpcService(srv *server.Server, dep *builder.Dependency) {
 	// start register all module's gRPC handlers
 	command := builder.BuildUserCommandHandler(dep)
 	commandInternal := builder.BuildUserCommandInternalHandler(dep)
 	query := builder.BuildUserQueryHandler(dep)
 	health := handler.NewHealth()
 
-	grpcServer.AttachService(func(server *grpc.Server) {
+	srv.AttachService(func(server *grpc.Server) {
 		apiv1.RegisterUserCommandServiceServer(server, command)
 		apiv1.RegisterUserCommandInternalServiceServer(server, commandInternal)
 		apiv1.RegisterUserQueryServiceServer(server, query)

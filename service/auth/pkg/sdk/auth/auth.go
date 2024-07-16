@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 
+	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -46,4 +47,21 @@ func (c *Client) Register(ctx context.Context, account *entity.Account) error {
 
 	_, err := c.handler.RegisterAccount(ctx, req)
 	return err
+}
+
+// ParseToken parses the token.
+func ParseToken(tokenString string, secret []byte) (*entity.Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &entity.Claims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, entity.ErrInvalidArgument("unexpected signing method")
+		}
+		return secret, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if claims, ok := token.Claims.(*entity.Claims); ok {
+		return claims, nil
+	}
+	return nil, entity.ErrInternal("unknown claims type")
 }
