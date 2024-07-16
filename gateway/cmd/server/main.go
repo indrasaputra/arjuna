@@ -5,8 +5,7 @@ import (
 	"context"
 	"log"
 
-	grpclogsettable "github.com/grpc-ecosystem/go-grpc-middleware/logging/settable"
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -18,6 +17,7 @@ import (
 
 	"github.com/indrasaputra/arjuna/gateway/config"
 	"github.com/indrasaputra/arjuna/gateway/server"
+	"github.com/indrasaputra/arjuna/pkg/sdk/grpc/interceptor"
 	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 )
@@ -53,16 +53,17 @@ func registerGrpcGatewayService(ctx context.Context, gatewayServer *server.GrpcG
 
 func defaultGrpcServerOptions() []grpc.DialOption {
 	logger, _ := zap.NewProduction() // error is impossible, hence ignored.
-	grpczap.SetGrpcLoggerV2(grpclogsettable.ReplaceGrpcLoggerV2(), logger)
+
+	opts := []logging.Option{logging.WithLogOnEvents(logging.StartCall, logging.FinishCall)}
 
 	return []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithChainUnaryInterceptor(
-			grpczap.UnaryClientInterceptor(logger),
+			logging.UnaryClientInterceptor(interceptor.ZapLogger(logger), opts...),
 			grpc_prometheus.UnaryClientInterceptor,
 		),
 		grpc.WithChainStreamInterceptor(
-			grpczap.StreamClientInterceptor(logger),
+			logging.StreamClientInterceptor(interceptor.ZapLogger(logger), opts...),
 			grpc_prometheus.StreamClientInterceptor,
 		),
 		grpc.WithStatsHandler(otelgrpc.NewClientHandler(otelgrpc.WithTracerProvider(otel.GetTracerProvider()))),
