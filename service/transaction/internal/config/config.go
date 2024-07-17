@@ -19,12 +19,12 @@ type Config struct {
 	PrometheusPort string `env:"PROMETHEUS_PORT,default=7003"`
 	SkippedAuth    string `env:"SKIPPED_AUTH"`
 	SecretKey      string `env:"TOKEN_SECRET_KEY,required"`
+	Redis          Redis
 }
 
-// Token holds configuration for Token.
-type Token struct {
-	SecretKey           string `env:"TOKEN_SECRET_KEY,required"`
-	ExpiryTimeInMinutes int    `env:"TOKEN_EXPIRY_TIME_IN_MINUTE,default=5"`
+// Redis holds configuration for Redis.
+type Redis struct {
+	Address string `env:"REDIS_ADDRESS,default=localhost:6379"`
 }
 
 // NewConfig creates an instance of Config.
