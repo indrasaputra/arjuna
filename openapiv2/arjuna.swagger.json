@@ -286,6 +286,11 @@
     },
     "v1CreateTransactionResponse": {
       "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/v1Transaction"
+        }
+      },
       "description": "CreateTransactionResponse represents response from create transaction."
     },
     "v1Credential": {

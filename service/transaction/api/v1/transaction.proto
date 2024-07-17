@@ -59,6 +59,8 @@ message CreateTransactionRequest {
 
 // CreateTransactionResponse represents response from create transaction.
 message CreateTransactionResponse {
+  // data represents transaction.
+  Transaction data = 1;
 }
 
 // Transaction represents transaction.
@@ -112,4 +114,19 @@ enum TransactionErrorCode {
 
   // Unexpected behavior occured in system.
   TRANSACTION_ERROR_CODE_INTERNAL = 1;
+
+  // Transaction already exists.
+  TRANSACTION_ERROR_CODE_ALREADY_EXISTS = 2;
+
+  // Transaction instance is nil or empty.
+  TRANSACTION_ERROR_CODE_EMPTY_TRANSACTION = 3;
+
+  // Sender is invalid.
+  TRANSACTION_ERROR_CODE_INVALID_SENDER = 4;
+
+  // Receiver is invalid.
+  TRANSACTION_ERROR_CODE_INVALID_RECEIVER = 5;
+
+  // Amount is less than or equal to zero.
+  TRANSACTION_ERROR_CODE_INVALID_AMOUNT = 6;
 }

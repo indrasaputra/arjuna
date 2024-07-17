@@ -169,7 +169,7 @@ func setUserID(ctx context.Context, user *entity.User) error {
 func generateUniqueID(ctx context.Context) (string, error) {
 	id, err := ksuid.NewRandom()
 	if err != nil {
-		app.Logger.Errorf(ctx, "[setUserID] fail generate ksuid: %v", err)
+		app.Logger.Errorf(ctx, "[generateUniqueID] fail generate ksuid: %v", err)
 		return "", entity.ErrInternal("fail to generate unique ID")
 	}
 	return id.String(), err
