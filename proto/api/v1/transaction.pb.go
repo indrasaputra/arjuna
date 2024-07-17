@@ -43,7 +43,7 @@ const (
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_INVALID_SENDER TransactionErrorCode = 4
 	// Receiver is invalid.
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_INVALID_RECEIVER TransactionErrorCode = 5
-	// Amount is less than or equal to zero.
+	// Amount must be numeric and greater than zero.
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_INVALID_AMOUNT TransactionErrorCode = 6
 	// Idempotency key is missing.
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_MISSING_IDEMPOTENCY_KEY TransactionErrorCode = 7

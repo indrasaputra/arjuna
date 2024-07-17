@@ -127,7 +127,7 @@ enum TransactionErrorCode {
   // Receiver is invalid.
   TRANSACTION_ERROR_CODE_INVALID_RECEIVER = 5;
 
-  // Amount is less than or equal to zero.
+  // Amount must be numeric and greater than zero.
   TRANSACTION_ERROR_CODE_INVALID_AMOUNT = 6;
 
   // Idempotency key is missing.

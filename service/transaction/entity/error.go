@@ -93,7 +93,7 @@ func ErrInvalidAmount() error {
 	st := status.New(codes.InvalidArgument, "")
 	br := createBadRequest(&errdetails.BadRequest_FieldViolation{
 		Field:       "amount",
-		Description: "less than or equal to zero",
+		Description: "must be numeric and greater than zero",
 	})
 
 	te := &apiv1.TransactionError{
