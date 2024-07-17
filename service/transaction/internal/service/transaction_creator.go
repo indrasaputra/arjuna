@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/segmentio/ksuid"
 	"github.com/shopspring/decimal"
@@ -59,6 +60,7 @@ func (tc *TransactionCreator) Create(ctx context.Context, transaction *entity.Tr
 		app.Logger.Errorf(ctx, "[TransactionCreator-Create] fail set transaction id: %v", err)
 		return "", err
 	}
+	setTransactionAuditableProperties(transaction)
 
 	err := tc.trxRepo.Insert(ctx, transaction)
 	if err != nil {
@@ -120,4 +122,11 @@ func generateUniqueID(ctx context.Context) (string, error) {
 		return "", entity.ErrInternal("fail to generate unique ID")
 	}
 	return id.String(), err
+}
+
+func setTransactionAuditableProperties(trx *entity.Transaction) {
+	trx.CreatedAt = time.Now().UTC()
+	trx.UpdatedAt = time.Now().UTC()
+	trx.CreatedBy = trx.SenderID
+	trx.UpdatedBy = trx.SenderID
 }

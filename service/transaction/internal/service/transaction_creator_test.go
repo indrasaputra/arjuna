@@ -24,18 +24,18 @@ var (
 	testIdempotencyKey = "key"
 )
 
-type TransactionSuite struct {
+type TransactionCreatorSuite struct {
 	trx     *service.TransactionCreator
 	trxRepo *mock_service.MockCreateTransactionRepository
 	keyRepo *mock_service.MockIdempotencyKeyRepository
 }
 
-func TestNewTransaction(t *testing.T) {
+func TestNewTransactionCreator(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	t.Run("successfully create an instance of Transaction", func(t *testing.T) {
-		st := createTransactionSuite(ctrl)
+		st := createTransactionCreatorSuite(ctrl)
 		assert.NotNil(t, st.trx)
 	})
 }
@@ -46,7 +46,7 @@ func TestTransactionCreator_Create(t *testing.T) {
 	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("validate idempotency key returns error", func(t *testing.T) {
-		st := createTransactionSuite(ctrl)
+		st := createTransactionCreatorSuite(ctrl)
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, entity.ErrInternal("error"))
 
 		id, err := st.trx.Create(testCtx, nil, testIdempotencyKey)
@@ -56,7 +56,7 @@ func TestTransactionCreator_Create(t *testing.T) {
 	})
 
 	t.Run("idempotency key has been used", func(t *testing.T) {
-		st := createTransactionSuite(ctrl)
+		st := createTransactionCreatorSuite(ctrl)
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(true, nil)
 
 		id, err := st.trx.Create(testCtx, nil, testIdempotencyKey)
@@ -66,7 +66,7 @@ func TestTransactionCreator_Create(t *testing.T) {
 	})
 
 	t.Run("empty transaction is prohibited", func(t *testing.T) {
-		st := createTransactionSuite(ctrl)
+		st := createTransactionCreatorSuite(ctrl)
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
 		id, err := st.trx.Create(testCtx, nil, testIdempotencyKey)
@@ -77,7 +77,7 @@ func TestTransactionCreator_Create(t *testing.T) {
 	})
 
 	t.Run("sender id is invalid", func(t *testing.T) {
-		st := createTransactionSuite(ctrl)
+		st := createTransactionCreatorSuite(ctrl)
 		trx := createTestTransaction()
 		trx.SenderID = ""
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
@@ -89,7 +89,7 @@ func TestTransactionCreator_Create(t *testing.T) {
 	})
 
 	t.Run("receiver id is invalid", func(t *testing.T) {
-		st := createTransactionSuite(ctrl)
+		st := createTransactionCreatorSuite(ctrl)
 		trx := createTestTransaction()
 		trx.ReceiverID = ""
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
@@ -101,7 +101,7 @@ func TestTransactionCreator_Create(t *testing.T) {
 	})
 
 	t.Run("amount is invalid", func(t *testing.T) {
-		st := createTransactionSuite(ctrl)
+		st := createTransactionCreatorSuite(ctrl)
 		trx := createTestTransaction()
 		trx.Amount = decimal.Zero
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
@@ -113,7 +113,7 @@ func TestTransactionCreator_Create(t *testing.T) {
 	})
 
 	t.Run("trx repo insert returns error", func(t *testing.T) {
-		st := createTransactionSuite(ctrl)
+		st := createTransactionCreatorSuite(ctrl)
 		trx := createTestTransaction()
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
@@ -126,7 +126,7 @@ func TestTransactionCreator_Create(t *testing.T) {
 	})
 
 	t.Run("success create a transaction", func(t *testing.T) {
-		st := createTransactionSuite(ctrl)
+		st := createTransactionCreatorSuite(ctrl)
 		trx := createTestTransaction()
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
@@ -139,11 +139,11 @@ func TestTransactionCreator_Create(t *testing.T) {
 	})
 }
 
-func createTransactionSuite(ctrl *gomock.Controller) *TransactionSuite {
+func createTransactionCreatorSuite(ctrl *gomock.Controller) *TransactionCreatorSuite {
 	r := mock_service.NewMockCreateTransactionRepository(ctrl)
 	i := mock_service.NewMockIdempotencyKeyRepository(ctrl)
 	t := service.NewTransactionCreator(r, i)
-	return &TransactionSuite{
+	return &TransactionCreatorSuite{
 		trx:     t,
 		trxRepo: r,
 		keyRepo: i,
