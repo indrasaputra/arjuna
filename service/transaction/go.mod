@@ -11,6 +11,9 @@ replace (
 require (
 	github.com/indrasaputra/arjuna/pkg/sdk v0.0.0
 	github.com/indrasaputra/arjuna/proto v0.0.0
+	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd
+	github.com/joho/godotenv v1.5.1
+	github.com/pkg/errors v0.9.1
 	github.com/segmentio/ksuid v1.0.4
 	github.com/shopspring/decimal v1.4.0
 	github.com/stretchr/testify v1.9.0

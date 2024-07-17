@@ -29,8 +29,8 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   produces : "application/json",
 };
 
-// TransactionService provides all use cases to work with transaction.
-service TransactionService {
+// TransactionCommandService provides all use cases to work with transaction.
+service TransactionCommandService {
   option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
     description : "This service provides all use cases to work with transaction."
   };
@@ -129,4 +129,7 @@ enum TransactionErrorCode {
 
   // Amount is less than or equal to zero.
   TRANSACTION_ERROR_CODE_INVALID_AMOUNT = 6;
+
+  // Idempotency key is missing.
+  TRANSACTION_ERROR_CODE_MISSING_IDEMPOTENCY_KEY = 7;
 }

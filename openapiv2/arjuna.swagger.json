@@ -18,7 +18,7 @@
       "description": "This service provides all use cases to work with auth."
     },
     {
-      "name": "TransactionService",
+      "name": "TransactionCommandService",
       "description": "This service provides all use cases to work with transaction."
     },
     {
@@ -288,7 +288,8 @@
       "type": "object",
       "properties": {
         "data": {
-          "$ref": "#/definitions/v1Transaction"
+          "$ref": "#/definitions/v1Transaction",
+          "description": "data represents transaction."
         }
       },
       "description": "CreateTransactionResponse represents response from create transaction."

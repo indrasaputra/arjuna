@@ -31,7 +31,7 @@ var _ = runtime.String
 var _ = utilities.NewDoubleArray
 var _ = metadata.Join
 
-func request_TransactionService_CreateTransaction_0(ctx context.Context, marshaler runtime.Marshaler, client TransactionServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_TransactionCommandService_CreateTransaction_0(ctx context.Context, marshaler runtime.Marshaler, client TransactionCommandServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CreateTransactionRequest
 	var metadata runtime.ServerMetadata
 
@@ -44,7 +44,7 @@ func request_TransactionService_CreateTransaction_0(ctx context.Context, marshal
 
 }
 
-func local_request_TransactionService_CreateTransaction_0(ctx context.Context, marshaler runtime.Marshaler, server TransactionServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_TransactionCommandService_CreateTransaction_0(ctx context.Context, marshaler runtime.Marshaler, server TransactionCommandServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CreateTransactionRequest
 	var metadata runtime.ServerMetadata
 
@@ -57,13 +57,13 @@ func local_request_TransactionService_CreateTransaction_0(ctx context.Context, m
 
 }
 
-// RegisterTransactionServiceHandlerServer registers the http handlers for service TransactionService to "mux".
-// UnaryRPC     :call TransactionServiceServer directly.
+// RegisterTransactionCommandServiceHandlerServer registers the http handlers for service TransactionCommandService to "mux".
+// UnaryRPC     :call TransactionCommandServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
-// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterTransactionServiceHandlerFromEndpoint instead.
-func RegisterTransactionServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server TransactionServiceServer) error {
+// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterTransactionCommandServiceHandlerFromEndpoint instead.
+func RegisterTransactionCommandServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server TransactionCommandServiceServer) error {
 
-	mux.Handle("POST", pattern_TransactionService_CreateTransaction_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_TransactionCommandService_CreateTransaction_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -71,12 +71,12 @@ func RegisterTransactionServiceHandlerServer(ctx context.Context, mux *runtime.S
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.v1.TransactionService/CreateTransaction", runtime.WithHTTPPathPattern("/v1/transactions"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.v1.TransactionCommandService/CreateTransaction", runtime.WithHTTPPathPattern("/v1/transactions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TransactionService_CreateTransaction_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TransactionCommandService_CreateTransaction_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -84,16 +84,16 @@ func RegisterTransactionServiceHandlerServer(ctx context.Context, mux *runtime.S
 			return
 		}
 
-		forward_TransactionService_CreateTransaction_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TransactionCommandService_CreateTransaction_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
 	return nil
 }
 
-// RegisterTransactionServiceHandlerFromEndpoint is same as RegisterTransactionServiceHandler but
+// RegisterTransactionCommandServiceHandlerFromEndpoint is same as RegisterTransactionCommandServiceHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
-func RegisterTransactionServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+func RegisterTransactionCommandServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
 	conn, err := grpc.NewClient(endpoint, opts...)
 	if err != nil {
 		return err
@@ -113,41 +113,41 @@ func RegisterTransactionServiceHandlerFromEndpoint(ctx context.Context, mux *run
 		}()
 	}()
 
-	return RegisterTransactionServiceHandler(ctx, mux, conn)
+	return RegisterTransactionCommandServiceHandler(ctx, mux, conn)
 }
 
-// RegisterTransactionServiceHandler registers the http handlers for service TransactionService to "mux".
+// RegisterTransactionCommandServiceHandler registers the http handlers for service TransactionCommandService to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
-func RegisterTransactionServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	return RegisterTransactionServiceHandlerClient(ctx, mux, NewTransactionServiceClient(conn))
+func RegisterTransactionCommandServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return RegisterTransactionCommandServiceHandlerClient(ctx, mux, NewTransactionCommandServiceClient(conn))
 }
 
-// RegisterTransactionServiceHandlerClient registers the http handlers for service TransactionService
-// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "TransactionServiceClient".
-// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "TransactionServiceClient"
+// RegisterTransactionCommandServiceHandlerClient registers the http handlers for service TransactionCommandService
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "TransactionCommandServiceClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "TransactionCommandServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "TransactionServiceClient" to call the correct interceptors.
-func RegisterTransactionServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client TransactionServiceClient) error {
+// "TransactionCommandServiceClient" to call the correct interceptors.
+func RegisterTransactionCommandServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client TransactionCommandServiceClient) error {
 
-	mux.Handle("POST", pattern_TransactionService_CreateTransaction_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_TransactionCommandService_CreateTransaction_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.v1.TransactionService/CreateTransaction", runtime.WithHTTPPathPattern("/v1/transactions"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.v1.TransactionCommandService/CreateTransaction", runtime.WithHTTPPathPattern("/v1/transactions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TransactionService_CreateTransaction_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_TransactionCommandService_CreateTransaction_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TransactionService_CreateTransaction_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TransactionCommandService_CreateTransaction_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -155,9 +155,9 @@ func RegisterTransactionServiceHandlerClient(ctx context.Context, mux *runtime.S
 }
 
 var (
-	pattern_TransactionService_CreateTransaction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "transactions"}, ""))
+	pattern_TransactionCommandService_CreateTransaction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "transactions"}, ""))
 )
 
 var (
-	forward_TransactionService_CreateTransaction_0 = runtime.ForwardResponseMessage
+	forward_TransactionCommandService_CreateTransaction_0 = runtime.ForwardResponseMessage
 )

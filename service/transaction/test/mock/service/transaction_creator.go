@@ -42,7 +42,7 @@ func (m *MockCreateTransaction) EXPECT() *MockCreateTransactionMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockCreateTransaction) Create(ctx context.Context, transaction entity.Transaction, key string) (string, error) {
+func (m *MockCreateTransaction) Create(ctx context.Context, transaction *entity.Transaction, key string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, transaction, key)
 	ret0, _ := ret[0].(string)

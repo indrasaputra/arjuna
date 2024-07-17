@@ -16,7 +16,7 @@ import (
 type CreateTransaction interface {
 	// Create creates a new transaction.
 	// It needs idempotency key.
-	Create(ctx context.Context, transaction entity.Transaction, key string) (string, error)
+	Create(ctx context.Context, transaction *entity.Transaction, key string) (string, error)
 }
 
 // IdempotencyKeyRepository defines  interface for idempotency check flow and repository.
