@@ -36,6 +36,12 @@ scrape_configs:
       - targets:
           - auth-server:7002
 
+  - job_name: "transaction-server"
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+          - transaction-server:7003
+
   - job_name: "temporal"
     scrape_interval: 5s
     static_configs:

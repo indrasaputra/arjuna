@@ -1,0 +1,135 @@
+// transaction.proto defines service for transaction.
+syntax = "proto3";
+
+package api.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/protobuf/timestamp.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option go_package = "github.com/indrasaputra/arjuna/service/transaction/api/v1;apiv1";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info : {
+    title : "Transaction API",
+    version : "1.0.0",
+    contact : {
+      name : "Indra Saputra",
+      url : "https://github.com/indrasaputra",
+    },
+    license : {
+      name : "BSD 3-Clause License",
+      url : "https://github.com/indrasaputra/arjuna/blob/main/LICENSE",
+    },
+  },
+  host : "localhost:8000",
+  schemes : HTTP,
+  consumes : "application/json",
+  produces : "application/json",
+};
+
+// TransactionCommandService provides all use cases to work with transaction.
+service TransactionCommandService {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+    description : "This service provides all use cases to work with transaction."
+  };
+
+  // CreateTransaction.
+  //
+  // This endpoint creates a transaction.
+  rpc CreateTransaction(CreateTransactionRequest) returns (CreateTransactionResponse) {
+    option (google.api.http) = {
+      post : "/v1/transactions",
+      body : "transaction"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id : "CreateTransaction",
+      tags : "Transaction"
+    };
+  };
+}
+
+// CreateTransactionRequest represents request for create transaction.
+message CreateTransactionRequest {
+  // transaction represents transaction data.
+  Transaction transaction = 1;
+}
+
+// CreateTransactionResponse represents response from create transaction.
+message CreateTransactionResponse {
+  // data represents transaction.
+  Transaction data = 1;
+}
+
+// Transaction represents transaction.
+message Transaction {
+  // id represents unique id.
+  string id = 1 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {example : "\"123\""}
+  ];
+
+  // sender_id represents sender's id.
+  string sender_id = 2 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description : "Transaction's sender's id"
+      example : "\"1\""
+    },
+    json_name = "sender_id"
+  ];
+
+  // receiver_id represents receiver's id.
+  string receiver_id = 3 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description : "Transaction's receiver's id"
+      example : "\"2\""
+    },
+    json_name = "receiver_id"
+  ];
+
+  // amount represents amount.
+  string amount = 4 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description : "Transaction's amount"
+    example : "\"10.23\""
+  } ];
+
+  // created_at represents when the transaction was created.
+  google.protobuf.Timestamp created_at = 5
+      [ (google.api.field_behavior) = OUTPUT_ONLY, json_name = "created_at" ];
+}
+
+// TransactionError represents message for any error happening in transaction service.
+message TransactionError {
+  // error_code represents specific and unique error code for transaction.
+  TransactionErrorCode error_code = 1;
+}
+
+// TransactionErrorCode enumerates transaction error code.
+enum TransactionErrorCode {
+  // Default enum code according to
+  // https://medium.com/@akhaku/protobuf-definition-best-practices-87f281576f31.
+  TRANSACTION_ERROR_CODE_UNSPECIFIED = 0;
+
+  // Unexpected behavior occured in system.
+  TRANSACTION_ERROR_CODE_INTERNAL = 1;
+
+  // Transaction already exists.
+  TRANSACTION_ERROR_CODE_ALREADY_EXISTS = 2;
+
+  // Transaction instance is nil or empty.
+  TRANSACTION_ERROR_CODE_EMPTY_TRANSACTION = 3;
+
+  // Sender is invalid.
+  TRANSACTION_ERROR_CODE_INVALID_SENDER = 4;
+
+  // Receiver is invalid.
+  TRANSACTION_ERROR_CODE_INVALID_RECEIVER = 5;
+
+  // Amount must be numeric and greater than zero.
+  TRANSACTION_ERROR_CODE_INVALID_AMOUNT = 6;
+
+  // Idempotency key is missing.
+  TRANSACTION_ERROR_CODE_MISSING_IDEMPOTENCY_KEY = 7;
+}

@@ -10,12 +10,13 @@ import (
 
 // Config holds configuration for the project.
 type Config struct {
-	ServiceName        string `env:"SERVICE_NAME,default=grpc-gateway"`
-	AppEnv             string `env:"APP_ENV,default=development"`
-	Port               string `env:"PORT,default=8000"`
-	UserServiceAddress string `env:"USER_SERVICE_ADDRESS,required"`
-	AuthServiceAddress string `env:"AUTH_SERVICE_ADDRESS,required"`
-	Tracer             trace.Config
+	ServiceName               string `env:"SERVICE_NAME,default=grpc-gateway"`
+	AppEnv                    string `env:"APP_ENV,default=development"`
+	Port                      string `env:"PORT,default=8000"`
+	UserServiceAddress        string `env:"USER_SERVICE_ADDRESS,required"`
+	AuthServiceAddress        string `env:"AUTH_SERVICE_ADDRESS,required"`
+	TransactionServiceAddress string `env:"TRANSACTION_SERVICE_ADDRESS,required"`
+	Tracer                    trace.Config
 }
 
 // NewConfig creates an instance of Config.

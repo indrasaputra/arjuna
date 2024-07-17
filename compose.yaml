@@ -57,13 +57,6 @@ services:
       - SQLPAD_AUTH_DISABLED=true
       - SQLPAD_AUTH_DISABLED_DEFAULT_ROLE=admin
       - SQLPAD_DB_IN_MEMORY=true
-      - SQLPAD_CONNECTIONS__auth_postgres__name=Postgres - Auth
-      - SQLPAD_CONNECTIONS__auth_postgres__driver=postgres
-      - SQLPAD_CONNECTIONS__auth_postgres__host=postgres
-      - SQLPAD_CONNECTIONS__auth_postgres__port=5432
-      - SQLPAD_CONNECTIONS__auth_postgres__database=arjuna_auth
-      - SQLPAD_CONNECTIONS__auth_postgres__username=postgresuser
-      - SQLPAD_CONNECTIONS__auth_postgres__password=postgrespassword
       - SQLPAD_CONNECTIONS__user_postgres__name=Postgres - User
       - SQLPAD_CONNECTIONS__user_postgres__driver=postgres
       - SQLPAD_CONNECTIONS__user_postgres__host=postgres
@@ -71,6 +64,20 @@ services:
       - SQLPAD_CONNECTIONS__user_postgres__database=arjuna_user
       - SQLPAD_CONNECTIONS__user_postgres__username=postgresuser
       - SQLPAD_CONNECTIONS__user_postgres__password=postgrespassword
+      - SQLPAD_CONNECTIONS__auth_postgres__name=Postgres - Auth
+      - SQLPAD_CONNECTIONS__auth_postgres__driver=postgres
+      - SQLPAD_CONNECTIONS__auth_postgres__host=postgres
+      - SQLPAD_CONNECTIONS__auth_postgres__port=5432
+      - SQLPAD_CONNECTIONS__auth_postgres__database=arjuna_auth
+      - SQLPAD_CONNECTIONS__auth_postgres__username=postgresuser
+      - SQLPAD_CONNECTIONS__auth_postgres__password=postgrespassword
+      - SQLPAD_CONNECTIONS__transaction_postgres__name=Postgres - Transaction
+      - SQLPAD_CONNECTIONS__transaction_postgres__driver=postgres
+      - SQLPAD_CONNECTIONS__transaction_postgres__host=postgres
+      - SQLPAD_CONNECTIONS__transaction_postgres__port=5432
+      - SQLPAD_CONNECTIONS__transaction_postgres__database=arjuna_transaction
+      - SQLPAD_CONNECTIONS__transaction_postgres__username=postgresuser
+      - SQLPAD_CONNECTIONS__transaction_postgres__password=postgrespassword
     ports:
       - 3000:3000
     profiles:
@@ -283,6 +290,7 @@ services:
       - PORT=8000
       - USER_SERVICE_ADDRESS=user-server:8001
       - AUTH_SERVICE_ADDRESS=auth-server:8002
+      - TRANSACTION_SERVICE_ADDRESS=transaction-server:8003
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
     profiles:
       - service
@@ -418,6 +426,41 @@ services:
       - AUTH_SERVICE_HOST=auth-server:8002
       - REDIS_ADDRESS=redis:6379
       - TOKEN_SECRET_KEY=arjuna-secret-key
+    profiles:
+      - service
+  
+  transaction-server:
+    <<: *arjuna-backend-default
+    image: indrasaputra/arjuna-transaction-server:latest
+    container_name: arjuna-transaction-server
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - 8003:8003
+      - 7003:7003
+    environment:
+      - SERVICE_NAME=transaction-server
+      - APP_ENV=development
+      - PORT=8003
+      - PROMETHEUS_PORT=7003
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgresuser
+      - POSTGRES_PASSWORD=postgrespassword
+      - POSTGRES_NAME=arjuna_transaction
+      - POSTGRES_MAX_OPEN_CONNS=50
+      - POSTGRES_MAX_CONN_LIFETIME=10m
+      - POSTGRES_MAX_IDLE_LIFETIME=5m
+      - POSTGRES_SSL_MODE=disable
+      - TEMPORAL_ADDRESS=temporal:7233
+      - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - REDIS_ADDRESS=redis:6379
+      - TOKEN_SECRET_KEY=arjuna-secret-key
+      - SKIPPED_AUTH=/api.v1.TransactionCommandService/CreateTransaction
     profiles:
       - service
 

@@ -1,6 +1,6 @@
 OUTPUT_DIR			= deploy/output
 PROTOGEN_IMAGE		= indrasaputra/protogen:2024-07-13
-SERVICES			= blueprint gateway auth user
+SERVICES			= blueprint gateway auth transaction user
 
 include Makefile.help.mk
 
