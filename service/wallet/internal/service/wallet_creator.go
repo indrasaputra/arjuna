@@ -14,7 +14,6 @@ import (
 // CreateWallet defines interface to create wallet.
 type CreateWallet interface {
 	// Create creates a new wallet.
-	// It needs idempotency key.
 	Create(ctx context.Context, wallet *entity.Wallet) error
 }
 

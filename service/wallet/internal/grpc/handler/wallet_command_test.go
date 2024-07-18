@@ -22,6 +22,7 @@ const (
 type WalletCommandSuite struct {
 	handler *handler.WalletCommand
 	creator *mock_service.MockCreateWallet
+	topup   *mock_service.MockTopupWallet
 }
 
 func TestNewWalletCommand(t *testing.T) {
@@ -104,10 +105,12 @@ func TestWalletCommand_CreateWallet(t *testing.T) {
 }
 
 func createWalletCommandSuite(ctrl *gomock.Controller) *WalletCommandSuite {
-	w := mock_service.NewMockCreateWallet(ctrl)
-	h := handler.NewWalletCommand(w)
+	c := mock_service.NewMockCreateWallet(ctrl)
+	t := mock_service.NewMockTopupWallet(ctrl)
+	h := handler.NewWalletCommand(c, t)
 	return &WalletCommandSuite{
 		handler: h,
-		creator: w,
+		creator: c,
+		topup:   t,
 	}
 }

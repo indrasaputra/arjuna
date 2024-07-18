@@ -48,6 +48,27 @@ service WalletCommandService {
       tags : "Wallet"
     };
   };
+
+  // Topup.
+  //
+  // This endpoint topups a wallet.
+  rpc TopupWallet(TopupWalletRequest) returns (TopupWalletResponse) {
+    option (google.api.http) = {
+      put : "/v1/wallets/topups",
+      body : "topup"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id : "TopupWallet",
+      tags : "Wallet",
+      parameters : {
+        headers : [
+          {name : "Authorization", type : STRING, required : true},
+          {name : "X-Idempotency-Key" type : STRING, required : true}
+        ]
+      },
+    };
+  };
 }
 
 // CreateWalletRequest represents request for create wallet.
@@ -58,6 +79,16 @@ message CreateWalletRequest {
 
 // CreateWalletResponse represents response from create wallet.
 message CreateWalletResponse {
+}
+
+// TopupWalletRequest represents request for topup wallet.
+message TopupWalletRequest {
+  // topup represents topup data.
+  Topup topup = 1;
+}
+
+// TopupWalletResponse represents response from topup wallet.
+message TopupWalletResponse {
 }
 
 // Wallet represents wallet.
@@ -80,6 +111,24 @@ message Wallet {
   // balance represents balance.
   string balance = 3 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description : "Wallet's balance"
+    example : "\"10.23\""
+  } ];
+}
+
+// Topup represents topup.
+message Topup {
+  // wallet_id represents wallet's id.
+  string wallet_id = 1 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description : "Wallet's id"
+      example : "\"1\""
+    },
+    json_name = "wallet_id"
+  ];
+
+  // amount represents amount.
+  string amount = 2 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description : "Topup amount"
     example : "\"10.23\""
   } ];
 }
@@ -113,4 +162,7 @@ enum WalletErrorCode {
 
   // User is invalid.
   WALLET_ERROR_CODE_INVALID_USER = 8;
+
+  // Balance must be numeric and greater than zero.
+  WALLET_ERROR_CODE_INVALID_AMOUNT = 9;
 }

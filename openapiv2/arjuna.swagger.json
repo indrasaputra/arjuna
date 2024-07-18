@@ -261,6 +261,53 @@
           "Wallet"
         ]
       }
+    },
+    "/v1/wallets/topups": {
+      "put": {
+        "summary": "Topup.",
+        "description": "This endpoint topups a wallet.",
+        "operationId": "TopupWallet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TopupWalletResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "topup",
+            "description": "topup represents topup data.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1Topup"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Wallet"
+        ]
+      }
     }
   },
   "definitions": {
@@ -424,6 +471,26 @@
         }
       },
       "description": "Token represents token."
+    },
+    "v1Topup": {
+      "type": "object",
+      "properties": {
+        "wallet_id": {
+          "type": "string",
+          "example": "1",
+          "description": "Wallet's id"
+        },
+        "amount": {
+          "type": "string",
+          "example": "10.23",
+          "description": "Topup amount"
+        }
+      },
+      "description": "Topup represents topup."
+    },
+    "v1TopupWalletResponse": {
+      "type": "object",
+      "description": "TopupWalletResponse represents response from topup wallet."
     },
     "v1Transaction": {
       "type": "object",
