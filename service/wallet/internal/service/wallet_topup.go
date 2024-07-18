@@ -48,7 +48,7 @@ func (wt *WalletTopup) Topup(ctx context.Context, topup *entity.TopupWallet) err
 	}
 
 	if err := wt.validateIdempotencyKey(ctx, topup.IdempotencyKey); err != nil {
-		app.Logger.Errorf(ctx, "[UserRegistrar-Register] fail check idempotency key: %s - %v", topup.IdempotencyKey, err)
+		app.Logger.Errorf(ctx, "[WalletTopup-Topup] fail check idempotency key: %s - %v", topup.IdempotencyKey, err)
 		return err
 	}
 

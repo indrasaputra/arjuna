@@ -58,7 +58,7 @@ func (wc *WalletCommand) TopupWallet(ctx context.Context, request *apiv1.TopupWa
 		return nil, entity.ErrMissingIdempotencyKey()
 	}
 
-	userID := ctx.Value(interceptor.HeaderKeyUserID).(interceptor.HeaderKey)
+	userID := ctx.Value(interceptor.HeaderKeyUserID).(string)
 
 	if request == nil || request.GetTopup() == nil {
 		app.Logger.Errorf(ctx, "[WalletCommand-TopupWallet] empty or nil topup")
@@ -66,7 +66,7 @@ func (wc *WalletCommand) TopupWallet(ctx context.Context, request *apiv1.TopupWa
 	}
 
 	amount, _ := decimal.NewFromString(request.GetTopup().GetAmount())
-	req := createTopupWalletFromTopupWalletRequest(request, string(userID), amount)
+	req := createTopupWalletFromTopupWalletRequest(request, userID, amount, key[0])
 
 	err := wc.topup.Topup(ctx, req)
 	if err != nil {
@@ -83,10 +83,11 @@ func createWalletFromCreateWalletRequest(request *apiv1.CreateWalletRequest, bal
 	}
 }
 
-func createTopupWalletFromTopupWalletRequest(request *apiv1.TopupWalletRequest, userID string, amount decimal.Decimal) *entity.TopupWallet {
+func createTopupWalletFromTopupWalletRequest(request *apiv1.TopupWalletRequest, userID string, amount decimal.Decimal, key string) *entity.TopupWallet {
 	return &entity.TopupWallet{
-		WalletID: request.GetTopup().GetWalletId(),
-		UserID:   userID,
-		Amount:   amount,
+		WalletID:       request.GetTopup().GetWalletId(),
+		UserID:         userID,
+		Amount:         amount,
+		IdempotencyKey: key,
 	}
 }
