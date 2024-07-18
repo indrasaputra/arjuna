@@ -83,9 +83,6 @@ func sanitizeTopupWallet(topup *entity.TopupWallet) {
 }
 
 func validateTopupWallet(topup *entity.TopupWallet) error {
-	if topup == nil {
-		return entity.ErrEmptyWallet()
-	}
 	if topup.WalletID == "" {
 		return entity.ErrEmptyWallet()
 	}

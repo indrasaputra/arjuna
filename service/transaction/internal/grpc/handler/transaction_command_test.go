@@ -1,6 +1,7 @@
 package handler_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -44,6 +45,16 @@ func TestTransactionCommand_CreateTransaction(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	app.Logger = sdklog.NewLogger(testEnv)
+
+	t.Run("metadata not found", func(t *testing.T) {
+		st := createTransactionCommandSuite(ctrl)
+
+		res, err := st.handler.CreateTransaction(context.Background(), nil)
+
+		assert.Error(t, err)
+		assert.Equal(t, entity.ErrInternal("metadata not found from incoming context"), err)
+		assert.Nil(t, res)
+	})
 
 	t.Run("idempotency key is missing", func(t *testing.T) {
 		st := createTransactionCommandSuite(ctrl)
