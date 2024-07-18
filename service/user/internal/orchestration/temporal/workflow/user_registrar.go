@@ -21,9 +21,11 @@ const (
 	// ActivityTimeoutDefault sets to 2 seconds.
 	ActivityTimeoutDefault = 2 * time.Second
 	// ActivityAuthCreate is derived from struct name + method name. See activity registration in worker.
-	ActivityAuthCreate = "RegisterUserActivityCreateInAuth"
+	ActivityAuthCreate = "RegisterUserActivityCreateAccount"
 	// ActivityUserHardDelete is derived from struct name + method name. See activity registration in worker.
 	ActivityUserHardDelete = "RegisterUserActivityHardDeleteInUser"
+	// ActivityWalletCreate is derived from struct name + method name. See activity registration in worker.
+	ActivityWalletCreate = "RegisterUserActivityCreateWallet"
 	// ActivityRetryBackoffCoefficient sets to 2.
 	ActivityRetryBackoffCoefficient = 2
 	// ActivityRetryMaximumAttempts sets to 3.
@@ -93,6 +95,12 @@ func RegisterUser(ctx tempflow.Context, input *entity.RegisterUserInput) (*entit
 
 	ctx = createContextWithActivityOptions(ctx, ActivityTimeoutDefault, TaskQueueRegisterUser)
 	err := tempflow.ExecuteActivity(ctx, ActivityAuthCreate, input.User).Get(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx = createContextWithActivityOptions(ctx, ActivityTimeoutDefault, TaskQueueRegisterUser)
+	err = tempflow.ExecuteActivity(ctx, ActivityWalletCreate, input.User).Get(ctx, nil)
 	if err != nil {
 		ctx = createContextWithActivityOptions(ctx, ActivityTimeoutDefault, TaskQueueRegisterUser)
 		_ = tempflow.ExecuteActivity(ctx, ActivityUserHardDelete, input.User.ID).Get(ctx, nil)

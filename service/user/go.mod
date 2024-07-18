@@ -6,12 +6,14 @@ replace (
 	github.com/indrasaputra/arjuna/pkg/sdk v0.0.0 => ../../pkg/sdk
 	github.com/indrasaputra/arjuna/proto v0.0.0 => ../../proto
 	github.com/indrasaputra/arjuna/service/auth v0.0.0 => ../../service/auth
+	github.com/indrasaputra/arjuna/service/wallet v0.0.0 => ../../service/wallet
 )
 
 require (
 	github.com/indrasaputra/arjuna/pkg/sdk v0.0.0
 	github.com/indrasaputra/arjuna/proto v0.0.0
 	github.com/indrasaputra/arjuna/service/auth v0.0.0
+	github.com/indrasaputra/arjuna/service/wallet v0.0.0
 	github.com/stretchr/testify v1.9.0
 	google.golang.org/grpc v1.65.0
 )
@@ -34,6 +36,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.5.4
+	github.com/shopspring/decimal v1.4.0
 	go.temporal.io/sdk v1.19.0
 	go.uber.org/mock v0.4.0
 )
@@ -76,7 +79,6 @@ require (
 	github.com/prometheus/common v0.48.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/robfig/cron v1.2.0 // indirect
-	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect

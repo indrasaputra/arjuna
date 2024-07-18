@@ -16,6 +16,7 @@ import (
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/redis"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
+	sdkwallet "github.com/indrasaputra/arjuna/service/wallet/pkg/sdk/wallet"
 )
 
 // Dependency holds any dependency to build full use cases.
@@ -73,6 +74,15 @@ func BuildAuthClient(host string) (*sdkauth.Client, error) {
 		Options: []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())},
 	}
 	return sdkauth.NewClient(dc)
+}
+
+// BuildWalletClient builds wallet service client.
+func BuildWalletClient(host string) (*sdkwallet.Client, error) {
+	dc := &sdkwallet.DialConfig{
+		Host:    host,
+		Options: []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())},
+	}
+	return sdkwallet.NewClient(dc)
 }
 
 // BuildRedisClient builds an instance of redis client.

@@ -10,7 +10,6 @@ import (
 	"github.com/indrasaputra/arjuna/service/wallet/internal/config"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/grpc/handler"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/repository/postgres"
-	"github.com/indrasaputra/arjuna/service/wallet/internal/repository/redis"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/service"
 )
 
@@ -24,9 +23,7 @@ type Dependency struct {
 // BuildWalletCommandHandler builds wallet command handler including all of its dependencies.
 func BuildWalletCommandHandler(dep *Dependency) *handler.WalletCommand {
 	p := postgres.NewWallet(dep.DB)
-	i := redis.NewIdempotencyKey(dep.RedisClient)
-
-	t := service.NewWalletCreator(p, i)
+	t := service.NewWalletCreator(p)
 	return handler.NewWalletCommand(t)
 }
 

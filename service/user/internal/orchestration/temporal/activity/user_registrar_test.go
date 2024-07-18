@@ -22,8 +22,9 @@ var (
 type RegisterUserActivitySuite struct {
 	activity *activity.RegisterUserActivity
 
-	conn *mock_activity.MockRegisterUserConnection
-	db   *mock_activity.MockRegisterUserDatabase
+	auth   *mock_activity.MockRegisterUserAuthConnection
+	wallet *mock_activity.MockRegisterUserWalletConnection
+	db     *mock_activity.MockRegisterUserDatabase
 }
 
 func TestNewRegisterUserActivity(t *testing.T) {
@@ -36,26 +37,51 @@ func TestNewRegisterUserActivity(t *testing.T) {
 	})
 }
 
-func TestRegisterUserActivity_CreateInAuth(t *testing.T) {
+func TestRegisterUserActivity_CreateAccount(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	t.Run("user already exists", func(t *testing.T) {
+	t.Run("auth already exists", func(t *testing.T) {
 		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
-		st.conn.EXPECT().CreateAccount(testCtx, user).Return(entity.ErrAlreadyExists())
+		st.auth.EXPECT().CreateAccount(testCtx, user).Return(entity.ErrAlreadyExists())
 
-		err := st.activity.CreateInAuth(testCtx, user)
+		err := st.activity.CreateAccount(testCtx, user)
 
 		assert.Error(t, err)
 	})
 
-	t.Run("success create user", func(t *testing.T) {
+	t.Run("success create account", func(t *testing.T) {
 		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
-		st.conn.EXPECT().CreateAccount(testCtx, user).Return(nil)
+		st.auth.EXPECT().CreateAccount(testCtx, user).Return(nil)
 
-		err := st.activity.CreateInAuth(testCtx, user)
+		err := st.activity.CreateAccount(testCtx, user)
+
+		assert.NoError(t, err)
+	})
+}
+
+func TestRegisterUserActivity_CreateWallet(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	t.Run("wallet already exists", func(t *testing.T) {
+		st := createRegisterUserActivitySuite(ctrl)
+		user := createTestUser()
+		st.wallet.EXPECT().CreateWallet(testCtx, user).Return(entity.ErrAlreadyExists())
+
+		err := st.activity.CreateWallet(testCtx, user)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("success create wallet", func(t *testing.T) {
+		st := createRegisterUserActivitySuite(ctrl)
+		user := createTestUser()
+		st.wallet.EXPECT().CreateWallet(testCtx, user).Return(nil)
+
+		err := st.activity.CreateWallet(testCtx, user)
 
 		assert.NoError(t, err)
 	})
@@ -76,7 +102,7 @@ func TestRegisterUserActivity_HardDeleteInUser(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("success delete user from conn", func(t *testing.T) {
+	t.Run("success delete user from auth", func(t *testing.T) {
 		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
 		st.db.EXPECT().HardDelete(testCtx, user.ID).Return(nil)
@@ -96,12 +122,14 @@ func createTestUser() *entity.User {
 }
 
 func createRegisterUserActivitySuite(ctrl *gomock.Controller) *RegisterUserActivitySuite {
-	co := mock_activity.NewMockRegisterUserConnection(ctrl)
+	ac := mock_activity.NewMockRegisterUserAuthConnection(ctrl)
+	wc := mock_activity.NewMockRegisterUserWalletConnection(ctrl)
 	db := mock_activity.NewMockRegisterUserDatabase(ctrl)
-	a := activity.NewRegisterUserActivity(co, db)
+	a := activity.NewRegisterUserActivity(ac, wc, db)
 	return &RegisterUserActivitySuite{
 		activity: a,
-		conn:     co,
+		auth:     ac,
+		wallet:   wc,
 		db:       db,
 	}
 }

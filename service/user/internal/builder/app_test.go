@@ -74,6 +74,15 @@ func TestBuildAuthClient(t *testing.T) {
 	})
 }
 
+func TestBuildWalletClient(t *testing.T) {
+	t.Run("success build a wallet client", func(t *testing.T) {
+		client, err := builder.BuildWalletClient("localhost:8004")
+
+		assert.NoError(t, err)
+		assert.NotNil(t, client)
+	})
+}
+
 func TestBuildRedisClient(t *testing.T) {
 	t.Run("fail create redis client", func(t *testing.T) {
 		server, _ := miniredis.Run()

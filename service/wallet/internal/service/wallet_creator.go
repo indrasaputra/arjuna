@@ -15,13 +15,7 @@ import (
 type CreateWallet interface {
 	// Create creates a new wallet.
 	// It needs idempotency key.
-	Create(ctx context.Context, wallet *entity.Wallet, key string) error
-}
-
-// IdempotencyKeyRepository defines  interface for idempotency check flow and repository.
-type IdempotencyKeyRepository interface {
-	// Exists check if given key exists in repository.
-	Exists(ctx context.Context, key string) (bool, error)
+	Create(ctx context.Context, wallet *entity.Wallet) error
 }
 
 // CreateWalletRepository defines the interface to insert wallet to repository.
@@ -33,22 +27,16 @@ type CreateWalletRepository interface {
 // WalletCreator is responsible for creating a new wallet.
 type WalletCreator struct {
 	walletRepo CreateWalletRepository
-	keyRepo    IdempotencyKeyRepository
 }
 
 // NewWalletCreator creates an instance of WalletCreator.
-func NewWalletCreator(t CreateWalletRepository, k IdempotencyKeyRepository) *WalletCreator {
-	return &WalletCreator{walletRepo: t, keyRepo: k}
+func NewWalletCreator(t CreateWalletRepository) *WalletCreator {
+	return &WalletCreator{walletRepo: t}
 }
 
 // Create creates a new wallet.
 // It needs idempotency key.
-func (wc *WalletCreator) Create(ctx context.Context, wallet *entity.Wallet, key string) error {
-	if err := wc.validateIdempotencyKey(ctx, key); err != nil {
-		app.Logger.Errorf(ctx, "[WalletCreator-Create] fail check idempotency key: %s - %v", key, err)
-		return err
-	}
-
+func (wc *WalletCreator) Create(ctx context.Context, wallet *entity.Wallet) error {
 	sanitizeWallet(wallet)
 	if err := validateWallet(wallet); err != nil {
 		app.Logger.Errorf(ctx, "[WalletCreator-Create] wallet is invalid: %v", err)
@@ -65,17 +53,6 @@ func (wc *WalletCreator) Create(ctx context.Context, wallet *entity.Wallet, key 
 	if err != nil {
 		app.Logger.Errorf(ctx, "[WalletCreator-Create] fail save to repository: %v", err)
 		return err
-	}
-	return nil
-}
-
-func (wc *WalletCreator) validateIdempotencyKey(ctx context.Context, key string) error {
-	res, err := wc.keyRepo.Exists(ctx, key)
-	if err != nil {
-		return err
-	}
-	if res {
-		return entity.ErrAlreadyExists()
 	}
 	return nil
 }

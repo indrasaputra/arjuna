@@ -16,6 +16,7 @@ import (
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/connection/auth"
+	"github.com/indrasaputra/arjuna/service/user/internal/connection/wallet"
 	orcact "github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/activity"
 	"github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/workflow"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
@@ -145,6 +146,19 @@ func TestRegisterUser(t *testing.T) {
 		input := createRegisterUserInput()
 
 		st.env.OnActivity(workflow.ActivityAuthCreate, mock.Anything, input.User).Return(errors.New("auth error"))
+
+		st.env.ExecuteWorkflow(workflow.RegisterUser, input)
+
+		assert.True(t, st.env.IsWorkflowCompleted())
+		assert.Error(t, st.env.GetWorkflowError())
+	})
+
+	t.Run("WalletCreate activity returns error", func(t *testing.T) {
+		st := createRegisterUserSuite()
+		input := createRegisterUserInput()
+
+		st.env.OnActivity(workflow.ActivityAuthCreate, mock.Anything, input.User).Return(nil)
+		st.env.OnActivity(workflow.ActivityWalletCreate, mock.Anything, input.User).Return(errors.New("wallet error"))
 		st.env.OnActivity(workflow.ActivityUserHardDelete, mock.Anything, input.User.ID).Return(nil)
 
 		st.env.ExecuteWorkflow(workflow.RegisterUser, input)
@@ -157,7 +171,8 @@ func TestRegisterUser(t *testing.T) {
 		st := createRegisterUserSuite()
 		input := createRegisterUserInput()
 
-		st.env.OnActivity(workflow.ActivityAuthCreate, mock.Anything, mock.Anything).Return(nil)
+		st.env.OnActivity(workflow.ActivityAuthCreate, mock.Anything, input.User).Return(nil)
+		st.env.OnActivity(workflow.ActivityWalletCreate, mock.Anything, input.User).Return(nil)
 
 		st.env.ExecuteWorkflow(workflow.RegisterUser, input)
 
@@ -198,8 +213,9 @@ func createRegisterUserSuite() *RegisterUserSuite {
 	s.env = s.NewTestWorkflowEnvironment()
 
 	at := &auth.Auth{}
+	wt := &wallet.Wallet{}
 	pg := &postgres.User{}
-	uc := orcact.NewRegisterUserActivity(at, pg)
+	uc := orcact.NewRegisterUserActivity(at, wt, pg)
 
 	s.env.RegisterActivityWithOptions(uc, activity.RegisterOptions{Name: "RegisterUserActivity", SkipInvalidStructFunctions: true})
 
