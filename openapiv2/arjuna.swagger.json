@@ -112,6 +112,18 @@
             "schema": {
               "$ref": "#/definitions/v1Transaction"
             }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [
@@ -146,6 +158,12 @@
             "required": false,
             "type": "integer",
             "format": "int64"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [
@@ -194,16 +212,16 @@
         ]
       }
     },
-    "/v1/users/{id}": {
-      "delete": {
-        "summary": "Delete a user.",
-        "description": "This endpoint deletes a new user.\nIt is expected to be hidden or internal use only.",
-        "operationId": "DeleteUser",
+    "/v1/wallets/topups": {
+      "put": {
+        "summary": "Topup.",
+        "description": "This endpoint topups a wallet.",
+        "operationId": "TopupWallet",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1DeleteUserResponse"
+              "$ref": "#/definitions/v1TopupWalletResponse"
             }
           },
           "default": {
@@ -215,46 +233,25 @@
         },
         "parameters": [
           {
-            "name": "id",
-            "description": "id represents user's id.",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "User"
-        ]
-      }
-    },
-    "/v1/wallets": {
-      "post": {
-        "summary": "CreateWallet.",
-        "description": "This endpoint creates a wallet.",
-        "operationId": "CreateWallet",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1CreateWalletResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "wallet",
-            "description": "wallet represents wallet data.",
+            "name": "topup",
+            "description": "topup represents topup data.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1Wallet"
+              "$ref": "#/definitions/v1Topup"
             }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [
@@ -424,6 +421,26 @@
         }
       },
       "description": "Token represents token."
+    },
+    "v1Topup": {
+      "type": "object",
+      "properties": {
+        "wallet_id": {
+          "type": "string",
+          "example": "1",
+          "description": "Wallet's id"
+        },
+        "amount": {
+          "type": "string",
+          "example": "10.23",
+          "description": "Topup amount"
+        }
+      },
+      "description": "Topup represents topup."
+    },
+    "v1TopupWalletResponse": {
+      "type": "object",
+      "description": "TopupWalletResponse represents response from topup wallet."
     },
     "v1Transaction": {
       "type": "object",

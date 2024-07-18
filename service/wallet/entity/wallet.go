@@ -14,6 +14,14 @@ type Wallet struct {
 	Auditable
 }
 
+// TopupWallet defines logical data related to topup wallet.
+type TopupWallet struct {
+	WalletID       string
+	UserID         string
+	Amount         decimal.Decimal
+	IdempotencyKey string
+}
+
 // Auditable defines logical data related to audit.
 type Auditable struct {
 	CreatedAt time.Time

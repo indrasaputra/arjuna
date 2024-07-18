@@ -12,4 +12,6 @@ CREATE TABLE IF NOT EXISTS wallets (
   deleted_by    VARCHAR(50)
 );
 
+CREATE INDEX IF NOT EXISTS index_on_wallets_on_id_and_user_id ON wallets USING btree (id, user_id);
+
 COMMIT;

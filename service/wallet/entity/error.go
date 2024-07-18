@@ -101,6 +101,24 @@ func ErrMissingIdempotencyKey() error {
 	return res.Err()
 }
 
+// ErrInvalidAmount returns codes.InvalidArgument explained that the amount invalid.
+func ErrInvalidAmount() error {
+	st := status.New(codes.InvalidArgument, "")
+	br := createBadRequest(&errdetails.BadRequest_FieldViolation{
+		Field:       "amount",
+		Description: "must be numeric and greater than zero",
+	})
+
+	te := &apiv1.WalletError{
+		ErrorCode: apiv1.WalletErrorCode_WALLET_ERROR_CODE_INVALID_AMOUNT,
+	}
+	res, err := st.WithDetails(br, te)
+	if err != nil {
+		return st.Err()
+	}
+	return res.Err()
+}
+
 func createBadRequest(details ...*errdetails.BadRequest_FieldViolation) *errdetails.BadRequest {
 	return &errdetails.BadRequest{
 		FieldViolations: details,

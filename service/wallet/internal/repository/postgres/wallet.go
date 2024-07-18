@@ -48,3 +48,14 @@ func (w *Wallet) Insert(ctx context.Context, trx *entity.Wallet) error {
 	}
 	return nil
 }
+
+// AddWalletBalance adds some amount to specific user's wallet.
+func (w *Wallet) AddWalletBalance(ctx context.Context, topup *entity.TopupWallet) error {
+	query := "UPDATE wallets SET balance = balance + ? WHERE id = ? AND user_id = ?"
+	_, err := w.db.Exec(ctx, query, topup.Amount, topup.WalletID, topup.UserID)
+	if err != nil {
+		app.Logger.Errorf(ctx, "[WalletPostgres-AddWalletBalance] internal error: %v", err)
+		return entity.ErrInternal("something went wrong")
+	}
+	return nil
+}

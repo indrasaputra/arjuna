@@ -91,12 +91,54 @@ func TestWallet_Insert(t *testing.T) {
 	})
 }
 
+func TestWallet_AddWalletBalance(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	app.Logger = sdklog.NewLogger(testEnv)
+
+	query := `UPDATE wallets SET balance = balance + ? WHERE id = ? AND user_id = ?`
+
+	t.Run("add account balance returns internal error", func(t *testing.T) {
+		st := createWalletSuite(ctrl)
+		topup := createTestTopupWallet()
+		st.db.EXPECT().
+			Exec(testCtx, query, topup.Amount, topup.WalletID, topup.UserID).
+			Return(int64(1), entity.ErrInternal(""))
+
+		err := st.wallet.AddWalletBalance(testCtx, topup)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("add account balance returns success", func(t *testing.T) {
+		st := createWalletSuite(ctrl)
+		topup := createTestTopupWallet()
+		st.db.EXPECT().
+			Exec(testCtx, query, topup.Amount, topup.WalletID, topup.UserID).
+			Return(int64(1), nil)
+
+		err := st.wallet.AddWalletBalance(testCtx, topup)
+
+		assert.NoError(t, err)
+	})
+}
+
 func createTestWallet() *entity.Wallet {
 	b, _ := decimal.NewFromString("10.23")
 	return &entity.Wallet{
 		ID:      "123",
 		UserID:  "1",
 		Balance: b,
+	}
+}
+
+func createTestTopupWallet() *entity.TopupWallet {
+	a, _ := decimal.NewFromString("10.23")
+	return &entity.TopupWallet{
+		WalletID: "1",
+		UserID:   "2",
+		Amount:   a,
 	}
 }
 
