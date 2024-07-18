@@ -112,6 +112,18 @@
             "schema": {
               "$ref": "#/definitions/v1Transaction"
             }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [
@@ -146,6 +158,12 @@
             "required": false,
             "type": "integer",
             "format": "int64"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [
@@ -191,74 +209,6 @@
         ],
         "tags": [
           "User"
-        ]
-      }
-    },
-    "/v1/users/{id}": {
-      "delete": {
-        "summary": "Delete a user.",
-        "description": "This endpoint deletes a new user.\nIt is expected to be hidden or internal use only.",
-        "operationId": "DeleteUser",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1DeleteUserResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "description": "id represents user's id.",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "User"
-        ]
-      }
-    },
-    "/v1/wallets": {
-      "post": {
-        "summary": "CreateWallet.",
-        "description": "This endpoint creates a wallet.",
-        "operationId": "CreateWallet",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1CreateWalletResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "wallet",
-            "description": "wallet represents wallet data.",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1Wallet"
-            }
-          }
-        ],
-        "tags": [
-          "Wallet"
         ]
       }
     },

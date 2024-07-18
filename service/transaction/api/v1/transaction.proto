@@ -47,6 +47,12 @@ service TransactionCommandService {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id : "CreateTransaction",
       tags : "Transaction"
+      parameters : {
+        headers : [
+          {name : "Authorization" type : STRING required : true},
+          {name : "X-Idempotency-Key" type : STRING required : true}
+        ]
+      },
     };
   };
 }

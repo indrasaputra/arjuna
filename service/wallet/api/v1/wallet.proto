@@ -38,15 +38,6 @@ service WalletCommandService {
   //
   // This endpoint creates a wallet.
   rpc CreateWallet(CreateWalletRequest) returns (CreateWalletResponse) {
-    option (google.api.http) = {
-      post : "/v1/wallets",
-      body : "wallet"
-    };
-
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id : "CreateWallet",
-      tags : "Wallet"
-    };
   };
 
   // Topup.

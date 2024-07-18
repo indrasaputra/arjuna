@@ -68,14 +68,6 @@ service UserCommandInternalService {
   // This endpoint deletes a new user.
   // It is expected to be hidden or internal use only.
   rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {
-    option (google.api.http) = {
-      delete : "/v1/users/{id}"
-    };
-
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id : "DeleteUser",
-      tags : "User"
-    };
   };
 }
 
@@ -98,6 +90,7 @@ service UserQueryService {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id : "GetAllUsers",
       tags : "User"
+      parameters : {headers : [ {name : "Authorization" type : STRING required : true} ]},
     };
   }
 }

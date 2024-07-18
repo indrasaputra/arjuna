@@ -61,21 +61,8 @@ func request_UserCommandInternalService_DeleteUser_0(ctx context.Context, marsha
 	var protoReq DeleteUserRequest
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
-	}
-
-	protoReq.Id, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.DeleteUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -87,21 +74,8 @@ func local_request_UserCommandInternalService_DeleteUser_0(ctx context.Context, 
 	var protoReq DeleteUserRequest
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
-	}
-
-	protoReq.Id, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.DeleteUser(ctx, &protoReq)
@@ -185,7 +159,7 @@ func RegisterUserCommandServiceHandlerServer(ctx context.Context, mux *runtime.S
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterUserCommandInternalServiceHandlerFromEndpoint instead.
 func RegisterUserCommandInternalServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server UserCommandInternalServiceServer) error {
 
-	mux.Handle("DELETE", pattern_UserCommandInternalService_DeleteUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_UserCommandInternalService_DeleteUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -193,7 +167,7 @@ func RegisterUserCommandInternalServiceHandlerServer(ctx context.Context, mux *r
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.v1.UserCommandInternalService/DeleteUser", runtime.WithHTTPPathPattern("/v1/users/{id}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.v1.UserCommandInternalService/DeleteUser", runtime.WithHTTPPathPattern("/api.v1.UserCommandInternalService/DeleteUser"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -356,13 +330,13 @@ func RegisterUserCommandInternalServiceHandler(ctx context.Context, mux *runtime
 // "UserCommandInternalServiceClient" to call the correct interceptors.
 func RegisterUserCommandInternalServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client UserCommandInternalServiceClient) error {
 
-	mux.Handle("DELETE", pattern_UserCommandInternalService_DeleteUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_UserCommandInternalService_DeleteUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.v1.UserCommandInternalService/DeleteUser", runtime.WithHTTPPathPattern("/v1/users/{id}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.v1.UserCommandInternalService/DeleteUser", runtime.WithHTTPPathPattern("/api.v1.UserCommandInternalService/DeleteUser"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -382,7 +356,7 @@ func RegisterUserCommandInternalServiceHandlerClient(ctx context.Context, mux *r
 }
 
 var (
-	pattern_UserCommandInternalService_DeleteUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "users", "id"}, ""))
+	pattern_UserCommandInternalService_DeleteUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api.v1.UserCommandInternalService", "DeleteUser"}, ""))
 )
 
 var (

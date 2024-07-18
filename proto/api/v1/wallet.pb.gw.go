@@ -35,7 +35,7 @@ func request_WalletCommandService_CreateWallet_0(ctx context.Context, marshaler 
 	var protoReq CreateWalletRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq.Wallet); err != nil && err != io.EOF {
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -48,7 +48,7 @@ func local_request_WalletCommandService_CreateWallet_0(ctx context.Context, mars
 	var protoReq CreateWalletRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq.Wallet); err != nil && err != io.EOF {
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -97,7 +97,7 @@ func RegisterWalletCommandServiceHandlerServer(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.v1.WalletCommandService/CreateWallet", runtime.WithHTTPPathPattern("/v1/wallets"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/api.v1.WalletCommandService/CreateWallet", runtime.WithHTTPPathPattern("/api.v1.WalletCommandService/CreateWallet"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -186,7 +186,7 @@ func RegisterWalletCommandServiceHandlerClient(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.v1.WalletCommandService/CreateWallet", runtime.WithHTTPPathPattern("/v1/wallets"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/api.v1.WalletCommandService/CreateWallet", runtime.WithHTTPPathPattern("/api.v1.WalletCommandService/CreateWallet"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -228,7 +228,7 @@ func RegisterWalletCommandServiceHandlerClient(ctx context.Context, mux *runtime
 }
 
 var (
-	pattern_WalletCommandService_CreateWallet_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "wallets"}, ""))
+	pattern_WalletCommandService_CreateWallet_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api.v1.WalletCommandService", "CreateWallet"}, ""))
 
 	pattern_WalletCommandService_TopupWallet_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "wallets", "topups"}, ""))
 )
