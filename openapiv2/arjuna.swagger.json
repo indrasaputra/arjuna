@@ -32,6 +32,10 @@
     {
       "name": "UserQueryService",
       "description": "This service provides basic query or data-retrieving use cases to work with user."
+    },
+    {
+      "name": "WalletCommandService",
+      "description": "This service provides all use cases to work with wallet."
     }
   ],
   "host": "localhost:8000",
@@ -222,6 +226,41 @@
           "User"
         ]
       }
+    },
+    "/v1/wallets": {
+      "post": {
+        "summary": "CreateWallet.",
+        "description": "This endpoint creates a wallet.",
+        "operationId": "CreateWallet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateWalletResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "wallet",
+            "description": "wallet represents wallet data.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1Wallet"
+            }
+          }
+        ],
+        "tags": [
+          "Wallet"
+        ]
+      }
     }
   },
   "definitions": {
@@ -293,6 +332,10 @@
         }
       },
       "description": "CreateTransactionResponse represents response from create transaction."
+    },
+    "v1CreateWalletResponse": {
+      "type": "object",
+      "description": "CreateWalletResponse represents response from create wallet."
     },
     "v1Credential": {
       "type": "object",
@@ -459,6 +502,28 @@
       "required": [
         "email"
       ]
+    },
+    "v1Wallet": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "123",
+          "description": "id represents unique id.",
+          "readOnly": true
+        },
+        "user_id": {
+          "type": "string",
+          "example": "1",
+          "description": "Wallet's user's id"
+        },
+        "balance": {
+          "type": "string",
+          "example": "10.23",
+          "description": "Wallet's balance"
+        }
+      },
+      "description": "Wallet represents wallet."
     }
   }
 }

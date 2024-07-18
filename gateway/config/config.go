@@ -16,6 +16,7 @@ type Config struct {
 	UserServiceAddress        string `env:"USER_SERVICE_ADDRESS,required"`
 	AuthServiceAddress        string `env:"AUTH_SERVICE_ADDRESS,required"`
 	TransactionServiceAddress string `env:"TRANSACTION_SERVICE_ADDRESS,required"`
+	WalletServiceAddress      string `env:"WALLET_SERVICE_ADDRESS,required"`
 	Tracer                    trace.Config
 }
 
