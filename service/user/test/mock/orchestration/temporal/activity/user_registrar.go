@@ -18,31 +18,31 @@ import (
 	entity "github.com/indrasaputra/arjuna/service/user/entity"
 )
 
-// MockRegisterUserConnection is a mock of RegisterUserConnection interface.
-type MockRegisterUserConnection struct {
+// MockRegisterUserAuthConnection is a mock of RegisterUserAuthConnection interface.
+type MockRegisterUserAuthConnection struct {
 	ctrl     *gomock.Controller
-	recorder *MockRegisterUserConnectionMockRecorder
+	recorder *MockRegisterUserAuthConnectionMockRecorder
 }
 
-// MockRegisterUserConnectionMockRecorder is the mock recorder for MockRegisterUserConnection.
-type MockRegisterUserConnectionMockRecorder struct {
-	mock *MockRegisterUserConnection
+// MockRegisterUserAuthConnectionMockRecorder is the mock recorder for MockRegisterUserAuthConnection.
+type MockRegisterUserAuthConnectionMockRecorder struct {
+	mock *MockRegisterUserAuthConnection
 }
 
-// NewMockRegisterUserConnection creates a new mock instance.
-func NewMockRegisterUserConnection(ctrl *gomock.Controller) *MockRegisterUserConnection {
-	mock := &MockRegisterUserConnection{ctrl: ctrl}
-	mock.recorder = &MockRegisterUserConnectionMockRecorder{mock}
+// NewMockRegisterUserAuthConnection creates a new mock instance.
+func NewMockRegisterUserAuthConnection(ctrl *gomock.Controller) *MockRegisterUserAuthConnection {
+	mock := &MockRegisterUserAuthConnection{ctrl: ctrl}
+	mock.recorder = &MockRegisterUserAuthConnectionMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRegisterUserConnection) EXPECT() *MockRegisterUserConnectionMockRecorder {
+func (m *MockRegisterUserAuthConnection) EXPECT() *MockRegisterUserAuthConnectionMockRecorder {
 	return m.recorder
 }
 
 // CreateAccount mocks base method.
-func (m *MockRegisterUserConnection) CreateAccount(ctx context.Context, user *entity.User) error {
+func (m *MockRegisterUserAuthConnection) CreateAccount(ctx context.Context, user *entity.User) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAccount", ctx, user)
 	ret0, _ := ret[0].(error)
@@ -50,9 +50,46 @@ func (m *MockRegisterUserConnection) CreateAccount(ctx context.Context, user *en
 }
 
 // CreateAccount indicates an expected call of CreateAccount.
-func (mr *MockRegisterUserConnectionMockRecorder) CreateAccount(ctx, user any) *gomock.Call {
+func (mr *MockRegisterUserAuthConnectionMockRecorder) CreateAccount(ctx, user any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccount", reflect.TypeOf((*MockRegisterUserConnection)(nil).CreateAccount), ctx, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccount", reflect.TypeOf((*MockRegisterUserAuthConnection)(nil).CreateAccount), ctx, user)
+}
+
+// MockRegisterUserWalletConnection is a mock of RegisterUserWalletConnection interface.
+type MockRegisterUserWalletConnection struct {
+	ctrl     *gomock.Controller
+	recorder *MockRegisterUserWalletConnectionMockRecorder
+}
+
+// MockRegisterUserWalletConnectionMockRecorder is the mock recorder for MockRegisterUserWalletConnection.
+type MockRegisterUserWalletConnectionMockRecorder struct {
+	mock *MockRegisterUserWalletConnection
+}
+
+// NewMockRegisterUserWalletConnection creates a new mock instance.
+func NewMockRegisterUserWalletConnection(ctrl *gomock.Controller) *MockRegisterUserWalletConnection {
+	mock := &MockRegisterUserWalletConnection{ctrl: ctrl}
+	mock.recorder = &MockRegisterUserWalletConnectionMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRegisterUserWalletConnection) EXPECT() *MockRegisterUserWalletConnectionMockRecorder {
+	return m.recorder
+}
+
+// CreateWallet mocks base method.
+func (m *MockRegisterUserWalletConnection) CreateWallet(ctx context.Context, user *entity.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateWallet", ctx, user)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateWallet indicates an expected call of CreateWallet.
+func (mr *MockRegisterUserWalletConnectionMockRecorder) CreateWallet(ctx, user any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWallet", reflect.TypeOf((*MockRegisterUserWalletConnection)(nil).CreateWallet), ctx, user)
 }
 
 // MockRegisterUserDatabase is a mock of RegisterUserDatabase interface.

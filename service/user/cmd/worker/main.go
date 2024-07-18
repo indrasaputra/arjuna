@@ -14,6 +14,7 @@ import (
 	"github.com/indrasaputra/arjuna/service/user/internal/builder"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
 	connauth "github.com/indrasaputra/arjuna/service/user/internal/connection/auth"
+	connwallet "github.com/indrasaputra/arjuna/service/user/internal/connection/wallet"
 	orcact "github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/activity"
 	orcwork "github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/workflow"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
@@ -37,11 +38,14 @@ func main() {
 	checkError(err)
 	authClient, err := builder.BuildAuthClient(cfg.AuthServiceHost)
 	checkError(err)
+	walletClient, err := builder.BuildWalletClient(cfg.WalletServiceHost)
+	checkError(err)
 
-	co := connauth.NewAuth(authClient)
+	ac := connauth.NewAuth(authClient)
+	wc := connwallet.NewWallet(walletClient)
 	db := postgres.NewUser(bunDB)
 
-	act := orcact.NewRegisterUserActivity(co, db)
+	act := orcact.NewRegisterUserActivity(ac, wc, db)
 
 	w := worker.New(temporalClient, orcwork.TaskQueueRegisterUser, worker.Options{
 		DisableRegistrationAliasing: true,

@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
-	"google.golang.org/grpc/metadata"
 
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
@@ -18,11 +17,6 @@ import (
 const (
 	testIdempotencyKey = "key"
 	testEnv            = "development"
-)
-
-var (
-	testCtxWithValidKey   = metadata.NewIncomingContext(testCtx, metadata.Pairs("X-Idempotency-Key", testIdempotencyKey))
-	testCtxWithInvalidKey = metadata.NewIncomingContext(testCtx, metadata.Pairs("another-key", ""))
 )
 
 type WalletCommandSuite struct {
@@ -45,20 +39,10 @@ func TestWalletCommand_CreateWallet(t *testing.T) {
 	defer ctrl.Finish()
 	app.Logger = sdklog.NewLogger(testEnv)
 
-	t.Run("idempotency key is missing", func(t *testing.T) {
-		st := createWalletCommandSuite(ctrl)
-
-		res, err := st.handler.CreateWallet(testCtxWithInvalidKey, nil)
-
-		assert.Error(t, err)
-		assert.Equal(t, entity.ErrMissingIdempotencyKey(), err)
-		assert.Nil(t, res)
-	})
-
 	t.Run("nil request is prohibited", func(t *testing.T) {
 		st := createWalletCommandSuite(ctrl)
 
-		res, err := st.handler.CreateWallet(testCtxWithValidKey, nil)
+		res, err := st.handler.CreateWallet(testCtx, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyWallet(), err)
@@ -68,7 +52,7 @@ func TestWalletCommand_CreateWallet(t *testing.T) {
 	t.Run("empty wallet is prohibited", func(t *testing.T) {
 		st := createWalletCommandSuite(ctrl)
 
-		res, err := st.handler.CreateWallet(testCtxWithValidKey, &apiv1.CreateWalletRequest{})
+		res, err := st.handler.CreateWallet(testCtx, &apiv1.CreateWalletRequest{})
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyWallet(), err)
@@ -92,9 +76,9 @@ func TestWalletCommand_CreateWallet(t *testing.T) {
 			entity.ErrInternal("error"),
 		}
 		for _, errRet := range errors {
-			st.creator.EXPECT().Create(testCtxWithValidKey, gomock.Any(), testIdempotencyKey).Return(errRet)
+			st.creator.EXPECT().Create(testCtx, gomock.Any()).Return(errRet)
 
-			res, err := st.handler.CreateWallet(testCtxWithValidKey, request)
+			res, err := st.handler.CreateWallet(testCtx, request)
 
 			assert.Error(t, err)
 			assert.Equal(t, errRet, err)
@@ -104,7 +88,7 @@ func TestWalletCommand_CreateWallet(t *testing.T) {
 
 	t.Run("success create wallet", func(t *testing.T) {
 		st := createWalletCommandSuite(ctrl)
-		st.creator.EXPECT().Create(testCtxWithValidKey, gomock.Any(), testIdempotencyKey).Return(nil)
+		st.creator.EXPECT().Create(testCtx, gomock.Any()).Return(nil)
 		request := &apiv1.CreateWalletRequest{
 			Wallet: &apiv1.Wallet{
 				UserId:  "1",
@@ -112,7 +96,7 @@ func TestWalletCommand_CreateWallet(t *testing.T) {
 			},
 		}
 
-		res, err := st.handler.CreateWallet(testCtxWithValidKey, request)
+		res, err := st.handler.CreateWallet(testCtx, request)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, res)

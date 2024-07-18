@@ -10,7 +10,6 @@ replace (
 
 require (
 	github.com/alicebob/miniredis/v2 v2.33.0
-	github.com/go-redis/redismock/v9 v9.2.0
 	github.com/indrasaputra/arjuna/pkg/sdk v0.0.0
 	github.com/indrasaputra/arjuna/proto v0.0.0
 	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd

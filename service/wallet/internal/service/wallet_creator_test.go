@@ -16,17 +16,15 @@ import (
 )
 
 var (
-	testCtx            = context.Background()
-	testUserID         = "1"
-	testEnv            = "development"
-	testBalance, _     = decimal.NewFromString("10.23")
-	testIdempotencyKey = "key"
+	testCtx        = context.Background()
+	testUserID     = "1"
+	testEnv        = "development"
+	testBalance, _ = decimal.NewFromString("10.23")
 )
 
 type WalletCreatorSuite struct {
 	wallet     *service.WalletCreator
 	walletRepo *mock_service.MockCreateWalletRepository
-	keyRepo    *mock_service.MockIdempotencyKeyRepository
 }
 
 func TestNewWalletCreator(t *testing.T) {
@@ -44,29 +42,10 @@ func TestWalletCreator_Create(t *testing.T) {
 	defer ctrl.Finish()
 	app.Logger = sdklog.NewLogger(testEnv)
 
-	t.Run("validate idempotency key returns error", func(t *testing.T) {
-		st := createWalletCreatorSuite(ctrl)
-		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, entity.ErrInternal("error"))
-
-		err := st.wallet.Create(testCtx, nil, testIdempotencyKey)
-
-		assert.Error(t, err)
-	})
-
-	t.Run("idempotency key has been used", func(t *testing.T) {
-		st := createWalletCreatorSuite(ctrl)
-		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(true, nil)
-
-		err := st.wallet.Create(testCtx, nil, testIdempotencyKey)
-
-		assert.Error(t, err)
-	})
-
 	t.Run("empty wallet is prohibited", func(t *testing.T) {
 		st := createWalletCreatorSuite(ctrl)
-		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
-		err := st.wallet.Create(testCtx, nil, testIdempotencyKey)
+		err := st.wallet.Create(testCtx, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyWallet(), err)
@@ -76,9 +55,8 @@ func TestWalletCreator_Create(t *testing.T) {
 		st := createWalletCreatorSuite(ctrl)
 		wallet := createTestWallet()
 		wallet.UserID = ""
-		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
-		err := st.wallet.Create(testCtx, wallet, testIdempotencyKey)
+		err := st.wallet.Create(testCtx, wallet)
 
 		assert.Error(t, err)
 	})
@@ -86,10 +64,9 @@ func TestWalletCreator_Create(t *testing.T) {
 	t.Run("wallet repo insert returns error", func(t *testing.T) {
 		st := createWalletCreatorSuite(ctrl)
 		wallet := createTestWallet()
-		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 		st.walletRepo.EXPECT().Insert(testCtx, wallet).Return(entity.ErrInternal(""))
 
-		err := st.wallet.Create(testCtx, wallet, testIdempotencyKey)
+		err := st.wallet.Create(testCtx, wallet)
 
 		assert.Error(t, err)
 	})
@@ -97,10 +74,9 @@ func TestWalletCreator_Create(t *testing.T) {
 	t.Run("success create a wallet", func(t *testing.T) {
 		st := createWalletCreatorSuite(ctrl)
 		wallet := createTestWallet()
-		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 		st.walletRepo.EXPECT().Insert(testCtx, wallet).Return(nil)
 
-		err := st.wallet.Create(testCtx, wallet, testIdempotencyKey)
+		err := st.wallet.Create(testCtx, wallet)
 
 		assert.NoError(t, err)
 	})
@@ -108,12 +84,10 @@ func TestWalletCreator_Create(t *testing.T) {
 
 func createWalletCreatorSuite(ctrl *gomock.Controller) *WalletCreatorSuite {
 	r := mock_service.NewMockCreateWalletRepository(ctrl)
-	i := mock_service.NewMockIdempotencyKeyRepository(ctrl)
-	w := service.NewWalletCreator(r, i)
+	w := service.NewWalletCreator(r)
 	return &WalletCreatorSuite{
 		wallet:     w,
 		walletRepo: r,
-		keyRepo:    i,
 	}
 }
 

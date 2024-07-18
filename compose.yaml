@@ -366,6 +366,7 @@ services:
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - AUTH_SERVICE_HOST=auth-server:8002
+      - WALLET_SERVICE_HOST=wallet-server:8004
       - REDIS_ADDRESS=redis:6379
       - TOKEN_SECRET_KEY=arjuna-secret-key
       - SKIPPED_AUTH=/api.v1.UserCommandService/RegisterUser
@@ -399,6 +400,7 @@ services:
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - AUTH_SERVICE_HOST=auth-server:8002
+      - WALLET_SERVICE_HOST=wallet-server:8004
       - REDIS_ADDRESS=redis:6379
       - TOKEN_SECRET_KEY=arjuna-secret-key
     profiles:
@@ -432,6 +434,7 @@ services:
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - AUTH_SERVICE_HOST=auth-server:8002
+      - WALLET_SERVICE_HOST=wallet-server:8004
       - REDIS_ADDRESS=redis:6379
       - TOKEN_SECRET_KEY=arjuna-secret-key
     profiles:

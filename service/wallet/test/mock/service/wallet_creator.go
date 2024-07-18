@@ -42,55 +42,17 @@ func (m *MockCreateWallet) EXPECT() *MockCreateWalletMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockCreateWallet) Create(ctx context.Context, wallet *entity.Wallet, key string) error {
+func (m *MockCreateWallet) Create(ctx context.Context, wallet *entity.Wallet) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, wallet, key)
+	ret := m.ctrl.Call(m, "Create", ctx, wallet)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockCreateWalletMockRecorder) Create(ctx, wallet, key any) *gomock.Call {
+func (mr *MockCreateWalletMockRecorder) Create(ctx, wallet any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockCreateWallet)(nil).Create), ctx, wallet, key)
-}
-
-// MockIdempotencyKeyRepository is a mock of IdempotencyKeyRepository interface.
-type MockIdempotencyKeyRepository struct {
-	ctrl     *gomock.Controller
-	recorder *MockIdempotencyKeyRepositoryMockRecorder
-}
-
-// MockIdempotencyKeyRepositoryMockRecorder is the mock recorder for MockIdempotencyKeyRepository.
-type MockIdempotencyKeyRepositoryMockRecorder struct {
-	mock *MockIdempotencyKeyRepository
-}
-
-// NewMockIdempotencyKeyRepository creates a new mock instance.
-func NewMockIdempotencyKeyRepository(ctrl *gomock.Controller) *MockIdempotencyKeyRepository {
-	mock := &MockIdempotencyKeyRepository{ctrl: ctrl}
-	mock.recorder = &MockIdempotencyKeyRepositoryMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockIdempotencyKeyRepository) EXPECT() *MockIdempotencyKeyRepositoryMockRecorder {
-	return m.recorder
-}
-
-// Exists mocks base method.
-func (m *MockIdempotencyKeyRepository) Exists(ctx context.Context, key string) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Exists", ctx, key)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Exists indicates an expected call of Exists.
-func (mr *MockIdempotencyKeyRepositoryMockRecorder) Exists(ctx, key any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockIdempotencyKeyRepository)(nil).Exists), ctx, key)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockCreateWallet)(nil).Create), ctx, wallet)
 }
 
 // MockCreateWalletRepository is a mock of CreateWalletRepository interface.

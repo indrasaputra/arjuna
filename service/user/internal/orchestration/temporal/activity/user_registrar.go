@@ -11,10 +11,16 @@ import (
 	"github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/workflow"
 )
 
-// RegisterUserConnection defines interface to register user to 3rd party.
-type RegisterUserConnection interface {
+// RegisterUserAuthConnection defines interface to register user to 3rd party.
+type RegisterUserAuthConnection interface {
 	// CreateAccount creates an account in 3rd party.
 	CreateAccount(ctx context.Context, user *entity.User) error
+}
+
+// RegisterUserWalletConnection defines interface to register user to 3rd party.
+type RegisterUserWalletConnection interface {
+	// CreateWallet creates a wallet in 3rd party.
+	CreateWallet(ctx context.Context, user *entity.User) error
 }
 
 // RegisterUserDatabase defines interface to register user to database.
@@ -25,18 +31,28 @@ type RegisterUserDatabase interface {
 
 // RegisterUserActivity is responsible to execute register user workflow.
 type RegisterUserActivity struct {
-	conn     RegisterUserConnection
-	database RegisterUserDatabase
+	authConn   RegisterUserAuthConnection
+	walletConn RegisterUserWalletConnection
+	database   RegisterUserDatabase
 }
 
 // NewRegisterUserActivity creates an instance of RegisterUserActivity.
-func NewRegisterUserActivity(conn RegisterUserConnection, db RegisterUserDatabase) *RegisterUserActivity {
-	return &RegisterUserActivity{conn: conn, database: db}
+func NewRegisterUserActivity(ac RegisterUserAuthConnection, wc RegisterUserWalletConnection, db RegisterUserDatabase) *RegisterUserActivity {
+	return &RegisterUserActivity{authConn: ac, walletConn: wc, database: db}
 }
 
-// CreateInAuth creates a user in auth service.
-func (r *RegisterUserActivity) CreateInAuth(ctx context.Context, user *entity.User) error {
-	err := r.conn.CreateAccount(ctx, user)
+// CreateAccount creates a user in auth service.
+func (r *RegisterUserActivity) CreateAccount(ctx context.Context, user *entity.User) error {
+	err := r.authConn.CreateAccount(ctx, user)
+	if errors.Is(err, entity.ErrAlreadyExists()) {
+		return temporal.NewNonRetryableApplicationError(err.Error(), workflow.ErrNonRetryableUserExist, err)
+	}
+	return err
+}
+
+// CreateWallet creates user's wallet in wallet service.
+func (r *RegisterUserActivity) CreateWallet(ctx context.Context, user *entity.User) error {
+	err := r.walletConn.CreateWallet(ctx, user)
 	if errors.Is(err, entity.ErrAlreadyExists()) {
 		return temporal.NewNonRetryableApplicationError(err.Error(), workflow.ErrNonRetryableUserExist, err)
 	}
