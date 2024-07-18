@@ -78,6 +78,13 @@ services:
       - SQLPAD_CONNECTIONS__transaction_postgres__database=arjuna_transaction
       - SQLPAD_CONNECTIONS__transaction_postgres__username=postgresuser
       - SQLPAD_CONNECTIONS__transaction_postgres__password=postgrespassword
+      - SQLPAD_CONNECTIONS__wallet_postgres__name=Postgres - Wallet
+      - SQLPAD_CONNECTIONS__wallet_postgres__driver=postgres
+      - SQLPAD_CONNECTIONS__wallet_postgres__host=postgres
+      - SQLPAD_CONNECTIONS__wallet_postgres__port=5432
+      - SQLPAD_CONNECTIONS__wallet_postgres__database=arjuna_wallet
+      - SQLPAD_CONNECTIONS__wallet_postgres__username=postgresuser
+      - SQLPAD_CONNECTIONS__wallet_postgres__password=postgrespassword
     ports:
       - 3000:3000
     profiles:
@@ -291,6 +298,7 @@ services:
       - USER_SERVICE_ADDRESS=user-server:8001
       - AUTH_SERVICE_ADDRESS=auth-server:8002
       - TRANSACTION_SERVICE_ADDRESS=transaction-server:8003
+      - WALLET_SERVICE_ADDRESS=wallet-server:8004
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
     profiles:
       - service
@@ -461,6 +469,41 @@ services:
       - REDIS_ADDRESS=redis:6379
       - TOKEN_SECRET_KEY=arjuna-secret-key
       - SKIPPED_AUTH=/api.v1.TransactionCommandService/CreateTransaction
+    profiles:
+      - service
+
+  wallet-server:
+    <<: *arjuna-backend-default
+    image: indrasaputra/arjuna-wallet-server:latest
+    container_name: arjuna-wallet-server
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - 8004:8004
+      - 7004:7004
+    environment:
+      - SERVICE_NAME=wallet-server
+      - APP_ENV=development
+      - PORT=8004
+      - PROMETHEUS_PORT=7003
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgresuser
+      - POSTGRES_PASSWORD=postgrespassword
+      - POSTGRES_NAME=arjuna_wallet
+      - POSTGRES_MAX_OPEN_CONNS=50
+      - POSTGRES_MAX_CONN_LIFETIME=10m
+      - POSTGRES_MAX_IDLE_LIFETIME=5m
+      - POSTGRES_SSL_MODE=disable
+      - TEMPORAL_ADDRESS=temporal:7233
+      - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - REDIS_ADDRESS=redis:6379
+      - TOKEN_SECRET_KEY=arjuna-secret-key
+      - SKIPPED_AUTH=/api.v1.WalletCommandService/CreateWallet
     profiles:
       - service
 

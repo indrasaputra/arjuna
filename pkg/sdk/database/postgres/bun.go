@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	pgxdecimal "github.com/jackc/pgx-shopspring-decimal"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/uptrace/bun"
@@ -54,6 +56,10 @@ func NewDBWithPgx(cfg Config) (*bun.DB, error) {
 	connCfg, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		return nil, err
+	}
+	connCfg.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
+		pgxdecimal.Register(conn.TypeMap())
+		return nil
 	}
 
 	pool, err := pgxpool.NewWithConfig(context.Background(), connCfg)

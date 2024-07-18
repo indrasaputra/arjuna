@@ -50,6 +50,9 @@ func registerGrpcGatewayService(ctx context.Context, gatewayServer *server.GrpcG
 		if err := apiv1.RegisterTransactionCommandServiceHandlerFromEndpoint(ctx, server, cfg.TransactionServiceAddress, options); err != nil {
 			return err
 		}
+		if err := apiv1.RegisterWalletCommandServiceHandlerFromEndpoint(ctx, server, cfg.WalletServiceAddress, options); err != nil {
+			return err
+		}
 		return apiv1.RegisterAuthServiceHandlerFromEndpoint(ctx, server, cfg.AuthServiceAddress, options)
 	})
 }

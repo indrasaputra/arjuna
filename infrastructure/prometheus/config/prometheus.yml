@@ -42,6 +42,12 @@ scrape_configs:
       - targets:
           - transaction-server:7003
 
+  - job_name: "wallet-server"
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+          - wallet-server:7004
+
   - job_name: "temporal"
     scrape_interval: 5s
     static_configs:

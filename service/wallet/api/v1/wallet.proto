@@ -1,0 +1,116 @@
+// wallet.proto defines service for wallet.
+syntax = "proto3";
+
+package api.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option go_package = "github.com/indrasaputra/arjuna/service/wallet/api/v1;apiv1";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info : {
+    title : "Wallet API",
+    version : "1.0.0",
+    contact : {
+      name : "Indra Saputra",
+      url : "https://github.com/indrasaputra",
+    },
+    license : {
+      name : "BSD 3-Clause License",
+      url : "https://github.com/indrasaputra/arjuna/blob/main/LICENSE",
+    },
+  },
+  host : "localhost:8000",
+  schemes : HTTP,
+  consumes : "application/json",
+  produces : "application/json",
+};
+
+// WalletCommandService provides all use cases to work with wallet.
+service WalletCommandService {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+    description : "This service provides all use cases to work with wallet."
+  };
+
+  // CreateWallet.
+  //
+  // This endpoint creates a wallet.
+  rpc CreateWallet(CreateWalletRequest) returns (CreateWalletResponse) {
+    option (google.api.http) = {
+      post : "/v1/wallets",
+      body : "wallet"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id : "CreateWallet",
+      tags : "Wallet"
+    };
+  };
+}
+
+// CreateWalletRequest represents request for create wallet.
+message CreateWalletRequest {
+  // wallet represents wallet data.
+  Wallet wallet = 1;
+}
+
+// CreateWalletResponse represents response from create wallet.
+message CreateWalletResponse {
+}
+
+// Wallet represents wallet.
+message Wallet {
+  // id represents unique id.
+  string id = 1 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {example : "\"123\""}
+  ];
+
+  // user_id represents user's id.
+  string user_id = 2 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description : "Wallet's user's id"
+      example : "\"1\""
+    },
+    json_name = "user_id"
+  ];
+
+  // balance represents balance.
+  string balance = 3 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description : "Wallet's balance"
+    example : "\"10.23\""
+  } ];
+}
+
+// WalletError represents message for any error happening in wallet service.
+message WalletError {
+  // error_code represents specific and unique error code for wallet.
+  WalletErrorCode error_code = 1;
+}
+
+// WalletErrorCode enumerates wallet error code.
+enum WalletErrorCode {
+  // Default enum code according to
+  // https://medium.com/@akhaku/protobuf-definition-best-practices-87f281576f31.
+  WALLET_ERROR_CODE_UNSPECIFIED = 0;
+
+  // Unexpected behavior occured in system.
+  WALLET_ERROR_CODE_INTERNAL = 1;
+
+  // Wallet already exists.
+  WALLET_ERROR_CODE_ALREADY_EXISTS = 2;
+
+  // Wallet instance is nil or empty.
+  WALLET_ERROR_CODE_EMPTY_WALLET = 3;
+
+  // Balance must be numeric and greater than or equal to zero.
+  WALLET_ERROR_CODE_INVALID_BALANCE = 6;
+
+  // Idempotency key is missing.
+  WALLET_ERROR_CODE_MISSING_IDEMPOTENCY_KEY = 7;
+
+  // User is invalid.
+  WALLET_ERROR_CODE_INVALID_USER = 8;
+}
