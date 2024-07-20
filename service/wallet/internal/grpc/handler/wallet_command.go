@@ -20,13 +20,14 @@ const (
 // WalletCommand handles HTTP/2 gRPC request for state-changing wallet.
 type WalletCommand struct {
 	apiv1.UnimplementedWalletCommandServiceServer
-	creator service.CreateWallet
-	topup   service.TopupWallet
+	creator  service.CreateWallet
+	topup    service.TopupWallet
+	transfer service.TransferWallet
 }
 
 // NewWalletCommand creates an instance of WalletCommand.
-func NewWalletCommand(c service.CreateWallet, t service.TopupWallet) *WalletCommand {
-	return &WalletCommand{creator: c, topup: t}
+func NewWalletCommand(c service.CreateWallet, t service.TopupWallet, tf service.TransferWallet) *WalletCommand {
+	return &WalletCommand{creator: c, topup: t, transfer: tf}
 }
 
 // CreateWallet handles HTTP/2 gRPC request similar to POST in HTTP/1.1.
@@ -76,6 +77,24 @@ func (wc *WalletCommand) TopupWallet(ctx context.Context, request *apiv1.TopupWa
 	return &apiv1.TopupWalletResponse{}, nil
 }
 
+// TransferBalance handles HTTP/2 gRPC request similar to POST in HTTP/1.1.
+func (wc *WalletCommand) TransferBalance(ctx context.Context, request *apiv1.TransferBalanceRequest) (*apiv1.TransferBalanceResponse, error) {
+	if request == nil || request.GetTransfer() == nil {
+		app.Logger.Errorf(ctx, "[WalletCommand-TransferBalance] empty or nil transfer")
+		return nil, entity.ErrEmptyWallet()
+	}
+
+	amount, _ := decimal.NewFromString(request.GetTransfer().GetAmount())
+	req := createTransferWalletFromTransferBalanceRequest(request, amount)
+
+	err := wc.transfer.TransferBalance(ctx, req)
+	if err != nil {
+		app.Logger.Errorf(ctx, "[WalletCommand-TransferBalance] fail transfer wallet: %v", err)
+		return nil, err
+	}
+	return &apiv1.TransferBalanceResponse{}, nil
+}
+
 func createWalletFromCreateWalletRequest(request *apiv1.CreateWalletRequest, balance decimal.Decimal) *entity.Wallet {
 	return &entity.Wallet{
 		UserID:  request.GetWallet().GetUserId(),
@@ -89,5 +108,15 @@ func createTopupWalletFromTopupWalletRequest(request *apiv1.TopupWalletRequest, 
 		UserID:         userID,
 		Amount:         amount,
 		IdempotencyKey: key,
+	}
+}
+
+func createTransferWalletFromTransferBalanceRequest(request *apiv1.TransferBalanceRequest, amount decimal.Decimal) *entity.TransferWallet {
+	return &entity.TransferWallet{
+		SenderID:         request.GetTransfer().GetSenderId(),
+		SenderWalletID:   request.GetTransfer().GetSenderWalletId(),
+		ReceiverID:       request.GetTransfer().GetReceiverId(),
+		ReceiverWalletID: request.GetTransfer().GetReceiverWalletId(),
+		Amount:           amount,
 	}
 }

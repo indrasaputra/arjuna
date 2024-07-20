@@ -27,7 +27,8 @@ func BuildWalletCommandHandler(dep *Dependency) *handler.WalletCommand {
 	k := redis.NewIdempotencyKey(dep.RedisClient)
 	c := service.NewWalletCreator(p)
 	t := service.NewWalletTopup(p, k)
-	return handler.NewWalletCommand(c, t)
+	f := service.NewWalletTransferer(p)
+	return handler.NewWalletCommand(c, t, f)
 }
 
 // BuildBunDB builds BunDB.

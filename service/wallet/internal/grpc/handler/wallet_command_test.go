@@ -29,9 +29,10 @@ var (
 )
 
 type WalletCommandSuite struct {
-	handler *handler.WalletCommand
-	creator *mock_service.MockCreateWallet
-	topup   *mock_service.MockTopupWallet
+	handler  *handler.WalletCommand
+	creator  *mock_service.MockCreateWallet
+	topup    *mock_service.MockTopupWallet
+	transfer *mock_service.MockTransferWallet
 }
 
 func TestNewWalletCommand(t *testing.T) {
@@ -184,7 +185,7 @@ func TestWalletCommand_TopupWallet(t *testing.T) {
 		}
 	})
 
-	t.Run("success create transaction", func(t *testing.T) {
+	t.Run("success topup wallet", func(t *testing.T) {
 		st := createWalletCommandSuite(ctrl)
 		st.topup.EXPECT().Topup(testCtxWithValidKey, gomock.Any()).Return(nil)
 		request := &apiv1.TopupWalletRequest{
@@ -201,13 +202,81 @@ func TestWalletCommand_TopupWallet(t *testing.T) {
 	})
 }
 
+func TestWalletCommand_TransferBalance(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	app.Logger = sdklog.NewLogger(testEnv)
+
+	t.Run("nil request is prohibited", func(t *testing.T) {
+		st := createWalletCommandSuite(ctrl)
+
+		res, err := st.handler.TransferBalance(testCtx, nil)
+
+		assert.Error(t, err)
+		assert.Equal(t, entity.ErrEmptyWallet(), err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("empty transfer is prohibited", func(t *testing.T) {
+		st := createWalletCommandSuite(ctrl)
+
+		res, err := st.handler.TransferBalance(testCtx, &apiv1.TransferBalanceRequest{})
+
+		assert.Error(t, err)
+		assert.Equal(t, entity.ErrEmptyWallet(), err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("wallet service returns error", func(t *testing.T) {
+		st := createWalletCommandSuite(ctrl)
+		request := &apiv1.TransferBalanceRequest{
+			Transfer: &apiv1.Transfer{
+				Amount: "10.23",
+			},
+		}
+
+		errors := []error{
+			entity.ErrEmptyWallet(),
+			entity.ErrInvalidUser(),
+			entity.ErrInvalidAmount(),
+			entity.ErrInternal("error"),
+		}
+		for _, errRet := range errors {
+			st.transfer.EXPECT().TransferBalance(testCtx, gomock.Any()).Return(errRet)
+
+			res, err := st.handler.TransferBalance(testCtx, request)
+
+			assert.Error(t, err)
+			assert.Equal(t, errRet, err)
+			assert.Nil(t, res)
+		}
+	})
+
+	t.Run("success create wallet", func(t *testing.T) {
+		st := createWalletCommandSuite(ctrl)
+		st.transfer.EXPECT().TransferBalance(testCtx, gomock.Any()).Return(nil)
+		request := &apiv1.TransferBalanceRequest{
+			Transfer: &apiv1.Transfer{
+				Amount: "10.23",
+			},
+		}
+
+		res, err := st.handler.TransferBalance(testCtx, request)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, res)
+	})
+}
+
 func createWalletCommandSuite(ctrl *gomock.Controller) *WalletCommandSuite {
 	c := mock_service.NewMockCreateWallet(ctrl)
 	t := mock_service.NewMockTopupWallet(ctrl)
-	h := handler.NewWalletCommand(c, t)
+	tf := mock_service.NewMockTransferWallet(ctrl)
+	h := handler.NewWalletCommand(c, t, tf)
 	return &WalletCommandSuite{
-		handler: h,
-		creator: c,
-		topup:   t,
+		handler:  h,
+		creator:  c,
+		topup:    t,
+		transfer: tf,
 	}
 }
