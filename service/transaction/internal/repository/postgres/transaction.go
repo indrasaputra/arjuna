@@ -19,8 +19,12 @@ func NewTransaction(db uow.DB) *Transaction {
 	return &Transaction{db: db}
 }
 
-// Insert inserts a transaction to the database.
-func (t *Transaction) Insert(ctx context.Context, trx *entity.Transaction) error {
+// InsertWithTx inserts a transaction to the database.
+func (t *Transaction) InsertWithTx(ctx context.Context, tx uow.Tx, trx *entity.Transaction) error {
+	if tx == nil {
+		app.Logger.Errorf(ctx, "[PostgresTransaction-InsertWithTx] tx is not set")
+		return entity.ErrInternal("transaction is not set")
+	}
 	if trx == nil {
 		return entity.ErrEmptyTransaction()
 	}
@@ -29,7 +33,7 @@ func (t *Transaction) Insert(ctx context.Context, trx *entity.Transaction) error
 		"transactions (id, sender_id, receiver_id, amount, created_at, updated_at, created_by, updated_by) " +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
 
-	_, err := t.db.Exec(ctx, query,
+	_, err := tx.Exec(ctx, query,
 		trx.ID,
 		trx.SenderID,
 		trx.ReceiverID,

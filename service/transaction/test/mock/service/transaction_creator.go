@@ -15,6 +15,7 @@ import (
 
 	gomock "go.uber.org/mock/gomock"
 
+	uow "github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	entity "github.com/indrasaputra/arjuna/service/transaction/entity"
 )
 
@@ -117,16 +118,53 @@ func (m *MockCreateTransactionRepository) EXPECT() *MockCreateTransactionReposit
 	return m.recorder
 }
 
-// Insert mocks base method.
-func (m *MockCreateTransactionRepository) Insert(ctx context.Context, transaction *entity.Transaction) error {
+// InsertWithTx mocks base method.
+func (m *MockCreateTransactionRepository) InsertWithTx(ctx context.Context, tx uow.Tx, transaction *entity.Transaction) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Insert", ctx, transaction)
+	ret := m.ctrl.Call(m, "InsertWithTx", ctx, tx, transaction)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Insert indicates an expected call of Insert.
-func (mr *MockCreateTransactionRepositoryMockRecorder) Insert(ctx, transaction any) *gomock.Call {
+// InsertWithTx indicates an expected call of InsertWithTx.
+func (mr *MockCreateTransactionRepositoryMockRecorder) InsertWithTx(ctx, tx, transaction any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockCreateTransactionRepository)(nil).Insert), ctx, transaction)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithTx", reflect.TypeOf((*MockCreateTransactionRepository)(nil).InsertWithTx), ctx, tx, transaction)
+}
+
+// MockCreateTransactionOutboxRepository is a mock of CreateTransactionOutboxRepository interface.
+type MockCreateTransactionOutboxRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockCreateTransactionOutboxRepositoryMockRecorder
+}
+
+// MockCreateTransactionOutboxRepositoryMockRecorder is the mock recorder for MockCreateTransactionOutboxRepository.
+type MockCreateTransactionOutboxRepositoryMockRecorder struct {
+	mock *MockCreateTransactionOutboxRepository
+}
+
+// NewMockCreateTransactionOutboxRepository creates a new mock instance.
+func NewMockCreateTransactionOutboxRepository(ctrl *gomock.Controller) *MockCreateTransactionOutboxRepository {
+	mock := &MockCreateTransactionOutboxRepository{ctrl: ctrl}
+	mock.recorder = &MockCreateTransactionOutboxRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockCreateTransactionOutboxRepository) EXPECT() *MockCreateTransactionOutboxRepositoryMockRecorder {
+	return m.recorder
+}
+
+// InsertWithTx mocks base method.
+func (m *MockCreateTransactionOutboxRepository) InsertWithTx(ctx context.Context, tx uow.Tx, payload *entity.TransactionOutbox) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertWithTx", ctx, tx, payload)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InsertWithTx indicates an expected call of InsertWithTx.
+func (mr *MockCreateTransactionOutboxRepositoryMockRecorder) InsertWithTx(ctx, tx, payload any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithTx", reflect.TypeOf((*MockCreateTransactionOutboxRepository)(nil).InsertWithTx), ctx, tx, payload)
 }

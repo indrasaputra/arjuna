@@ -24,6 +24,7 @@ var (
 type TransactionSuite struct {
 	trx *postgres.Transaction
 	db  *mock_uow.MockDB
+	tx  *mock_uow.MockTx
 }
 
 func TestNewTransaction(t *testing.T) {
@@ -36,7 +37,7 @@ func TestNewTransaction(t *testing.T) {
 	})
 }
 
-func TestTransaction_Insert(t *testing.T) {
+func TestTransaction_InsertWithTx(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	app.Logger = sdklog.NewLogger(testEnv)
@@ -44,10 +45,18 @@ func TestTransaction_Insert(t *testing.T) {
 		"transactions (id, sender_id, receiver_id, amount, created_at, updated_at, created_by, updated_by) " +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
 
+	t.Run("nil tx is prohibited", func(t *testing.T) {
+		st := createTransactionSuite(ctrl)
+
+		err := st.trx.InsertWithTx(testCtx, nil, nil)
+
+		assert.Error(t, err)
+	})
+
 	t.Run("nil transactions is prohibited", func(t *testing.T) {
 		st := createTransactionSuite(ctrl)
 
-		err := st.trx.Insert(testCtx, nil)
+		err := st.trx.InsertWithTx(testCtx, st.tx, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyTransaction(), err)
@@ -56,11 +65,11 @@ func TestTransaction_Insert(t *testing.T) {
 	t.Run("insert duplicate transactions", func(t *testing.T) {
 		trx := createTestTransaction()
 		st := createTransactionSuite(ctrl)
-		st.db.EXPECT().
+		st.tx.EXPECT().
 			Exec(testCtx, query, trx.ID, trx.SenderID, trx.ReceiverID, trx.Amount, trx.CreatedAt, trx.UpdatedAt, trx.CreatedBy, trx.UpdatedBy).
 			Return(int64(0), sdkpg.ErrAlreadyExist)
 
-		err := st.trx.Insert(testCtx, trx)
+		err := st.trx.InsertWithTx(testCtx, st.tx, trx)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrAlreadyExists(), err)
@@ -69,11 +78,11 @@ func TestTransaction_Insert(t *testing.T) {
 	t.Run("insert returns error", func(t *testing.T) {
 		trx := createTestTransaction()
 		st := createTransactionSuite(ctrl)
-		st.db.EXPECT().
+		st.tx.EXPECT().
 			Exec(testCtx, query, trx.ID, trx.SenderID, trx.ReceiverID, trx.Amount, trx.CreatedAt, trx.UpdatedAt, trx.CreatedBy, trx.UpdatedBy).
 			Return(int64(0), entity.ErrInternal(""))
 
-		err := st.trx.Insert(testCtx, trx)
+		err := st.trx.InsertWithTx(testCtx, st.tx, trx)
 
 		assert.Error(t, err)
 	})
@@ -81,11 +90,11 @@ func TestTransaction_Insert(t *testing.T) {
 	t.Run("success insert transactions", func(t *testing.T) {
 		trx := createTestTransaction()
 		st := createTransactionSuite(ctrl)
-		st.db.EXPECT().
+		st.tx.EXPECT().
 			Exec(testCtx, query, trx.ID, trx.SenderID, trx.ReceiverID, trx.Amount, trx.CreatedAt, trx.UpdatedAt, trx.CreatedBy, trx.UpdatedBy).
 			Return(int64(1), nil)
 
-		err := st.trx.Insert(testCtx, trx)
+		err := st.trx.InsertWithTx(testCtx, st.tx, trx)
 
 		assert.NoError(t, err)
 	})
@@ -103,9 +112,11 @@ func createTestTransaction() *entity.Transaction {
 
 func createTransactionSuite(ctrl *gomock.Controller) *TransactionSuite {
 	db := mock_uow.NewMockDB(ctrl)
+	tx := mock_uow.NewMockTx(ctrl)
 	t := postgres.NewTransaction(db)
 	return &TransactionSuite{
 		trx: t,
 		db:  db,
+		tx:  tx,
 	}
 }
