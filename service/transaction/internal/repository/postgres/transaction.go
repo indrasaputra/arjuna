@@ -30,13 +30,15 @@ func (t *Transaction) InsertWithTx(ctx context.Context, tx uow.Tx, trx *entity.T
 	}
 
 	query := "INSERT INTO " +
-		"transactions (id, sender_id, receiver_id, amount, created_at, updated_at, created_by, updated_by) " +
-		"VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+		"transactions (id, sender_id, receiver_id, sender_wallet_id, receiver_wallet_id, amount, created_at, updated_at, created_by, updated_by) " +
+		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 	_, err := tx.Exec(ctx, query,
 		trx.ID,
 		trx.SenderID,
 		trx.ReceiverID,
+		trx.SenderWalletID,
+		trx.ReceiverWalletID,
 		trx.Amount,
 		trx.CreatedAt,
 		trx.UpdatedAt,
