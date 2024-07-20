@@ -19,8 +19,8 @@ type TopupWallet interface {
 
 // TopupWalletRepository defines the interface to update wallet in repository.
 type TopupWalletRepository interface {
-	// AddWalletBalance updates the balance.
-	AddWalletBalance(ctx context.Context, topup *entity.TopupWallet) error
+	// AddWalletBalance adds certain amount (can be negative) to certain wallet.
+	AddWalletBalance(ctx context.Context, id string, amount decimal.Decimal) error
 }
 
 // IdempotencyKeyRepository defines  interface for idempotency check flow and repository.
@@ -58,7 +58,7 @@ func (wt *WalletTopup) Topup(ctx context.Context, topup *entity.TopupWallet) err
 		return err
 	}
 
-	err := wt.walletRepo.AddWalletBalance(ctx, topup)
+	err := wt.walletRepo.AddWalletBalance(ctx, topup.WalletID, topup.Amount)
 	if err != nil {
 		app.Logger.Errorf(ctx, "[WalletTopup-Topup] fail update to repository: %v", err)
 		return err

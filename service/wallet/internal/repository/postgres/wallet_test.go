@@ -2,6 +2,7 @@ package postgres_test
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	"github.com/shopspring/decimal"
@@ -97,30 +98,84 @@ func TestWallet_AddWalletBalance(t *testing.T) {
 
 	app.Logger = sdklog.NewLogger(testEnv)
 
-	query := `UPDATE wallets SET balance = balance + ? WHERE id = ? AND user_id = ?`
+	query := `UPDATE wallets SET balance = balance + ? WHERE id = ?`
 
 	t.Run("add account balance returns internal error", func(t *testing.T) {
 		st := createWalletSuite(ctrl)
-		topup := createTestTopupWallet()
+		id := "1"
+		amount, _ := decimal.NewFromString("4.56")
 		st.db.EXPECT().
-			Exec(testCtx, query, topup.Amount, topup.WalletID, topup.UserID).
+			Exec(testCtx, query, amount, id).
 			Return(int64(1), entity.ErrInternal(""))
 
-		err := st.wallet.AddWalletBalance(testCtx, topup)
+		err := st.wallet.AddWalletBalance(testCtx, id, amount)
 
 		assert.Error(t, err)
 	})
 
 	t.Run("add account balance returns success", func(t *testing.T) {
 		st := createWalletSuite(ctrl)
-		topup := createTestTopupWallet()
+		id := "1"
+		amount, _ := decimal.NewFromString("4.56")
 		st.db.EXPECT().
-			Exec(testCtx, query, topup.Amount, topup.WalletID, topup.UserID).
+			Exec(testCtx, query, amount, id).
 			Return(int64(1), nil)
 
-		err := st.wallet.AddWalletBalance(testCtx, topup)
+		err := st.wallet.AddWalletBalance(testCtx, id, amount)
 
 		assert.NoError(t, err)
+	})
+}
+
+func TestWallet_GetUserWallet(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	app.Logger = sdklog.NewLogger(testEnv)
+
+	query := `SELECT id, user_id, balance FROM wallets WHERE id = ? AND user_id = ? LIMIT 1 FOR NO KEY UPDATE`
+
+	t.Run("add account balance returns no rows", func(t *testing.T) {
+		st := createWalletSuite(ctrl)
+		id := "1"
+		userID := "2"
+		st.db.EXPECT().
+			Query(testCtx, gomock.Any(), query, id, userID).
+			Return(sql.ErrNoRows)
+
+		res, err := st.wallet.GetUserWallet(testCtx, id, userID)
+
+		assert.Error(t, err)
+		assert.Equal(t, entity.ErrEmptyWallet(), err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("add account balance returns internal error", func(t *testing.T) {
+		st := createWalletSuite(ctrl)
+		id := "1"
+		userID := "2"
+		st.db.EXPECT().
+			Query(testCtx, gomock.Any(), query, id, userID).
+			Return(entity.ErrInternal(""))
+
+		res, err := st.wallet.GetUserWallet(testCtx, id, userID)
+
+		assert.Error(t, err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("success add balance", func(t *testing.T) {
+		st := createWalletSuite(ctrl)
+		id := "1"
+		userID := "2"
+		st.db.EXPECT().
+			Query(testCtx, gomock.Any(), query, id, userID).
+			Return(nil)
+
+		res, err := st.wallet.GetUserWallet(testCtx, id, userID)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, res)
 	})
 }
 
@@ -130,15 +185,6 @@ func createTestWallet() *entity.Wallet {
 		ID:      "123",
 		UserID:  "1",
 		Balance: b,
-	}
-}
-
-func createTestTopupWallet() *entity.TopupWallet {
-	a, _ := decimal.NewFromString("10.23")
-	return &entity.TopupWallet{
-		WalletID: "1",
-		UserID:   "2",
-		Amount:   a,
 	}
 }
 
