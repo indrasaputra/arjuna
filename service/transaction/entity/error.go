@@ -119,6 +119,24 @@ func ErrMissingIdempotencyKey() error {
 	return res.Err()
 }
 
+// ErrInvalidWallet returns codes.InvalidArgument explained that the wallet is invalid.
+func ErrInvalidWallet() error {
+	st := status.New(codes.InvalidArgument, "")
+	br := createBadRequest(&errdetails.BadRequest_FieldViolation{
+		Field:       "sender_wallet_id or receiver_wallet_id",
+		Description: "empty",
+	})
+
+	te := &apiv1.TransactionError{
+		ErrorCode: apiv1.TransactionErrorCode_TRANSACTION_ERROR_CODE_INVALID_WALLET,
+	}
+	res, err := st.WithDetails(br, te)
+	if err != nil {
+		return st.Err()
+	}
+	return res.Err()
+}
+
 func createBadRequest(details ...*errdetails.BadRequest_FieldViolation) *errdetails.BadRequest {
 	return &errdetails.BadRequest{
 		FieldViolations: details,

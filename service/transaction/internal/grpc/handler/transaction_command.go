@@ -54,8 +54,10 @@ func (uc *TransactionCommand) CreateTransaction(ctx context.Context, request *ap
 
 func createTransactionFromCreateTransactionRequest(request *apiv1.CreateTransactionRequest, amount decimal.Decimal) *entity.Transaction {
 	return &entity.Transaction{
-		SenderID:   request.GetTransaction().GetSenderId(),
-		ReceiverID: request.GetTransaction().GetReceiverId(),
-		Amount:     amount,
+		SenderID:         request.GetTransaction().GetSenderId(),
+		ReceiverID:       request.GetTransaction().GetReceiverId(),
+		SenderWalletID:   request.GetTransaction().GetSenderWalletId(),
+		ReceiverWalletID: request.GetTransaction().GetReceiverWalletId(),
+		Amount:           amount,
 	}
 }
