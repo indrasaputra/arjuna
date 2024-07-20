@@ -119,6 +119,45 @@ func ErrInvalidAmount() error {
 	return res.Err()
 }
 
+// ErrSameAccount returns codes.InvalidArgument explained that sender and receiver are same.
+func ErrSameAccount() error {
+	st := status.New(codes.InvalidArgument, "sender and receiver must be different")
+	te := &apiv1.WalletError{
+		ErrorCode: apiv1.WalletErrorCode_WALLET_ERROR_CODE_SAME_ACCOUNT,
+	}
+	res, err := st.WithDetails(te)
+	if err != nil {
+		return st.Err()
+	}
+	return res.Err()
+}
+
+// ErrInsufficientBalance returns codes.InvalidArgument explained that sender's balance is insufficient.
+func ErrInsufficientBalance() error {
+	st := status.New(codes.InvalidArgument, "sender's balance is insufficient")
+	te := &apiv1.WalletError{
+		ErrorCode: apiv1.WalletErrorCode_WALLET_ERROR_CODE_INSUFFICIENT_BALANCE,
+	}
+	res, err := st.WithDetails(te)
+	if err != nil {
+		return st.Err()
+	}
+	return res.Err()
+}
+
+// ErrInvalidTransfer returns codes.InvalidArgument explained that the transfer is invalid.
+func ErrInvalidTransfer() error {
+	st := status.New(codes.InvalidArgument, "invalid transfer")
+	te := &apiv1.WalletError{
+		ErrorCode: apiv1.WalletErrorCode_WALLET_ERROR_CODE_INVALID_TRANSFER,
+	}
+	res, err := st.WithDetails(te)
+	if err != nil {
+		return st.Err()
+	}
+	return res.Err()
+}
+
 func createBadRequest(details ...*errdetails.BadRequest_FieldViolation) *errdetails.BadRequest {
 	return &errdetails.BadRequest{
 		FieldViolations: details,

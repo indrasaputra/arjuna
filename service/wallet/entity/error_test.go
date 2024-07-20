@@ -63,3 +63,27 @@ func TestErrInvalidAmount(t *testing.T) {
 		assert.Contains(t, err.Error(), "rpc error: code = InvalidArgument")
 	})
 }
+
+func TestErrSameAccount(t *testing.T) {
+	t.Run("success get same account error", func(t *testing.T) {
+		err := entity.ErrSameAccount()
+
+		assert.Contains(t, err.Error(), "rpc error: code = InvalidArgument")
+	})
+}
+
+func TestErrInsufficientBalance(t *testing.T) {
+	t.Run("success get insufficient balance error", func(t *testing.T) {
+		err := entity.ErrInsufficientBalance()
+
+		assert.Contains(t, err.Error(), "rpc error: code = InvalidArgument")
+	})
+}
+
+func TestErrInvalidTransfer(t *testing.T) {
+	t.Run("success get invalid transfer error", func(t *testing.T) {
+		err := entity.ErrInvalidTransfer()
+
+		assert.Contains(t, err.Error(), "rpc error: code = InvalidArgument")
+	})
+}

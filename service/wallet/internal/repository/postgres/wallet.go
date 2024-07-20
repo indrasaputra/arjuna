@@ -2,6 +2,9 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
+
+	"github.com/shopspring/decimal"
 
 	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
@@ -50,12 +53,47 @@ func (w *Wallet) Insert(ctx context.Context, trx *entity.Wallet) error {
 }
 
 // AddWalletBalance adds some amount to specific user's wallet.
-func (w *Wallet) AddWalletBalance(ctx context.Context, topup *entity.TopupWallet) error {
-	query := "UPDATE wallets SET balance = balance + ? WHERE id = ? AND user_id = ?"
-	_, err := w.db.Exec(ctx, query, topup.Amount, topup.WalletID, topup.UserID)
+func (w *Wallet) AddWalletBalance(ctx context.Context, id string, amount decimal.Decimal) error {
+	return w.addWalletBalance(ctx, w.db, id, amount)
+}
+
+// AddWalletBalanceWithTx adds some amount to specific user's wallet.
+func (w *Wallet) AddWalletBalanceWithTx(ctx context.Context, tx uow.Tx, id string, amount decimal.Decimal) error {
+	if tx == nil {
+		app.Logger.Errorf(ctx, "[WalletPostgres-AddWalletBalanceWithTx] internal error: tx is nil")
+		return entity.ErrInternal("something went wrong")
+	}
+	return w.addWalletBalance(ctx, tx, id, amount)
+}
+
+// AddWalletBalance adds some amount to specific user's wallet.
+func (w *Wallet) addWalletBalance(ctx context.Context, db uow.DB, id string, amount decimal.Decimal) error {
+	query := "UPDATE wallets SET balance = balance + ? WHERE id = ?"
+	_, err := db.Exec(ctx, query, amount, id)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[WalletPostgres-AddWalletBalance] internal error: %v", err)
+		app.Logger.Errorf(ctx, "[WalletPostgres-addWalletBalance] internal error: %v", err)
 		return entity.ErrInternal("something went wrong")
 	}
 	return nil
+}
+
+// GetUserWalletWithTx gets user's wallet from repository.
+func (w *Wallet) GetUserWalletWithTx(ctx context.Context, tx uow.Tx, id string, userID string) (*entity.Wallet, error) {
+	if tx == nil {
+		app.Logger.Errorf(ctx, "[WalletPostgres-GetUserWalletWithTx] internal error: tx is nil")
+		return nil, entity.ErrInternal("something went wrong")
+	}
+
+	query := "SELECT id, user_id, balance FROM wallets WHERE id = ? AND user_id = ? LIMIT 1 FOR NO KEY UPDATE"
+	res := entity.Wallet{}
+	err := tx.Query(ctx, &res, query, id, userID)
+
+	if err == sql.ErrNoRows {
+		return nil, entity.ErrEmptyWallet()
+	}
+	if err != nil {
+		app.Logger.Errorf(ctx, "[WalletPostgres-GetUserWalletWithTx] internal error: %v", err)
+		return nil, entity.ErrInternal("something went wrong")
+	}
+	return &res, nil
 }

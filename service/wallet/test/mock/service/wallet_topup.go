@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	decimal "github.com/shopspring/decimal"
 	gomock "go.uber.org/mock/gomock"
 
 	entity "github.com/indrasaputra/arjuna/service/wallet/entity"
@@ -79,17 +80,17 @@ func (m *MockTopupWalletRepository) EXPECT() *MockTopupWalletRepositoryMockRecor
 }
 
 // AddWalletBalance mocks base method.
-func (m *MockTopupWalletRepository) AddWalletBalance(ctx context.Context, topup *entity.TopupWallet) error {
+func (m *MockTopupWalletRepository) AddWalletBalance(ctx context.Context, id string, amount decimal.Decimal) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddWalletBalance", ctx, topup)
+	ret := m.ctrl.Call(m, "AddWalletBalance", ctx, id, amount)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddWalletBalance indicates an expected call of AddWalletBalance.
-func (mr *MockTopupWalletRepositoryMockRecorder) AddWalletBalance(ctx, topup any) *gomock.Call {
+func (mr *MockTopupWalletRepositoryMockRecorder) AddWalletBalance(ctx, id, amount any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddWalletBalance", reflect.TypeOf((*MockTopupWalletRepository)(nil).AddWalletBalance), ctx, topup)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddWalletBalance", reflect.TypeOf((*MockTopupWalletRepository)(nil).AddWalletBalance), ctx, id, amount)
 }
 
 // MockIdempotencyKeyRepository is a mock of IdempotencyKeyRepository interface.
