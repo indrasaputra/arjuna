@@ -65,15 +65,6 @@ service WalletCommandService {
   //
   // This endpoint transfers balance from one wallet to another wallet.
   rpc TransferBalance(TransferBalanceRequest) returns (TransferBalanceResponse) {
-    option (google.api.http) = {
-      put : "/v1/wallets/transfers",
-      body : "transfer"
-    };
-
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id : "TransferWallet",
-      tags : "Wallet",
-    };
   };
 }
 
