@@ -2,31 +2,39 @@ package auth
 
 import (
 	"context"
+	"encoding/base64"
+	"fmt"
 
 	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/auth/entity"
 )
 
-// DialConfig defines configuration to work with Client.
-type DialConfig struct {
-	// Host defines server host.
-	Host string
-	// Options defines list of dial option used to make a connection to server.
-	Options []grpc.DialOption
+const (
+	headerAuthorization = "authorization"
+)
+
+// Config defines configuration to work with Client.
+type Config struct {
+	Host     string
+	Username string
+	Password string
+	Options  []grpc.DialOption
 }
 
 // Client is responsible to connect to auth use cases.
 type Client struct {
 	handler apiv1.AuthServiceClient
+	config  *Config
 }
 
 // NewClient creates an instance of Client.
-func NewClient(cfg *DialConfig) (*Client, error) {
+func NewClient(cfg *Config) (*Client, error) {
 	conn, err := grpc.NewClient(cfg.Host, cfg.Options...)
 	if err != nil {
 		return nil, status.New(codes.Unavailable, "").Err()
@@ -34,6 +42,7 @@ func NewClient(cfg *DialConfig) (*Client, error) {
 
 	return &Client{
 		handler: apiv1.NewAuthServiceClient(conn),
+		config:  cfg,
 	}, nil
 }
 
@@ -44,6 +53,9 @@ func (c *Client) Register(ctx context.Context, account *entity.Account) error {
 		Email:    account.Email,
 		Password: account.Password,
 	}}
+
+	token := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", c.config.Username, c.config.Password)))
+	ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs(headerAuthorization, fmt.Sprintf("basic %s", token)))
 
 	_, err := c.handler.RegisterAccount(ctx, req)
 	return err

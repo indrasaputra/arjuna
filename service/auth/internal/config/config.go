@@ -11,14 +11,17 @@ import (
 
 // Config holds configuration for the project.
 type Config struct {
-	Postgres       sdkpg.Config
-	Tracer         trace.Config
-	ServiceName    string `env:"SERVICE_NAME,default=auth-server"`
-	AppEnv         string `env:"APP_ENV,default=development"`
-	Port           string `env:"PORT,default=8002"`
-	PrometheusPort string `env:"PROMETHEUS_PORT,default=7002"`
-	SkippedAuth    string `env:"SKIPPED_AUTH"`
-	Token          Token
+	Postgres          sdkpg.Config
+	Tracer            trace.Config
+	ServiceName       string `env:"SERVICE_NAME,default=auth-server"`
+	AppEnv            string `env:"APP_ENV,default=development"`
+	Port              string `env:"PORT,default=8002"`
+	PrometheusPort    string `env:"PROMETHEUS_PORT,default=7002"`
+	Username          string `env:"USERNAME,default=auth-user"`
+	Password          string `env:"PASSWORD,default=auth-password"`
+	AppliedAuthBearer string `env:"APPLIED_AUTH_BEARER"`
+	AppliedAuthBasic  string `env:"APPLIED_AUTH_BASIC"`
+	Token             Token
 }
 
 // Token holds configuration for Token.

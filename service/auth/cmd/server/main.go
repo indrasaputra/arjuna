@@ -42,10 +42,13 @@ func main() {
 	}
 
 	c := &server.Config{
-		Name:           cfg.ServiceName,
-		Port:           cfg.Port,
-		Secret:         []byte(cfg.Token.SecretKey),
-		SkippedMethods: strings.Split(cfg.SkippedAuth, ","),
+		Name:                     cfg.ServiceName,
+		Port:                     cfg.Port,
+		Secret:                   []byte(cfg.Token.SecretKey),
+		Username:                 cfg.Username,
+		Password:                 cfg.Password,
+		AppliedBearerAuthMethods: strings.Split(cfg.AppliedAuthBearer, ","),
+		AppliedBasicAuthMethods:  strings.Split(cfg.AppliedAuthBasic, ","),
 	}
 	srv := server.NewServer(c)
 	registerGrpcService(srv, dep)

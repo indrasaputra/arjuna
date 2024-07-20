@@ -320,6 +320,8 @@ services:
       - APP_ENV=development
       - PORT=8002
       - PROMETHEUS_PORT=7002
+      - USERNAME=auth-user
+      - PASSWORD=auth-password
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_USER=postgresuser
@@ -332,7 +334,8 @@ services:
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
       - TOKEN_SECRET_KEY=arjuna-secret-key
       - TOKEN_EXPIRY_TIME_IN_MINUTE=30
-      - SKIPPED_AUTH=/api.v1.AuthService/Login,/api.v1.AuthService/RegisterAccount
+      - APPLIED_AUTH_BEARER=
+      - APPLIED_AUTH_BASIC=/api.v1.AuthService/RegisterAccount
     profiles:
       - service
 
@@ -355,6 +358,8 @@ services:
       - APP_ENV=development
       - PORT=8001
       - PROMETHEUS_PORT=7001
+      - USERNAME=user-user
+      - PASSWORD=user-password
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_USER=postgresuser
@@ -371,7 +376,8 @@ services:
       - WALLET_SERVICE_HOST=wallet-server:8004
       - REDIS_ADDRESS=redis:6379
       - TOKEN_SECRET_KEY=arjuna-secret-key
-      - SKIPPED_AUTH=/api.v1.UserCommandService/RegisterUser
+      - APPLIED_AUTH_BEARER=/api.v1.UserCommandService/GetAllUsers
+      - APPLIED_AUTH_BASIC=
     profiles:
       - service
 
@@ -405,6 +411,10 @@ services:
       - WALLET_SERVICE_HOST=wallet-server:8004
       - REDIS_ADDRESS=redis:6379
       - TOKEN_SECRET_KEY=arjuna-secret-key
+      - AUTH_SERVICE_USERNAME=auth-user
+      - AUTH_SERVICE_PASSWORD=auth-password
+      - WALLET_SERVICE_USERNAME=wallet-user
+      - WALLET_SERVICE_PASSWORD=wallet-password
     profiles:
       - service
 
@@ -459,6 +469,8 @@ services:
       - APP_ENV=development
       - PORT=8003
       - PROMETHEUS_PORT=7003
+      - USERNAME=transaction-user
+      - PASSWORD=transaction-password
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_USER=postgresuser
@@ -473,7 +485,8 @@ services:
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - REDIS_ADDRESS=redis:6379
       - TOKEN_SECRET_KEY=arjuna-secret-key
-      - SKIPPED_AUTH=/api.v1.TransactionCommandService/CreateTransaction
+      - APPLIED_AUTH_BEARER=/api.v1.TransactionCommandService/CreateTransaction
+      - APPLIED_AUTH_BASIC=
     profiles:
       - service
 
@@ -494,6 +507,8 @@ services:
       - APP_ENV=development
       - PORT=8004
       - PROMETHEUS_PORT=7003
+      - USERNAME=wallet-user
+      - PASSWORD=wallet-password
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_USER=postgresuser
@@ -508,7 +523,8 @@ services:
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - REDIS_ADDRESS=redis:6379
       - TOKEN_SECRET_KEY=arjuna-secret-key
-      - SKIPPED_AUTH=/api.v1.WalletCommandService/CreateWallet
+      - APPLIED_AUTH_BEARER=/api.v1.WalletCommandService/TopupWallet,/api.v1.WalletCommandService/TransferBalance
+      - APPLIED_AUTH_BASIC=/api.v1.WalletCommandService/CreateWallet
     profiles:
       - service
 

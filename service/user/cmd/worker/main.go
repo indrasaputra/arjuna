@@ -36,9 +36,9 @@ func main() {
 	defer temporalClient.Close()
 	bunDB, err := builder.BuildBunDB(cfg.Postgres)
 	checkError(err)
-	authClient, err := builder.BuildAuthClient(cfg.AuthServiceHost)
+	authClient, err := builder.BuildAuthClient(cfg.AuthServiceHost, cfg.AuthServiceUsername, cfg.AuthServicePassword)
 	checkError(err)
-	walletClient, err := builder.BuildWalletClient(cfg.WalletServiceHost)
+	walletClient, err := builder.BuildWalletClient(cfg.WalletServiceHost, cfg.WalletServiceUsername, cfg.WalletServicePassword)
 	checkError(err)
 
 	ac := connauth.NewAuth(authClient)

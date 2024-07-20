@@ -11,15 +11,18 @@ import (
 
 // Config holds configuration for the project.
 type Config struct {
-	Postgres       sdkpg.Config
-	Tracer         trace.Config
-	ServiceName    string `env:"SERVICE_NAME,default=transaction-server"`
-	AppEnv         string `env:"APP_ENV,default=development"`
-	Port           string `env:"PORT,default=8003"`
-	PrometheusPort string `env:"PROMETHEUS_PORT,default=7003"`
-	SkippedAuth    string `env:"SKIPPED_AUTH"`
-	SecretKey      string `env:"TOKEN_SECRET_KEY,required"`
-	Redis          Redis
+	Postgres          sdkpg.Config
+	Tracer            trace.Config
+	ServiceName       string `env:"SERVICE_NAME,default=transaction-server"`
+	AppEnv            string `env:"APP_ENV,default=development"`
+	Port              string `env:"PORT,default=8003"`
+	PrometheusPort    string `env:"PROMETHEUS_PORT,default=7003"`
+	Username          string `env:"USERNAME,default=transaction-user"`
+	Password          string `env:"PASSWORD,default=transaction-password"`
+	AppliedAuthBearer string `env:"APPLIED_AUTH_BEARER"`
+	AppliedAuthBasic  string `env:"APPLIED_AUTH_BASIC"`
+	SecretKey         string `env:"TOKEN_SECRET_KEY,required"`
+	Redis             Redis
 }
 
 // Redis holds configuration for Redis.

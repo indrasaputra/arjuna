@@ -68,19 +68,23 @@ func BuildTemporalClient(address string) (client.Client, error) {
 }
 
 // BuildAuthClient builds auth service client.
-func BuildAuthClient(host string) (*sdkauth.Client, error) {
-	dc := &sdkauth.DialConfig{
-		Host:    host,
-		Options: []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())},
+func BuildAuthClient(host, username, password string) (*sdkauth.Client, error) {
+	dc := &sdkauth.Config{
+		Host:     host,
+		Options:  []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())},
+		Username: username,
+		Password: password,
 	}
 	return sdkauth.NewClient(dc)
 }
 
 // BuildWalletClient builds wallet service client.
-func BuildWalletClient(host string) (*sdkwallet.Client, error) {
-	dc := &sdkwallet.DialConfig{
-		Host:    host,
-		Options: []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())},
+func BuildWalletClient(host, username, password string) (*sdkwallet.Client, error) {
+	dc := &sdkwallet.Config{
+		Host:     host,
+		Options:  []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())},
+		Username: username,
+		Password: password,
 	}
 	return sdkwallet.NewClient(dc)
 }
