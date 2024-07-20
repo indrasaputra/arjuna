@@ -9,6 +9,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
+	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/transaction/entity"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/app"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/service"
@@ -22,12 +23,16 @@ var (
 	testEnv            = "development"
 	testAmount, _      = decimal.NewFromString("10.23")
 	testIdempotencyKey = "key"
+	testErrInternal    = entity.ErrInternal("")
 )
 
 type TransactionCreatorSuite struct {
-	trx     *service.TransactionCreator
-	trxRepo *mock_service.MockCreateTransactionRepository
-	keyRepo *mock_service.MockIdempotencyKeyRepository
+	trx           *service.TransactionCreator
+	trxRepo       *mock_service.MockCreateTransactionRepository
+	trxOutboxRepo *mock_service.MockCreateTransactionOutboxRepository
+	keyRepo       *mock_service.MockIdempotencyKeyRepository
+	unit          *mock_uow.MockUnitOfWork
+	tx            *mock_uow.MockTx
 }
 
 func TestNewTransactionCreator(t *testing.T) {
@@ -47,7 +52,7 @@ func TestTransactionCreator_Create(t *testing.T) {
 
 	t.Run("validate idempotency key returns error", func(t *testing.T) {
 		st := createTransactionCreatorSuite(ctrl)
-		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, entity.ErrInternal("error"))
+		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, testErrInternal)
 
 		id, err := st.trx.Create(testCtx, nil, testIdempotencyKey)
 
@@ -112,12 +117,11 @@ func TestTransactionCreator_Create(t *testing.T) {
 		assert.Empty(t, id)
 	})
 
-	t.Run("trx repo insert returns error", func(t *testing.T) {
+	t.Run("tx begin returns error", func(t *testing.T) {
 		st := createTransactionCreatorSuite(ctrl)
 		trx := createTestTransaction()
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
-
-		st.trxRepo.EXPECT().Insert(testCtx, trx).Return(entity.ErrInternal(""))
+		st.unit.EXPECT().Begin(testCtx).Return(nil, testErrInternal)
 
 		id, err := st.trx.Create(testCtx, trx, testIdempotencyKey)
 
@@ -125,12 +129,58 @@ func TestTransactionCreator_Create(t *testing.T) {
 		assert.Empty(t, id)
 	})
 
-	t.Run("success create a transaction", func(t *testing.T) {
+	t.Run("trx repo returns error", func(t *testing.T) {
 		st := createTransactionCreatorSuite(ctrl)
 		trx := createTestTransaction()
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
+		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
+		st.trxRepo.EXPECT().InsertWithTx(testCtx, st.tx, trx).Return(testErrInternal)
+		st.unit.EXPECT().Finish(testCtx, st.tx, testErrInternal).Return(nil)
 
-		st.trxRepo.EXPECT().Insert(testCtx, trx).Return(nil)
+		id, err := st.trx.Create(testCtx, trx, testIdempotencyKey)
+
+		assert.Error(t, err)
+		assert.Empty(t, id)
+	})
+
+	t.Run("trx outbox repo returns error", func(t *testing.T) {
+		st := createTransactionCreatorSuite(ctrl)
+		trx := createTestTransaction()
+		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
+		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
+		st.trxRepo.EXPECT().InsertWithTx(testCtx, st.tx, trx).Return(nil)
+		st.trxOutboxRepo.EXPECT().InsertWithTx(testCtx, st.tx, gomock.Any()).Return(testErrInternal)
+		st.unit.EXPECT().Finish(testCtx, st.tx, testErrInternal).Return(nil)
+
+		id, err := st.trx.Create(testCtx, trx, testIdempotencyKey)
+
+		assert.Error(t, err)
+		assert.Empty(t, id)
+	})
+
+	t.Run("unit of work finish returns error", func(t *testing.T) {
+		st := createTransactionCreatorSuite(ctrl)
+		trx := createTestTransaction()
+		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
+		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
+		st.trxRepo.EXPECT().InsertWithTx(testCtx, st.tx, trx).Return(nil)
+		st.trxOutboxRepo.EXPECT().InsertWithTx(testCtx, st.tx, gomock.Any()).Return(nil)
+		st.unit.EXPECT().Finish(testCtx, st.tx, nil).Return(testErrInternal)
+
+		id, err := st.trx.Create(testCtx, trx, testIdempotencyKey)
+
+		assert.Error(t, err)
+		assert.Empty(t, id)
+	})
+
+	t.Run("success create transaction error", func(t *testing.T) {
+		st := createTransactionCreatorSuite(ctrl)
+		trx := createTestTransaction()
+		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
+		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
+		st.trxRepo.EXPECT().InsertWithTx(testCtx, st.tx, trx).Return(nil)
+		st.trxOutboxRepo.EXPECT().InsertWithTx(testCtx, st.tx, gomock.Any()).Return(nil)
+		st.unit.EXPECT().Finish(testCtx, st.tx, nil).Return(nil)
 
 		id, err := st.trx.Create(testCtx, trx, testIdempotencyKey)
 
@@ -139,22 +189,28 @@ func TestTransactionCreator_Create(t *testing.T) {
 	})
 }
 
-func createTransactionCreatorSuite(ctrl *gomock.Controller) *TransactionCreatorSuite {
-	r := mock_service.NewMockCreateTransactionRepository(ctrl)
-	i := mock_service.NewMockIdempotencyKeyRepository(ctrl)
-	t := service.NewTransactionCreator(r, i)
-	return &TransactionCreatorSuite{
-		trx:     t,
-		trxRepo: r,
-		keyRepo: i,
-	}
-}
-
 func createTestTransaction() *entity.Transaction {
 	return &entity.Transaction{
 		ID:         "1",
 		SenderID:   testSenderID,
 		ReceiverID: testReceiverID,
 		Amount:     testAmount,
+	}
+}
+
+func createTransactionCreatorSuite(ctrl *gomock.Controller) *TransactionCreatorSuite {
+	r := mock_service.NewMockCreateTransactionRepository(ctrl)
+	o := mock_service.NewMockCreateTransactionOutboxRepository(ctrl)
+	i := mock_service.NewMockIdempotencyKeyRepository(ctrl)
+	u := mock_uow.NewMockUnitOfWork(ctrl)
+	x := mock_uow.NewMockTx(ctrl)
+	t := service.NewTransactionCreator(r, o, i, u)
+	return &TransactionCreatorSuite{
+		trx:           t,
+		trxRepo:       r,
+		trxOutboxRepo: o,
+		keyRepo:       i,
+		unit:          u,
+		tx:            x,
 	}
 }

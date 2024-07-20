@@ -24,9 +24,11 @@ type Dependency struct {
 // BuildTransactionCommandHandler builds transaction command handler including all of its dependencies.
 func BuildTransactionCommandHandler(dep *Dependency) *handler.TransactionCommand {
 	p := postgres.NewTransaction(dep.DB)
+	o := postgres.NewTransactionOutbox(dep.DB)
 	i := redis.NewIdempotencyKey(dep.RedisClient)
+	u := uow.NewUnitWorker(dep.DB)
 
-	t := service.NewTransactionCreator(p, i)
+	t := service.NewTransactionCreator(p, o, i, u)
 	return handler.NewTransactionCommand(t)
 }
 
