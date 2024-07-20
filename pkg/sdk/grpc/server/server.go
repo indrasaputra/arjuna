@@ -43,10 +43,13 @@ type Server struct {
 
 // Config represents server's config.
 type Config struct {
-	Name           string
-	Port           string
-	SkippedMethods []string
-	Secret         []byte
+	Name                     string
+	Port                     string
+	Username                 string
+	Password                 string
+	AppliedBearerAuthMethods []string
+	AppliedBasicAuthMethods  []string
+	Secret                   []byte
 }
 
 // newGrpc creates an instance of Server.
@@ -160,7 +163,8 @@ func defaultUnaryServerInterceptors(logger *zap.Logger, cfg *Config) []grpc.Unar
 		grpcrecovery.UnaryServerInterceptor(grpcrecovery.WithRecoveryHandler(recoveryHandler)),
 		logging.UnaryServerInterceptor(interceptor.ZapLogger(logger), opts...),
 		grpc_prometheus.UnaryServerInterceptor,
-		selector.UnaryServerInterceptor(auth.UnaryServerInterceptor(interceptor.AuthBearer(cfg.Secret)), selector.MatchFunc(interceptor.SkipMethod(cfg.SkippedMethods...))),
+		selector.UnaryServerInterceptor(auth.UnaryServerInterceptor(interceptor.AuthBasic(cfg.Username, cfg.Password)), selector.MatchFunc(interceptor.ApplyMethod(cfg.AppliedBasicAuthMethods...))),
+		selector.UnaryServerInterceptor(auth.UnaryServerInterceptor(interceptor.AuthBearer(cfg.Secret)), selector.MatchFunc(interceptor.ApplyMethod(cfg.AppliedBearerAuthMethods...))),
 	}
 }
 
@@ -171,7 +175,8 @@ func defaultStreamServerInterceptors(logger *zap.Logger, cfg *Config) []grpc.Str
 		grpcrecovery.StreamServerInterceptor(grpcrecovery.WithRecoveryHandler(recoveryHandler)),
 		logging.StreamServerInterceptor(interceptor.ZapLogger(logger), opts...),
 		grpc_prometheus.StreamServerInterceptor,
-		selector.StreamServerInterceptor(auth.StreamServerInterceptor(interceptor.AuthBearer(cfg.Secret)), selector.MatchFunc(interceptor.SkipMethod(cfg.SkippedMethods...))),
+		selector.StreamServerInterceptor(auth.StreamServerInterceptor(interceptor.AuthBasic(cfg.Username, cfg.Password)), selector.MatchFunc(interceptor.ApplyMethod(cfg.AppliedBasicAuthMethods...))),
+		selector.StreamServerInterceptor(auth.StreamServerInterceptor(interceptor.AuthBearer(cfg.Secret)), selector.MatchFunc(interceptor.ApplyMethod(cfg.AppliedBearerAuthMethods...))),
 	}
 }
 

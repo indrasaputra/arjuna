@@ -258,41 +258,6 @@
           "Wallet"
         ]
       }
-    },
-    "/v1/wallets/transfers": {
-      "put": {
-        "summary": "TransferBalance.",
-        "description": "This endpoint transfers balance from one wallet to another wallet.",
-        "operationId": "TransferWallet",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1TransferBalanceResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "transfer",
-            "description": "topup represents topup data.",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1Transfer"
-            }
-          }
-        ],
-        "tags": [
-          "Wallet"
-        ]
-      }
     }
   },
   "definitions": {

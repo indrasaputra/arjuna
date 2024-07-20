@@ -67,7 +67,7 @@ func TestBuildTemporalClient(t *testing.T) {
 
 func TestBuildAuthClient(t *testing.T) {
 	t.Run("success build an auth client", func(t *testing.T) {
-		client, err := builder.BuildAuthClient("localhost:8002")
+		client, err := builder.BuildAuthClient("localhost:8002", "user", "pass")
 
 		assert.NoError(t, err)
 		assert.NotNil(t, client)
@@ -76,7 +76,7 @@ func TestBuildAuthClient(t *testing.T) {
 
 func TestBuildWalletClient(t *testing.T) {
 	t.Run("success build a wallet client", func(t *testing.T) {
-		client, err := builder.BuildWalletClient("localhost:8004")
+		client, err := builder.BuildWalletClient("localhost:8004", "user", "pass")
 
 		assert.NoError(t, err)
 		assert.NotNil(t, client)
