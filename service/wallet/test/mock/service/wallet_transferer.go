@@ -16,6 +16,7 @@ import (
 	decimal "github.com/shopspring/decimal"
 	gomock "go.uber.org/mock/gomock"
 
+	uow "github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	entity "github.com/indrasaputra/arjuna/service/wallet/entity"
 )
 
@@ -79,31 +80,31 @@ func (m *MockWalletTransfererRepository) EXPECT() *MockWalletTransfererRepositor
 	return m.recorder
 }
 
-// AddWalletBalance mocks base method.
-func (m *MockWalletTransfererRepository) AddWalletBalance(ctx context.Context, id string, amount decimal.Decimal) error {
+// AddWalletBalanceWithTx mocks base method.
+func (m *MockWalletTransfererRepository) AddWalletBalanceWithTx(ctx context.Context, tx uow.Tx, id string, amount decimal.Decimal) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddWalletBalance", ctx, id, amount)
+	ret := m.ctrl.Call(m, "AddWalletBalanceWithTx", ctx, tx, id, amount)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// AddWalletBalance indicates an expected call of AddWalletBalance.
-func (mr *MockWalletTransfererRepositoryMockRecorder) AddWalletBalance(ctx, id, amount any) *gomock.Call {
+// AddWalletBalanceWithTx indicates an expected call of AddWalletBalanceWithTx.
+func (mr *MockWalletTransfererRepositoryMockRecorder) AddWalletBalanceWithTx(ctx, tx, id, amount any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddWalletBalance", reflect.TypeOf((*MockWalletTransfererRepository)(nil).AddWalletBalance), ctx, id, amount)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddWalletBalanceWithTx", reflect.TypeOf((*MockWalletTransfererRepository)(nil).AddWalletBalanceWithTx), ctx, tx, id, amount)
 }
 
-// GetUserWallet mocks base method.
-func (m *MockWalletTransfererRepository) GetUserWallet(ctx context.Context, id, userID string) (*entity.Wallet, error) {
+// GetUserWalletWithTx mocks base method.
+func (m *MockWalletTransfererRepository) GetUserWalletWithTx(ctx context.Context, tx uow.Tx, id, userID string) (*entity.Wallet, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserWallet", ctx, id, userID)
+	ret := m.ctrl.Call(m, "GetUserWalletWithTx", ctx, tx, id, userID)
 	ret0, _ := ret[0].(*entity.Wallet)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetUserWallet indicates an expected call of GetUserWallet.
-func (mr *MockWalletTransfererRepositoryMockRecorder) GetUserWallet(ctx, id, userID any) *gomock.Call {
+// GetUserWalletWithTx indicates an expected call of GetUserWalletWithTx.
+func (mr *MockWalletTransfererRepositoryMockRecorder) GetUserWalletWithTx(ctx, tx, id, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserWallet", reflect.TypeOf((*MockWalletTransfererRepository)(nil).GetUserWallet), ctx, id, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserWalletWithTx", reflect.TypeOf((*MockWalletTransfererRepository)(nil).GetUserWalletWithTx), ctx, tx, id, userID)
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/shopspring/decimal"
 
+	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/wallet/entity"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/app"
 )
@@ -18,20 +19,21 @@ type TransferWallet interface {
 
 // WalletTransfererRepository defines the interface to get wallet in repository.
 type WalletTransfererRepository interface {
-	// GetUserWallet gets user's wallet from repository.
-	GetUserWallet(ctx context.Context, id string, userID string) (*entity.Wallet, error)
-	// AddWalletBalance adds certain amount (can be negative) to certain wallet.
-	AddWalletBalance(ctx context.Context, id string, amount decimal.Decimal) error
+	// GetUserWalletWithTx gets user's wallet from repository using transaction.
+	GetUserWalletWithTx(ctx context.Context, tx uow.Tx, id string, userID string) (*entity.Wallet, error)
+	// AddWalletBalanceWithTx adds certain amount (can be negative) to certain wallet using transaction.
+	AddWalletBalanceWithTx(ctx context.Context, tx uow.Tx, id string, amount decimal.Decimal) error
 }
 
 // WalletTransferer is responsible for transfer balance between wallets.
 type WalletTransferer struct {
 	walletRepo WalletTransfererRepository
+	uow        uow.UnitOfWork
 }
 
 // NewWalletTransferer creates an instance of WalletTransferer.
-func NewWalletTransferer(w WalletTransfererRepository) *WalletTransferer {
-	return &WalletTransferer{walletRepo: w}
+func NewWalletTransferer(w WalletTransfererRepository, u uow.UnitOfWork) *WalletTransferer {
+	return &WalletTransferer{walletRepo: w, uow: u}
 }
 
 // TransferBalance transfers certain amount of balance from sender to receiver.
@@ -51,33 +53,43 @@ func (wt *WalletTransferer) TransferBalance(ctx context.Context, transfer *entit
 }
 
 func (wt *WalletTransferer) processTransferBalance(ctx context.Context, transfer *entity.TransferWallet) error {
-	senWallet, recWallet, err := wt.getSenderAndReceiverWallet(ctx, transfer)
+	tx, err := wt.uow.Begin(ctx)
 	if err != nil {
+		app.Logger.Errorf(ctx, "[WalletTransferer-processTransferBalance] fail begin transaction: %v", err)
+		return entity.ErrInternal("something went wrong")
+	}
+
+	senWallet, recWallet, err := wt.getSenderAndReceiverWallet(ctx, tx, transfer)
+	if err != nil {
+		_ = wt.uow.Finish(ctx, tx, err)
 		return err
 	}
 
 	if senWallet == nil || recWallet == nil {
+		_ = wt.uow.Finish(ctx, tx, entity.ErrInvalidUser())
 		return entity.ErrInvalidUser()
 	}
 	if senWallet.Balance.LessThan(transfer.Amount) {
+		_ = wt.uow.Finish(ctx, tx, entity.ErrInsufficientBalance())
 		return entity.ErrInsufficientBalance()
 	}
 
-	if err := wt.updateUserBalances(ctx, transfer); err != nil {
+	if err := wt.updateUserBalances(ctx, tx, transfer); err != nil {
+		_ = wt.uow.Finish(ctx, tx, err)
 		return err
 	}
-	return nil
+	return wt.uow.Finish(ctx, tx, nil)
 }
 
 // deliberately get wallet from the lower id first to avoid deadlock.
-func (wt *WalletTransferer) getSenderAndReceiverWallet(ctx context.Context, transfer *entity.TransferWallet) (*entity.Wallet, *entity.Wallet, error) {
+func (wt *WalletTransferer) getSenderAndReceiverWallet(ctx context.Context, tx uow.Tx, transfer *entity.TransferWallet) (*entity.Wallet, *entity.Wallet, error) {
 	if transfer.SenderWalletID < transfer.ReceiverWalletID {
-		senWallet, err := wt.walletRepo.GetUserWallet(ctx, transfer.SenderWalletID, transfer.SenderID)
+		senWallet, err := wt.walletRepo.GetUserWalletWithTx(ctx, tx, transfer.SenderWalletID, transfer.SenderID)
 		if err != nil {
 			app.Logger.Errorf(ctx, "[WalletTransferer-getSenderAndReceiverWallet] sender < receiver; get sender wallet fail: %v", err)
 			return nil, nil, err
 		}
-		recWallet, err := wt.walletRepo.GetUserWallet(ctx, transfer.ReceiverWalletID, transfer.ReceiverID)
+		recWallet, err := wt.walletRepo.GetUserWalletWithTx(ctx, tx, transfer.ReceiverWalletID, transfer.ReceiverID)
 		if err != nil {
 			app.Logger.Errorf(ctx, "[WalletTransferer-getSenderAndReceiverWallet] sender < receiver; get receiver wallet fail: %v", err)
 			return nil, nil, err
@@ -85,12 +97,12 @@ func (wt *WalletTransferer) getSenderAndReceiverWallet(ctx context.Context, tran
 		return senWallet, recWallet, nil
 	}
 
-	recWallet, err := wt.walletRepo.GetUserWallet(ctx, transfer.ReceiverWalletID, transfer.ReceiverID)
+	recWallet, err := wt.walletRepo.GetUserWalletWithTx(ctx, tx, transfer.ReceiverWalletID, transfer.ReceiverID)
 	if err != nil {
 		app.Logger.Errorf(ctx, "[WalletTransferer-getSenderAndReceiverWallet] sender >= receiver; get receiver wallet fail: %v", err)
 		return nil, nil, err
 	}
-	senWallet, err := wt.walletRepo.GetUserWallet(ctx, transfer.SenderWalletID, transfer.SenderID)
+	senWallet, err := wt.walletRepo.GetUserWalletWithTx(ctx, tx, transfer.SenderWalletID, transfer.SenderID)
 	if err != nil {
 		app.Logger.Errorf(ctx, "[WalletTransferer-getSenderAndReceiverWallet] sender >= receiver; get sender wallet fail: %v", err)
 		return nil, nil, err
@@ -98,12 +110,12 @@ func (wt *WalletTransferer) getSenderAndReceiverWallet(ctx context.Context, tran
 	return senWallet, recWallet, nil
 }
 
-func (wt *WalletTransferer) updateUserBalances(ctx context.Context, transfer *entity.TransferWallet) error {
-	if err := wt.walletRepo.AddWalletBalance(ctx, transfer.SenderWalletID, transfer.Amount.Neg()); err != nil {
+func (wt *WalletTransferer) updateUserBalances(ctx context.Context, tx uow.Tx, transfer *entity.TransferWallet) error {
+	if err := wt.walletRepo.AddWalletBalanceWithTx(ctx, tx, transfer.SenderWalletID, transfer.Amount.Neg()); err != nil {
 		app.Logger.Errorf(ctx, "[WalletTransferer-updateUserBalances] subtract sender balance fail: %v", err)
 		return err
 	}
-	if err := wt.walletRepo.AddWalletBalance(ctx, transfer.ReceiverWalletID, transfer.Amount); err != nil {
+	if err := wt.walletRepo.AddWalletBalanceWithTx(ctx, tx, transfer.ReceiverWalletID, transfer.Amount); err != nil {
 		app.Logger.Errorf(ctx, "[WalletTransferer-updateUserBalances] add receiver balance fail: %v", err)
 		return err
 	}

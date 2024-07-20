@@ -24,10 +24,11 @@ type Dependency struct {
 // BuildWalletCommandHandler builds wallet command handler including all of its dependencies.
 func BuildWalletCommandHandler(dep *Dependency) *handler.WalletCommand {
 	p := postgres.NewWallet(dep.DB)
+	u := uow.NewUnitWorker(dep.DB)
 	k := redis.NewIdempotencyKey(dep.RedisClient)
 	c := service.NewWalletCreator(p)
 	t := service.NewWalletTopup(p, k)
-	f := service.NewWalletTransferer(p)
+	f := service.NewWalletTransferer(p, u)
 	return handler.NewWalletCommand(c, t, f)
 }
 
