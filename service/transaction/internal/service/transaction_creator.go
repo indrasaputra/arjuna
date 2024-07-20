@@ -136,6 +136,12 @@ func validateTransaction(trx *entity.Transaction) error {
 	if trx.ReceiverID == "" {
 		return entity.ErrInvalidReceiver()
 	}
+	if trx.SenderWalletID == "" {
+		return entity.ErrInvalidWallet()
+	}
+	if trx.ReceiverWalletID == "" {
+		return entity.ErrInvalidWallet()
+	}
 	if decimal.Zero.Equal(trx.Amount) {
 		return entity.ErrInvalidAmount()
 	}

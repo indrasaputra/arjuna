@@ -8,10 +8,12 @@ import (
 
 // Transaction defines logical data related to transaction.
 type Transaction struct {
-	ID         string
-	SenderID   string
-	ReceiverID string
-	Amount     decimal.Decimal
+	ID               string
+	SenderID         string
+	SenderWalletID   string
+	ReceiverID       string
+	ReceiverWalletID string
+	Amount           decimal.Decimal
 	Auditable
 }
 

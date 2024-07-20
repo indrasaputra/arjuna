@@ -63,3 +63,11 @@ func TestErrMissingIdempotencyKey(t *testing.T) {
 		assert.Contains(t, err.Error(), "rpc error: code = InvalidArgument")
 	})
 }
+
+func TestErrInvalidWallet(t *testing.T) {
+	t.Run("success get invalid wallet error", func(t *testing.T) {
+		err := entity.ErrInvalidWallet()
+
+		assert.Contains(t, err.Error(), "rpc error: code = InvalidArgument")
+	})
+}

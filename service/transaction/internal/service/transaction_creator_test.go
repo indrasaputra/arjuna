@@ -17,13 +17,15 @@ import (
 )
 
 var (
-	testCtx            = context.Background()
-	testSenderID       = "1"
-	testReceiverID     = "2"
-	testEnv            = "development"
-	testAmount, _      = decimal.NewFromString("10.23")
-	testIdempotencyKey = "key"
-	testErrInternal    = entity.ErrInternal("")
+	testCtx              = context.Background()
+	testSenderID         = "1"
+	testReceiverID       = "2"
+	testSenderWalletID   = "3"
+	testReceiverWalletID = "4"
+	testEnv              = "development"
+	testAmount, _        = decimal.NewFromString("10.23")
+	testIdempotencyKey   = "key"
+	testErrInternal      = entity.ErrInternal("")
 )
 
 type TransactionCreatorSuite struct {
@@ -97,6 +99,30 @@ func TestTransactionCreator_Create(t *testing.T) {
 		st := createTransactionCreatorSuite(ctrl)
 		trx := createTestTransaction()
 		trx.ReceiverID = ""
+		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
+
+		id, err := st.trx.Create(testCtx, trx, testIdempotencyKey)
+
+		assert.Error(t, err)
+		assert.Empty(t, id)
+	})
+
+	t.Run("sender wallet id is invalid", func(t *testing.T) {
+		st := createTransactionCreatorSuite(ctrl)
+		trx := createTestTransaction()
+		trx.SenderWalletID = ""
+		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
+
+		id, err := st.trx.Create(testCtx, trx, testIdempotencyKey)
+
+		assert.Error(t, err)
+		assert.Empty(t, id)
+	})
+
+	t.Run("receiver wallet id is invalid", func(t *testing.T) {
+		st := createTransactionCreatorSuite(ctrl)
+		trx := createTestTransaction()
+		trx.ReceiverWalletID = ""
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
 		id, err := st.trx.Create(testCtx, trx, testIdempotencyKey)
@@ -191,10 +217,12 @@ func TestTransactionCreator_Create(t *testing.T) {
 
 func createTestTransaction() *entity.Transaction {
 	return &entity.Transaction{
-		ID:         "1",
-		SenderID:   testSenderID,
-		ReceiverID: testReceiverID,
-		Amount:     testAmount,
+		ID:               "1",
+		SenderID:         testSenderID,
+		ReceiverID:       testReceiverID,
+		SenderWalletID:   testSenderWalletID,
+		ReceiverWalletID: testReceiverWalletID,
+		Amount:           testAmount,
 	}
 }
 
