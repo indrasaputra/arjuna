@@ -101,6 +101,8 @@ services:
       interval: 10s
       timeout: 60s
       retries: 5
+    profiles:
+      - infra
 
   elasticsearch:
     <<: *default

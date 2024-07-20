@@ -60,6 +60,21 @@ service WalletCommandService {
       },
     };
   };
+
+  // TransferBalance.
+  //
+  // This endpoint transfers balance from one wallet to another wallet.
+  rpc TransferBalance(TransferBalanceRequest) returns (TransferBalanceResponse) {
+    option (google.api.http) = {
+      put : "/v1/wallets/transfers",
+      body : "transfer"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id : "TransferWallet",
+      tags : "Wallet",
+    };
+  };
 }
 
 // CreateWalletRequest represents request for create wallet.
@@ -80,6 +95,16 @@ message TopupWalletRequest {
 
 // TopupWalletResponse represents response from topup wallet.
 message TopupWalletResponse {
+}
+
+// TransferBalanceRequest represents request for transfer balance.
+message TransferBalanceRequest {
+  // topup represents topup data.
+  Transfer transfer = 1;
+}
+
+// TransferBalanceResponse represents response from transfer balance.
+message TransferBalanceResponse {
 }
 
 // Wallet represents wallet.
@@ -124,6 +149,51 @@ message Topup {
   } ];
 }
 
+// Transfer represents transfer.
+message Transfer {
+  // sender_id represents sender's id.
+  string sender_id = 1 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description : "Sender's id"
+      example : "\"1\""
+    },
+    json_name = "sender_id"
+  ];
+
+  // sender_wallet_id represents sender's wallet's id.
+  string sender_wallet_id = 2 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description : "Sender's wallet's id"
+      example : "\"2\""
+    },
+    json_name = "sender_wallet_id"
+  ];
+
+  // receiver_id represents receiver's id.
+  string receiver_id = 3 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description : "Receiver's id"
+      example : "\"3\""
+    },
+    json_name = "receiver_id"
+  ];
+
+  // receiver_wallet_id represents receiver's wallet's id.
+  string receiver_wallet_id = 4 [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description : "Receiver's wallet's id"
+      example : "\"4\""
+    },
+    json_name = "receiver_wallet_id"
+  ];
+
+  // amount represents amount.
+  string amount = 5 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description : "Transfer amount"
+    example : "\"10.23\""
+  } ];
+}
+
 // WalletError represents message for any error happening in wallet service.
 message WalletError {
   // error_code represents specific and unique error code for wallet.
@@ -154,6 +224,15 @@ enum WalletErrorCode {
   // User is invalid.
   WALLET_ERROR_CODE_INVALID_USER = 8;
 
-  // Balance must be numeric and greater than zero.
+  // Amount must be numeric and greater than zero.
   WALLET_ERROR_CODE_INVALID_AMOUNT = 9;
+
+  // Sender and receiver must be different.
+  WALLET_ERROR_CODE_SAME_ACCOUNT = 10;
+
+  // Balance is insufficient.
+  WALLET_ERROR_CODE_INSUFFICIENT_BALANCE = 11;
+
+  // Transfer is invalid.
+  WALLET_ERROR_CODE_INVALID_TRANSFER = 12;
 }

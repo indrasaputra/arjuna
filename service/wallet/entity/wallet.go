@@ -22,6 +22,15 @@ type TopupWallet struct {
 	IdempotencyKey string
 }
 
+// TransferWallet defines logical data related to transfer wallet.
+type TransferWallet struct {
+	SenderID         string
+	SenderWalletID   string
+	ReceiverID       string
+	ReceiverWalletID string
+	Amount           decimal.Decimal
+}
+
 // Auditable defines logical data related to audit.
 type Auditable struct {
 	CreatedAt time.Time
