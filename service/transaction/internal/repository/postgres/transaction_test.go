@@ -42,8 +42,8 @@ func TestTransaction_InsertWithTx(t *testing.T) {
 	defer ctrl.Finish()
 	app.Logger = sdklog.NewLogger(testEnv)
 	query := "INSERT INTO " +
-		"transactions (id, sender_id, receiver_id, amount, created_at, updated_at, created_by, updated_by) " +
-		"VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+		"transactions (id, sender_id, receiver_id, sender_wallet_id, receiver_wallet_id, amount, created_at, updated_at, created_by, updated_by) " +
+		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 	t.Run("nil tx is prohibited", func(t *testing.T) {
 		st := createTransactionSuite(ctrl)
@@ -66,7 +66,7 @@ func TestTransaction_InsertWithTx(t *testing.T) {
 		trx := createTestTransaction()
 		st := createTransactionSuite(ctrl)
 		st.tx.EXPECT().
-			Exec(testCtx, query, trx.ID, trx.SenderID, trx.ReceiverID, trx.Amount, trx.CreatedAt, trx.UpdatedAt, trx.CreatedBy, trx.UpdatedBy).
+			Exec(testCtx, query, trx.ID, trx.SenderID, trx.ReceiverID, trx.SenderWalletID, trx.ReceiverWalletID, trx.Amount, trx.CreatedAt, trx.UpdatedAt, trx.CreatedBy, trx.UpdatedBy).
 			Return(int64(0), sdkpg.ErrAlreadyExist)
 
 		err := st.trx.InsertWithTx(testCtx, st.tx, trx)
@@ -79,7 +79,7 @@ func TestTransaction_InsertWithTx(t *testing.T) {
 		trx := createTestTransaction()
 		st := createTransactionSuite(ctrl)
 		st.tx.EXPECT().
-			Exec(testCtx, query, trx.ID, trx.SenderID, trx.ReceiverID, trx.Amount, trx.CreatedAt, trx.UpdatedAt, trx.CreatedBy, trx.UpdatedBy).
+			Exec(testCtx, query, trx.ID, trx.SenderID, trx.ReceiverID, trx.SenderWalletID, trx.ReceiverWalletID, trx.Amount, trx.CreatedAt, trx.UpdatedAt, trx.CreatedBy, trx.UpdatedBy).
 			Return(int64(0), entity.ErrInternal(""))
 
 		err := st.trx.InsertWithTx(testCtx, st.tx, trx)
@@ -91,7 +91,7 @@ func TestTransaction_InsertWithTx(t *testing.T) {
 		trx := createTestTransaction()
 		st := createTransactionSuite(ctrl)
 		st.tx.EXPECT().
-			Exec(testCtx, query, trx.ID, trx.SenderID, trx.ReceiverID, trx.Amount, trx.CreatedAt, trx.UpdatedAt, trx.CreatedBy, trx.UpdatedBy).
+			Exec(testCtx, query, trx.ID, trx.SenderID, trx.ReceiverID, trx.SenderWalletID, trx.ReceiverWalletID, trx.Amount, trx.CreatedAt, trx.UpdatedAt, trx.CreatedBy, trx.UpdatedBy).
 			Return(int64(1), nil)
 
 		err := st.trx.InsertWithTx(testCtx, st.tx, trx)
