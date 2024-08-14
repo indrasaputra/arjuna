@@ -54,13 +54,13 @@ jobs:
 
   general-quality-check:
     name: General quality check
-    uses: indrasaputra/arjuna/.github/workflows/reusable-general-quality-ci.yml@main
+    uses: ./.github/workflows/reusable-general-quality-ci.yml
 
   go-code-quality:
     name: Go code quality check
     needs: [change-check]
     if: ${{ needs.change-check.outputs.has-change == 'true' }}
-    uses: indrasaputra/arjuna/.github/workflows/reusable-go-quality-ci.yml@main
+    uses: ./.github/workflows/reusable-go-quality-ci.yml
     with:
       target: service/user
     secrets:
@@ -71,7 +71,7 @@ jobs:
     name: Compile binary
     needs: [general-quality-check, go-code-quality, change-check]
     if: ${{ needs.change-check.outputs.has-change == 'true' }}
-    uses: indrasaputra/arjuna/.github/workflows/reusable-go-compile-ci.yml@main
+    uses: ./.github/workflows/reusable-go-compile-ci.yml
     with:
       target: service/user
       service: user
@@ -83,7 +83,7 @@ jobs:
     strategy:
       matrix:
         cmd: [server, worker, relayer]
-    uses: indrasaputra/arjuna/.github/workflows/reusable-go-build-ci.yml@main
+    uses: ./.github/workflows/reusable-go-build-ci.yml
     with:
       target: service/user
       service: user
