@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
@@ -257,7 +258,7 @@ func TestUser_HardDelete(t *testing.T) {
 
 func createTestUser() *entity.User {
 	return &entity.User{
-		ID:    "1",
+		ID:    uuid.Must(uuid.NewV7()),
 		Name:  "First User",
 		Email: "first@user.com",
 	}

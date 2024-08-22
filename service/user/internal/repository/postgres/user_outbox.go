@@ -3,6 +3,8 @@ package postgres
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
@@ -67,22 +69,22 @@ func (uo *UserOutbox) GetAllReady(ctx context.Context, limit uint) ([]*entity.Us
 }
 
 // SetProcessed sets record's status to processed in users_outbox table.
-func (uo *UserOutbox) SetProcessed(ctx context.Context, id string) error {
+func (uo *UserOutbox) SetProcessed(ctx context.Context, id uuid.UUID) error {
 	return uo.SetRecordStatus(ctx, id, entity.UserOutboxStatusProcessed)
 }
 
 // SetDelivered sets record's status to delivered in users_outbox table.
-func (uo *UserOutbox) SetDelivered(ctx context.Context, id string) error {
+func (uo *UserOutbox) SetDelivered(ctx context.Context, id uuid.UUID) error {
 	return uo.SetRecordStatus(ctx, id, entity.UserOutboxStatusDelivered)
 }
 
 // SetFailed sets record's status to failed in users_outbox table.
-func (uo *UserOutbox) SetFailed(ctx context.Context, id string) error {
+func (uo *UserOutbox) SetFailed(ctx context.Context, id uuid.UUID) error {
 	return uo.SetRecordStatus(ctx, id, entity.UserOutboxStatusFailed)
 }
 
 // SetRecordStatus sets record's status in users_outbox table.
-func (uo *UserOutbox) SetRecordStatus(ctx context.Context, id string, status entity.UserOutboxStatus) error {
+func (uo *UserOutbox) SetRecordStatus(ctx context.Context, id uuid.UUID, status entity.UserOutboxStatus) error {
 	query := "UPDATE users_outbox SET status = ? WHERE id = ?"
 	_, err := uo.db.Exec(ctx, query, status, id)
 	if err != nil {

@@ -23,8 +23,6 @@ require (
 	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6
 )
 
-require github.com/segmentio/ksuid v1.0.4
-
 require google.golang.org/protobuf v1.34.2
 
 require (

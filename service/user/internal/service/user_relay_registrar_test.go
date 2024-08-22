@@ -3,6 +3,7 @@ package service_test
 import (
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
@@ -155,7 +156,7 @@ func createUserRelayRegistrarSuite(ctrl *gomock.Controller) *UserRelayRegistrarS
 func createTestUserOutbox() *entity.UserOutbox {
 	user := createTestUser()
 	return &entity.UserOutbox{
-		ID:      "1",
+		ID:      uuid.Must(uuid.NewV7()),
 		Status:  entity.UserOutboxStatusReady,
 		Payload: user,
 	}

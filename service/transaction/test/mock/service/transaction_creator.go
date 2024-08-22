@@ -14,8 +14,9 @@ import (
 	reflect "reflect"
 
 	uuid "github.com/google/uuid"
-	entity "github.com/indrasaputra/arjuna/service/transaction/entity"
 	gomock "go.uber.org/mock/gomock"
+
+	entity "github.com/indrasaputra/arjuna/service/transaction/entity"
 )
 
 // MockCreateTransaction is a mock of CreateTransaction interface.

@@ -3,6 +3,7 @@ package handler_test
 import (
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	"google.golang.org/grpc/metadata"
@@ -92,7 +93,7 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 			entity.ErrInternal("error"),
 		}
 		for _, errRet := range errors {
-			st.registrar.EXPECT().Register(testCtxWithValidKey, gomock.Any(), testIdempotencyKey).Return("", errRet)
+			st.registrar.EXPECT().Register(testCtxWithValidKey, gomock.Any(), testIdempotencyKey).Return(uuid.Must(uuid.NewV7()), errRet)
 
 			res, err := st.handler.RegisterUser(testCtxWithValidKey, request)
 
@@ -104,7 +105,8 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 
 	t.Run("success register user", func(t *testing.T) {
 		st := createUserCommandSuite(ctrl)
-		st.registrar.EXPECT().Register(testCtxWithValidKey, gomock.Any(), testIdempotencyKey).Return("id", nil)
+		id := uuid.Must(uuid.NewV7())
+		st.registrar.EXPECT().Register(testCtxWithValidKey, gomock.Any(), testIdempotencyKey).Return(id, nil)
 		request := &apiv1.RegisterUserRequest{
 			User: &apiv1.User{
 				Name:     "First User",
@@ -117,7 +119,7 @@ func TestUserCommand_RegisterUser(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.NotNil(t, res)
-		assert.Equal(t, "id", res.Data.GetId())
+		assert.Equal(t, id.String(), res.Data.GetId())
 	})
 }
 

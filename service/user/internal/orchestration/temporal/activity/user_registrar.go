@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/google/uuid"
 	"go.temporal.io/sdk/temporal"
 
 	"github.com/indrasaputra/arjuna/service/user/entity"
@@ -26,7 +27,7 @@ type RegisterUserWalletConnection interface {
 // RegisterUserDatabase defines interface to register user to database.
 type RegisterUserDatabase interface {
 	// HardDelete hard-deletes the user. It must be called when a creation is failing and need a clean up or rollback.
-	HardDelete(ctx context.Context, id string) error
+	HardDelete(ctx context.Context, id uuid.UUID) error
 }
 
 // RegisterUserActivity is responsible to execute register user workflow.
@@ -60,7 +61,7 @@ func (r *RegisterUserActivity) CreateWallet(ctx context.Context, user *entity.Us
 }
 
 // HardDeleteInUser hard-deletes user from database.
-func (r *RegisterUserActivity) HardDeleteInUser(ctx context.Context, id string) error {
+func (r *RegisterUserActivity) HardDeleteInUser(ctx context.Context, id uuid.UUID) error {
 	err := r.database.HardDelete(ctx, id)
 	if err != nil {
 		app.Logger.Errorf(ctx, "[RegisterUserActivity-HardDeleteInUser] fail hard delete in user: %v", err)

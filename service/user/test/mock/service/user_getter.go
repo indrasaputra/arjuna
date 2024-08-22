@@ -13,8 +13,9 @@ import (
 	context "context"
 	reflect "reflect"
 
-	entity "github.com/indrasaputra/arjuna/service/user/entity"
 	gomock "go.uber.org/mock/gomock"
+
+	entity "github.com/indrasaputra/arjuna/service/user/entity"
 )
 
 // MockGetUser is a mock of GetUser interface.

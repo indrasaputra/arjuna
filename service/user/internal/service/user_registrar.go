@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/segmentio/ksuid"
+	"github.com/google/uuid"
 
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
@@ -27,7 +27,7 @@ type RegisterUser interface {
 	// Register registers a user and store it in the storage.
 	// It returns the ID of the newly created user.
 	// It must check the uniqueness of the user.
-	Register(ctx context.Context, user *entity.User, key string) (string, error)
+	Register(ctx context.Context, user *entity.User, key string) (uuid.UUID, error)
 }
 
 // RegisterUserRepository defines interface to register user to repository.
@@ -69,28 +69,25 @@ func NewUserRegistrar(ur RegisterUserRepository, uor RegisterUserOutboxRepositor
 // Register registers a user and store it in the storage.
 // It returns the ID of the newly created user.
 // It checks the email for duplication.
-func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User, key string) (string, error) {
+func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User, key string) (uuid.UUID, error) {
 	if err := ur.validateIdempotencyKey(ctx, key); err != nil {
 		app.Logger.Errorf(ctx, "[UserRegistrar-Register] fail check idempotency key: %s - %v", key, err)
-		return "", err
+		return uuid.Nil, err
 	}
 
 	sanitizeUser(user)
 	if err := validateUser(user); err != nil {
 		app.Logger.Errorf(ctx, "[UserRegistrar-Register] user is invalid: %v", err)
-		return "", err
+		return uuid.Nil, err
 	}
 
-	if err := setUserID(ctx, user); err != nil {
-		app.Logger.Errorf(ctx, "[UserRegistrar-Register] fail set user id: %v", err)
-		return "", err
-	}
+	setUserID(user)
 	setUserAuditableProperties(user)
 
 	err := ur.saveUserToRepository(ctx, user)
 	if err != nil {
 		app.Logger.Errorf(ctx, "[UserRegistrar-Register] fail save to repository: %v", err)
-		return "", err
+		return uuid.Nil, err
 	}
 	return user.ID, nil
 }
@@ -108,12 +105,7 @@ func (ur *UserRegistrar) saveUserToRepository(ctx context.Context, user *entity.
 		return err
 	}
 
-	payload, err := createUserOutbox(ctx, user)
-	if err != nil {
-		_ = ur.unit.Finish(ctx, tx, err)
-		return err
-	}
-
+	payload := createUserOutbox(user)
 	err = ur.userOutboxRepo.InsertWithTx(ctx, tx, payload)
 	if err != nil {
 		app.Logger.Errorf(ctx, "[UserRegistrar-saveUserToRepository] fail insert user outbox to repo: %v", err)
@@ -156,41 +148,24 @@ func sanitizeUser(user *entity.User) {
 	user.Password = strings.TrimSpace(user.Password)
 }
 
-func setUserID(ctx context.Context, user *entity.User) error {
-	id, err := generateUniqueID(ctx)
-	if err != nil {
-		app.Logger.Errorf(ctx, "[setUserID] fail generate unique id: %v", err)
-		return entity.ErrInternal("fail to create user's ID")
-	}
-	user.ID = id
-	return nil
+func setUserID(user *entity.User) {
+	user.ID = generateUniqueID()
 }
 
-func generateUniqueID(ctx context.Context) (string, error) {
-	id, err := ksuid.NewRandom()
-	if err != nil {
-		app.Logger.Errorf(ctx, "[generateUniqueID] fail generate ksuid: %v", err)
-		return "", entity.ErrInternal("fail to generate unique ID")
-	}
-	return id.String(), err
+func generateUniqueID() uuid.UUID {
+	return uuid.Must(uuid.NewV7())
 }
 
 func setUserAuditableProperties(user *entity.User) {
 	user.CreatedAt = time.Now().UTC()
 	user.UpdatedAt = time.Now().UTC()
-	user.CreatedBy = user.ID
-	user.UpdatedBy = user.ID
+	user.CreatedBy = user.ID.String()
+	user.UpdatedBy = user.ID.String()
 }
 
-func createUserOutbox(ctx context.Context, user *entity.User) (*entity.UserOutbox, error) {
-	id, err := generateUniqueID(ctx)
-	if err != nil {
-		app.Logger.Errorf(ctx, "[createUserOutbox] fail generate unique id: %v", err)
-		return nil, entity.ErrInternal("fail to generate user outbox id")
-	}
-
+func createUserOutbox(user *entity.User) *entity.UserOutbox {
 	return &entity.UserOutbox{
-		ID:      id,
+		ID:      generateUniqueID(),
 		Status:  entity.UserOutboxStatusReady,
 		Payload: user,
 		Auditable: entity.Auditable{
@@ -199,5 +174,5 @@ func createUserOutbox(ctx context.Context, user *entity.User) (*entity.UserOutbo
 			CreatedBy: user.CreatedBy,
 			UpdatedBy: user.UpdatedBy,
 		},
-	}, nil
+	}
 }

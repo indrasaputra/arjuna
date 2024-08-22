@@ -3,6 +3,8 @@ package postgres
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
@@ -54,7 +56,7 @@ func (u *User) InsertWithTx(ctx context.Context, tx uow.Tx, user *entity.User) e
 
 // GetByID gets a user from database.
 // It returns entity.ErrNotFound if user can't be found.
-func (u *User) GetByID(ctx context.Context, id string) (*entity.User, error) {
+func (u *User) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
 	query := "SELECT id, name, created_at, updated_at, created_by, updated_by FROM users WHERE id = ? LIMIT 1"
 	var res entity.User
 	err := u.db.Query(ctx, &res, query, id)
@@ -79,7 +81,7 @@ func (u *User) GetAll(ctx context.Context, limit uint) ([]*entity.User, error) {
 
 // HardDeleteWithTx deletes a user from database.
 // If the user doesn't exist, it doesn't returns error.
-func (u *User) HardDeleteWithTx(ctx context.Context, tx uow.Tx, id string) error {
+func (u *User) HardDeleteWithTx(ctx context.Context, tx uow.Tx, id uuid.UUID) error {
 	if tx == nil {
 		app.Logger.Errorf(ctx, "[PostgresUser-HardDeleteWithTx] transaction is not set")
 		return entity.ErrInternal("transaction is not set")
@@ -89,11 +91,11 @@ func (u *User) HardDeleteWithTx(ctx context.Context, tx uow.Tx, id string) error
 
 // HardDelete deletes a user from database.
 // If the user doesn't exist, it doesn't returns error.
-func (u *User) HardDelete(ctx context.Context, id string) error {
+func (u *User) HardDelete(ctx context.Context, id uuid.UUID) error {
 	return u.doHardDelete(ctx, u.db, id)
 }
 
-func (u *User) doHardDelete(ctx context.Context, db uow.DB, id string) error {
+func (u *User) doHardDelete(ctx context.Context, db uow.DB, id uuid.UUID) error {
 	query := "DELETE FROM users WHERE id = ?"
 	_, err := db.Exec(ctx, query, id)
 	if err != nil {

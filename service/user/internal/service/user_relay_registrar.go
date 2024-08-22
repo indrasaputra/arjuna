@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
 )
@@ -30,11 +32,11 @@ type RelayRegisterUserOutboxRepository interface {
 	// GetAllReady gets all ready records.
 	GetAllReady(ctx context.Context, limit uint) ([]*entity.UserOutbox, error)
 	// SetProcessed sets record as processed.
-	SetProcessed(ctx context.Context, id string) error
+	SetProcessed(ctx context.Context, id uuid.UUID) error
 	// SetDelivered sets record as delivered.
-	SetDelivered(ctx context.Context, id string) error
+	SetDelivered(ctx context.Context, id uuid.UUID) error
 	// SetFailed sets record as failed.
-	SetFailed(ctx context.Context, id string) error
+	SetFailed(ctx context.Context, id uuid.UUID) error
 }
 
 // UserRelayRegistrar is responsible for registering a new user.

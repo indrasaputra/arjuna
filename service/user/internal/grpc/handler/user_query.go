@@ -46,7 +46,7 @@ func createGetAllUsersResponse(users []*entity.User) *apiv1.GetAllUsersResponse 
 
 func createProtoUser(user *entity.User) *apiv1.User {
 	return &apiv1.User{
-		Id:        user.ID,
+		Id:        user.ID.String(),
 		Email:     user.Email,
 		Name:      user.Name,
 		CreatedAt: timestamppb.New(user.CreatedAt),

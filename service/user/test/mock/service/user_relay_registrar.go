@@ -13,8 +13,10 @@ import (
 	context "context"
 	reflect "reflect"
 
-	entity "github.com/indrasaputra/arjuna/service/user/entity"
+	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
+
+	entity "github.com/indrasaputra/arjuna/service/user/entity"
 )
 
 // MockRelayRegisterUser is a mock of RelayRegisterUser interface.
@@ -132,7 +134,7 @@ func (mr *MockRelayRegisterUserOutboxRepositoryMockRecorder) GetAllReady(ctx, li
 }
 
 // SetDelivered mocks base method.
-func (m *MockRelayRegisterUserOutboxRepository) SetDelivered(ctx context.Context, id string) error {
+func (m *MockRelayRegisterUserOutboxRepository) SetDelivered(ctx context.Context, id uuid.UUID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetDelivered", ctx, id)
 	ret0, _ := ret[0].(error)
@@ -146,7 +148,7 @@ func (mr *MockRelayRegisterUserOutboxRepositoryMockRecorder) SetDelivered(ctx, i
 }
 
 // SetFailed mocks base method.
-func (m *MockRelayRegisterUserOutboxRepository) SetFailed(ctx context.Context, id string) error {
+func (m *MockRelayRegisterUserOutboxRepository) SetFailed(ctx context.Context, id uuid.UUID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetFailed", ctx, id)
 	ret0, _ := ret[0].(error)
@@ -160,7 +162,7 @@ func (mr *MockRelayRegisterUserOutboxRepositoryMockRecorder) SetFailed(ctx, id a
 }
 
 // SetProcessed mocks base method.
-func (m *MockRelayRegisterUserOutboxRepository) SetProcessed(ctx context.Context, id string) error {
+func (m *MockRelayRegisterUserOutboxRepository) SetProcessed(ctx context.Context, id uuid.UUID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetProcessed", ctx, id)
 	ret0, _ := ret[0].(error)

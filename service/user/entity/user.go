@@ -1,14 +1,18 @@
 package entity
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // User defines the logical data of a user.
 type User struct {
-	ID       string
+	Auditable
 	Name     string
 	Email    string
 	Password string
-	Auditable
+	ID       uuid.UUID
 }
 
 // UserOutboxStatus enumerates user outbox status.
@@ -27,10 +31,10 @@ var (
 
 // UserOutbox defines logical data of user outbox.
 type UserOutbox struct {
-	ID      string
-	Status  UserOutboxStatus
 	Payload *User
 	Auditable
+	Status UserOutboxStatus
+	ID     uuid.UUID
 }
 
 // RegisterUserInput holds input data for register user workflow.

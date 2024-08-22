@@ -13,8 +13,9 @@ import (
 	context "context"
 	reflect "reflect"
 
-	entity "github.com/indrasaputra/arjuna/service/wallet/entity"
 	gomock "go.uber.org/mock/gomock"
+
+	entity "github.com/indrasaputra/arjuna/service/wallet/entity"
 )
 
 // MockCreateWallet is a mock of CreateWallet interface.

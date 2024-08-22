@@ -3,6 +3,8 @@ package handler
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
@@ -27,7 +29,7 @@ func (uci *UserCommandInternal) DeleteUser(ctx context.Context, request *apiv1.D
 		return nil, entity.ErrEmptyUser()
 	}
 
-	err := uci.deleter.HardDelete(ctx, request.GetId())
+	err := uci.deleter.HardDelete(ctx, uuid.MustParse(request.GetId()))
 	if err != nil {
 		app.Logger.Errorf(ctx, "[UserCommand-DeleteUser] fail delete user: %v", err)
 		return nil, err
