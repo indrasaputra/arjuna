@@ -13,9 +13,9 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gomock "go.uber.org/mock/gomock"
-
+	uuid "github.com/google/uuid"
 	entity "github.com/indrasaputra/arjuna/service/transaction/entity"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockCreateTransaction is a mock of CreateTransaction interface.
@@ -42,10 +42,10 @@ func (m *MockCreateTransaction) EXPECT() *MockCreateTransactionMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockCreateTransaction) Create(ctx context.Context, transaction *entity.Transaction, key string) (string, error) {
+func (m *MockCreateTransaction) Create(ctx context.Context, transaction *entity.Transaction, key string) (uuid.UUID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, transaction, key)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(uuid.UUID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

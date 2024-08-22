@@ -13,11 +13,10 @@ import (
 	context "context"
 	reflect "reflect"
 
-	decimal "github.com/shopspring/decimal"
-	gomock "go.uber.org/mock/gomock"
-
 	uow "github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	entity "github.com/indrasaputra/arjuna/service/wallet/entity"
+	decimal "github.com/shopspring/decimal"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockTransferWallet is a mock of TransferWallet interface.

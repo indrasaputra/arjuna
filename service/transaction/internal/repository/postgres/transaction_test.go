@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -94,9 +95,9 @@ func TestTransaction_Insert(t *testing.T) {
 func createTestTransaction() *entity.Transaction {
 	a, _ := decimal.NewFromString("10.23")
 	return &entity.Transaction{
-		ID:         "123",
-		SenderID:   "1",
-		ReceiverID: "2",
+		ID:         uuid.Must(uuid.NewV7()),
+		SenderID:   uuid.Must(uuid.NewV7()),
+		ReceiverID: uuid.Must(uuid.NewV7()),
 		Amount:     a,
 	}
 }

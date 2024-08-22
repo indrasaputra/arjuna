@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -17,8 +18,8 @@ import (
 
 var (
 	testCtx            = context.Background()
-	testSenderID       = "1"
-	testReceiverID     = "2"
+	testSenderID       = uuid.Must(uuid.NewV7())
+	testReceiverID     = uuid.Must(uuid.NewV7())
 	testEnv            = "development"
 	testAmount, _      = decimal.NewFromString("10.23")
 	testIdempotencyKey = "key"
@@ -79,7 +80,7 @@ func TestTransactionCreator_Create(t *testing.T) {
 	t.Run("sender id is invalid", func(t *testing.T) {
 		st := createTransactionCreatorSuite(ctrl)
 		trx := createTestTransaction()
-		trx.SenderID = ""
+		trx.SenderID = uuid.Nil
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
 		id, err := st.trx.Create(testCtx, trx, testIdempotencyKey)
@@ -91,7 +92,7 @@ func TestTransactionCreator_Create(t *testing.T) {
 	t.Run("receiver id is invalid", func(t *testing.T) {
 		st := createTransactionCreatorSuite(ctrl)
 		trx := createTestTransaction()
-		trx.ReceiverID = ""
+		trx.ReceiverID = uuid.Nil
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
 		id, err := st.trx.Create(testCtx, trx, testIdempotencyKey)
@@ -152,7 +153,7 @@ func createTransactionCreatorSuite(ctrl *gomock.Controller) *TransactionCreatorS
 
 func createTestTransaction() *entity.Transaction {
 	return &entity.Transaction{
-		ID:         "1",
+		ID:         uuid.Must(uuid.NewV7()),
 		SenderID:   testSenderID,
 		ReceiverID: testReceiverID,
 		Amount:     testAmount,

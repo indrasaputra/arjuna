@@ -13,9 +13,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gomock "go.uber.org/mock/gomock"
-
 	uow "github.com/indrasaputra/arjuna/pkg/sdk/uow"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockDB is a mock of DB interface.

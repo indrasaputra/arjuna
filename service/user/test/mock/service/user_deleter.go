@@ -13,10 +13,9 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gomock "go.uber.org/mock/gomock"
-
 	uow "github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	entity "github.com/indrasaputra/arjuna/service/user/entity"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockDeleteUser is a mock of DeleteUser interface.

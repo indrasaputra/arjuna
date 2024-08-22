@@ -13,9 +13,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gomock "go.uber.org/mock/gomock"
-
 	entity "github.com/indrasaputra/arjuna/service/user/entity"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockRegisterUserAuthConnection is a mock of RegisterUserAuthConnection interface.

@@ -13,10 +13,9 @@ import (
 	context "context"
 	reflect "reflect"
 
+	entity "github.com/indrasaputra/arjuna/service/wallet/entity"
 	decimal "github.com/shopspring/decimal"
 	gomock "go.uber.org/mock/gomock"
-
-	entity "github.com/indrasaputra/arjuna/service/wallet/entity"
 )
 
 // MockTopupWallet is a mock of TopupWallet interface.
