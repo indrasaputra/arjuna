@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	decimal "github.com/shopspring/decimal"
 	gomock "go.uber.org/mock/gomock"
 
@@ -81,7 +82,7 @@ func (m *MockWalletTransfererRepository) EXPECT() *MockWalletTransfererRepositor
 }
 
 // AddWalletBalanceWithTx mocks base method.
-func (m *MockWalletTransfererRepository) AddWalletBalanceWithTx(ctx context.Context, tx uow.Tx, id string, amount decimal.Decimal) error {
+func (m *MockWalletTransfererRepository) AddWalletBalanceWithTx(ctx context.Context, tx uow.Tx, id uuid.UUID, amount decimal.Decimal) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddWalletBalanceWithTx", ctx, tx, id, amount)
 	ret0, _ := ret[0].(error)
@@ -95,7 +96,7 @@ func (mr *MockWalletTransfererRepositoryMockRecorder) AddWalletBalanceWithTx(ctx
 }
 
 // GetUserWalletWithTx mocks base method.
-func (m *MockWalletTransfererRepository) GetUserWalletWithTx(ctx context.Context, tx uow.Tx, id, userID string) (*entity.Wallet, error) {
+func (m *MockWalletTransfererRepository) GetUserWalletWithTx(ctx context.Context, tx uow.Tx, id, userID uuid.UUID) (*entity.Wallet, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserWalletWithTx", ctx, tx, id, userID)
 	ret0, _ := ret[0].(*entity.Wallet)

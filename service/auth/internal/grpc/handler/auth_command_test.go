@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
@@ -16,10 +17,11 @@ import (
 )
 
 var (
-	testUserID   = "1"
-	testEmail    = "email@email.com"
-	testPassword = "password"
-	testEnv      = "development"
+	testUserID       = uuid.Must(uuid.NewV7())
+	testUserIDString = testUserID.String()
+	testEmail        = "email@email.com"
+	testPassword     = "password"
+	testEnv          = "development"
 )
 
 type AuthSuite struct {
@@ -103,8 +105,8 @@ func TestAuth_RegisterAccount(t *testing.T) {
 			{request: nil, err: entity.ErrEmptyField("request body")},
 			{request: &apiv1.RegisterAccountRequest{Account: nil}, err: entity.ErrEmptyField("request body")},
 			{request: &apiv1.RegisterAccountRequest{Account: &apiv1.Account{UserId: "", Email: "a", Password: "a"}}, err: entity.ErrEmptyField("user id")},
-			{request: &apiv1.RegisterAccountRequest{Account: &apiv1.Account{UserId: "1", Email: "", Password: "a"}}, err: entity.ErrEmptyField("email")},
-			{request: &apiv1.RegisterAccountRequest{Account: &apiv1.Account{UserId: "1", Email: "a", Password: ""}}, err: entity.ErrEmptyField("password")},
+			{request: &apiv1.RegisterAccountRequest{Account: &apiv1.Account{UserId: testUserIDString, Email: "", Password: "a"}}, err: entity.ErrEmptyField("email")},
+			{request: &apiv1.RegisterAccountRequest{Account: &apiv1.Account{UserId: testUserIDString, Email: "a", Password: ""}}, err: entity.ErrEmptyField("password")},
 		}
 
 		st := createAuthSuite(ctrl)
@@ -121,7 +123,7 @@ func TestAuth_RegisterAccount(t *testing.T) {
 		st := createAuthSuite(ctrl)
 		st.auth.EXPECT().Register(testCtx, gomock.Any()).Return(errors.New("error"))
 
-		req := &apiv1.RegisterAccountRequest{Account: &apiv1.Account{UserId: testUserID, Email: testEmail, Password: testPassword}}
+		req := &apiv1.RegisterAccountRequest{Account: &apiv1.Account{UserId: testUserIDString, Email: testEmail, Password: testPassword}}
 		res, err := st.handler.RegisterAccount(testCtx, req)
 
 		assert.Error(t, err)
@@ -132,7 +134,7 @@ func TestAuth_RegisterAccount(t *testing.T) {
 		st := createAuthSuite(ctrl)
 		st.auth.EXPECT().Register(testCtx, gomock.Any()).Return(nil)
 
-		req := &apiv1.RegisterAccountRequest{Account: &apiv1.Account{UserId: testUserID, Email: testEmail, Password: testPassword}}
+		req := &apiv1.RegisterAccountRequest{Account: &apiv1.Account{UserId: testUserIDString, Email: testEmail, Password: testPassword}}
 		res, err := st.handler.RegisterAccount(testCtx, req)
 
 		assert.NoError(t, err)

@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	decimal "github.com/shopspring/decimal"
 	gomock "go.uber.org/mock/gomock"
 
@@ -80,7 +81,7 @@ func (m *MockTopupWalletRepository) EXPECT() *MockTopupWalletRepositoryMockRecor
 }
 
 // AddWalletBalance mocks base method.
-func (m *MockTopupWalletRepository) AddWalletBalance(ctx context.Context, id string, amount decimal.Decimal) error {
+func (m *MockTopupWalletRepository) AddWalletBalance(ctx context.Context, id uuid.UUID, amount decimal.Decimal) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddWalletBalance", ctx, id, amount)
 	ret0, _ := ret[0].(error)

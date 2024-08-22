@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 
 	uow "github.com/indrasaputra/arjuna/pkg/sdk/uow"
@@ -43,10 +44,10 @@ func (m *MockRegisterUser) EXPECT() *MockRegisterUserMockRecorder {
 }
 
 // Register mocks base method.
-func (m *MockRegisterUser) Register(ctx context.Context, user *entity.User, key string) (string, error) {
+func (m *MockRegisterUser) Register(ctx context.Context, user *entity.User, key string) (uuid.UUID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Register", ctx, user, key)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(uuid.UUID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

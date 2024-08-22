@@ -97,3 +97,11 @@ migration: ## Create database migration.
 .PHONY: migrate
 migrate: ## Run database migrations.
 	migrate -path service/$(svc)/db/migrations -database "$(url)" -verbose up
+
+##@ Run
+.PHONY: up
+up: ## Run all containers in compose.yaml
+	docker compose --profile "*" up
+
+down: ## Tear down all containers in compose.yaml
+	docker compose --profile "*" down

@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	"google.golang.org/grpc/metadata"
@@ -23,7 +24,7 @@ const (
 )
 
 var (
-	testCtxWithAuth       = context.WithValue(testCtx, interceptor.HeaderKeyUserID, "1")
+	testCtxWithAuth       = context.WithValue(testCtx, interceptor.HeaderKeyUserID, uuid.Must(uuid.NewV7()))
 	testCtxWithValidKey   = metadata.NewIncomingContext(testCtxWithAuth, metadata.Pairs("X-Idempotency-Key", testIdempotencyKey))
 	testCtxWithInvalidKey = metadata.NewIncomingContext(testCtxWithAuth, metadata.Pairs("another-key", ""))
 )
@@ -74,7 +75,7 @@ func TestWalletCommand_CreateWallet(t *testing.T) {
 		st := createWalletCommandSuite(ctrl)
 		request := &apiv1.CreateWalletRequest{
 			Wallet: &apiv1.Wallet{
-				UserId:  "1",
+				UserId:  uuid.Must(uuid.NewV7()).String(),
 				Balance: "10.23",
 			},
 		}
@@ -102,7 +103,7 @@ func TestWalletCommand_CreateWallet(t *testing.T) {
 		st.creator.EXPECT().Create(testCtx, gomock.Any()).Return(nil)
 		request := &apiv1.CreateWalletRequest{
 			Wallet: &apiv1.Wallet{
-				UserId:  "1",
+				UserId:  uuid.Must(uuid.NewV7()).String(),
 				Balance: "10.23",
 			},
 		}
@@ -163,7 +164,7 @@ func TestWalletCommand_TopupWallet(t *testing.T) {
 		st := createWalletCommandSuite(ctrl)
 		request := &apiv1.TopupWalletRequest{
 			Topup: &apiv1.Topup{
-				WalletId: "1",
+				WalletId: uuid.Must(uuid.NewV7()).String(),
 				Amount:   "10.23",
 			},
 		}
@@ -190,7 +191,7 @@ func TestWalletCommand_TopupWallet(t *testing.T) {
 		st.topup.EXPECT().Topup(testCtxWithValidKey, gomock.Any()).Return(nil)
 		request := &apiv1.TopupWalletRequest{
 			Topup: &apiv1.Topup{
-				WalletId: "1",
+				WalletId: uuid.Must(uuid.NewV7()).String(),
 				Amount:   "10.23",
 			},
 		}
@@ -231,7 +232,11 @@ func TestWalletCommand_TransferBalance(t *testing.T) {
 		st := createWalletCommandSuite(ctrl)
 		request := &apiv1.TransferBalanceRequest{
 			Transfer: &apiv1.Transfer{
-				Amount: "10.23",
+				Amount:           "10.23",
+				SenderId:         uuid.Must(uuid.NewV7()).String(),
+				ReceiverId:       uuid.Must(uuid.NewV7()).String(),
+				SenderWalletId:   uuid.Must(uuid.NewV7()).String(),
+				ReceiverWalletId: uuid.Must(uuid.NewV7()).String(),
 			},
 		}
 
@@ -242,9 +247,9 @@ func TestWalletCommand_TransferBalance(t *testing.T) {
 			entity.ErrInternal("error"),
 		}
 		for _, errRet := range errors {
-			st.transfer.EXPECT().TransferBalance(testCtx, gomock.Any()).Return(errRet)
+			st.transfer.EXPECT().TransferBalance(testCtxWithValidKey, gomock.Any()).Return(errRet)
 
-			res, err := st.handler.TransferBalance(testCtx, request)
+			res, err := st.handler.TransferBalance(testCtxWithValidKey, request)
 
 			assert.Error(t, err)
 			assert.Equal(t, errRet, err)
@@ -254,14 +259,18 @@ func TestWalletCommand_TransferBalance(t *testing.T) {
 
 	t.Run("success create wallet", func(t *testing.T) {
 		st := createWalletCommandSuite(ctrl)
-		st.transfer.EXPECT().TransferBalance(testCtx, gomock.Any()).Return(nil)
+		st.transfer.EXPECT().TransferBalance(testCtxWithValidKey, gomock.Any()).Return(nil)
 		request := &apiv1.TransferBalanceRequest{
 			Transfer: &apiv1.Transfer{
-				Amount: "10.23",
+				Amount:           "10.23",
+				SenderId:         uuid.Must(uuid.NewV7()).String(),
+				ReceiverId:       uuid.Must(uuid.NewV7()).String(),
+				SenderWalletId:   uuid.Must(uuid.NewV7()).String(),
+				ReceiverWalletId: uuid.Must(uuid.NewV7()).String(),
 			},
 		}
 
-		res, err := st.handler.TransferBalance(testCtx, request)
+		res, err := st.handler.TransferBalance(testCtxWithValidKey, request)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, res)

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/segmentio/ksuid"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -79,10 +79,7 @@ func (a *Auth) Register(ctx context.Context, account *entity.Account) error {
 		return err
 	}
 
-	if err := setAccountID(ctx, account); err != nil {
-		app.Logger.Errorf(ctx, "[Auth-Register] fail set account id: %v", err)
-		return err
-	}
+	setAccountID(account)
 	setAccountAuditableProperties(account)
 
 	hash, err := encryptPassword(ctx, account.Password)
@@ -100,7 +97,7 @@ func (a *Auth) Register(ctx context.Context, account *entity.Account) error {
 }
 
 func validateAccount(account *entity.Account) error {
-	if account == nil || account.UserID == "" {
+	if account == nil || account.UserID == uuid.Nil {
 		return entity.ErrEmptyAccount()
 	}
 	if _, err := mail.ParseAddress(account.Email); err != nil {
@@ -116,7 +113,6 @@ func sanitizeAccount(account *entity.Account) {
 	if account == nil {
 		return
 	}
-	account.UserID = strings.TrimSpace(account.UserID)
 	account.Email = strings.TrimSpace(account.Email)
 	account.Password = strings.TrimSpace(account.Password)
 }
@@ -131,23 +127,12 @@ func validateLoginParams(email, password string) error {
 	return nil
 }
 
-func setAccountID(ctx context.Context, account *entity.Account) error {
-	id, err := generateUniqueID(ctx)
-	if err != nil {
-		app.Logger.Errorf(ctx, "[setAccountID] fail generate unique id: %v", err)
-		return entity.ErrInternal("fail to create account's ID")
-	}
-	account.ID = id
-	return nil
+func setAccountID(account *entity.Account) {
+	account.ID = generateUniqueID()
 }
 
-func generateUniqueID(ctx context.Context) (string, error) {
-	id, err := ksuid.NewRandom()
-	if err != nil {
-		app.Logger.Errorf(ctx, "[setAccountID] fail generate ksuid: %v", err)
-		return "", entity.ErrInternal("fail to generate unique ID")
-	}
-	return id.String(), err
+func generateUniqueID() uuid.UUID {
+	return uuid.Must(uuid.NewV7())
 }
 
 func encryptPassword(ctx context.Context, password string) (string, error) {
@@ -162,8 +147,8 @@ func encryptPassword(ctx context.Context, password string) (string, error) {
 func setAccountAuditableProperties(account *entity.Account) {
 	account.CreatedAt = time.Now().UTC()
 	account.UpdatedAt = time.Now().UTC()
-	account.CreatedBy = account.ID
-	account.UpdatedBy = account.ID
+	account.CreatedBy = account.ID.String()
+	account.UpdatedBy = account.ID.String()
 }
 
 func createAccessToken(account *entity.Account, key []byte, exp int) (*entity.Token, error) {

@@ -48,7 +48,7 @@ func NewClient(cfg *Config) (*Client, error) {
 // CreateWallet creates a wallet.
 func (c *Client) CreateWallet(ctx context.Context, wallet *entity.Wallet) error {
 	req := &apiv1.CreateWalletRequest{Wallet: &apiv1.Wallet{
-		UserId:  wallet.UserID,
+		UserId:  wallet.UserID.String(),
 		Balance: wallet.Balance.String(),
 	}}
 

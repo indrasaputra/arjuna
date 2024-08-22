@@ -103,14 +103,16 @@ message Wallet {
   // id represents unique id.
   string id = 1 [
     (google.api.field_behavior) = OUTPUT_ONLY,
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {example : "\"123\""}
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      example : "\"01917a0c-cdfe-74dd-9d95-4d87b5d1f0b8\""
+    }
   ];
 
   // user_id represents user's id.
   string user_id = 2 [
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description : "Wallet's user's id"
-      example : "\"1\""
+      example : "\"01917a0c-cdfe-7aae-b311-a8c7c32f5c70\""
     },
     json_name = "user_id"
   ];
@@ -128,7 +130,7 @@ message Topup {
   string wallet_id = 1 [
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description : "Wallet's id"
-      example : "\"1\""
+      example : "\"01917a0c-cdfe-701e-9547-ed45a24d7c84\""
     },
     json_name = "wallet_id"
   ];
@@ -146,7 +148,7 @@ message Transfer {
   string sender_id = 1 [
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description : "Sender's id"
-      example : "\"1\""
+      example : "\"01917a10-1086-74a6-8cfb-0074f65bebe3\""
     },
     json_name = "sender_id"
   ];
@@ -155,7 +157,7 @@ message Transfer {
   string sender_wallet_id = 2 [
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description : "Sender's wallet's id"
-      example : "\"2\""
+      example : "\"01917a10-1086-7faa-9c9e-0bf6a9cf6928\""
     },
     json_name = "sender_wallet_id"
   ];
@@ -164,7 +166,7 @@ message Transfer {
   string receiver_id = 3 [
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description : "Receiver's id"
-      example : "\"3\""
+      example : "\"01917a10-1086-7c94-93c4-32de26621dae\""
     },
     json_name = "receiver_id"
   ];
@@ -173,7 +175,7 @@ message Transfer {
   string receiver_wallet_id = 4 [
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description : "Receiver's wallet's id"
-      example : "\"4\""
+      example : "\"01917a10-1086-72df-818a-b72d663fb3b5\""
     },
     json_name = "receiver_wallet_id"
   ];

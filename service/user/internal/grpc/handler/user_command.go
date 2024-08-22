@@ -47,7 +47,7 @@ func (uc *UserCommand) RegisterUser(ctx context.Context, request *apiv1.Register
 		app.Logger.Errorf(ctx, "[UserCommand-RegisterUser] fail register user: %v", err)
 		return nil, err
 	}
-	return &apiv1.RegisterUserResponse{Data: &apiv1.User{Id: id}}, nil
+	return &apiv1.RegisterUserResponse{Data: &apiv1.User{Id: id.String()}}, nil
 }
 
 func createUserFromRegisterUserRequest(request *apiv1.RegisterUserRequest) *entity.User {

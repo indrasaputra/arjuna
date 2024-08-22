@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 
 	entity "github.com/indrasaputra/arjuna/service/user/entity"
@@ -116,7 +117,7 @@ func (m *MockRegisterUserDatabase) EXPECT() *MockRegisterUserDatabaseMockRecorde
 }
 
 // HardDelete mocks base method.
-func (m *MockRegisterUserDatabase) HardDelete(ctx context.Context, id string) error {
+func (m *MockRegisterUserDatabase) HardDelete(ctx context.Context, id uuid.UUID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HardDelete", ctx, id)
 	ret0, _ := ret[0].(error)

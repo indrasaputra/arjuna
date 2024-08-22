@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	"google.golang.org/grpc/metadata"
@@ -90,8 +91,8 @@ func TestTransactionCommand_CreateTransaction(t *testing.T) {
 		st := createTransactionCommandSuite(ctrl)
 		request := &apiv1.CreateTransactionRequest{
 			Transaction: &apiv1.Transaction{
-				SenderId:   "1",
-				ReceiverId: "2",
+				SenderId:   uuid.Must(uuid.NewV7()).String(),
+				ReceiverId: uuid.Must(uuid.NewV7()).String(),
 				Amount:     "10.23",
 			},
 		}
@@ -105,7 +106,7 @@ func TestTransactionCommand_CreateTransaction(t *testing.T) {
 			entity.ErrInternal("error"),
 		}
 		for _, errRet := range errors {
-			st.creator.EXPECT().Create(testCtxWithValidKey, gomock.Any(), testIdempotencyKey).Return("", errRet)
+			st.creator.EXPECT().Create(testCtxWithValidKey, gomock.Any(), testIdempotencyKey).Return(uuid.Must(uuid.NewV7()), errRet)
 
 			res, err := st.handler.CreateTransaction(testCtxWithValidKey, request)
 
@@ -117,11 +118,12 @@ func TestTransactionCommand_CreateTransaction(t *testing.T) {
 
 	t.Run("success create transaction", func(t *testing.T) {
 		st := createTransactionCommandSuite(ctrl)
-		st.creator.EXPECT().Create(testCtxWithValidKey, gomock.Any(), testIdempotencyKey).Return("id", nil)
+		id := uuid.Must(uuid.NewV7())
+		st.creator.EXPECT().Create(testCtxWithValidKey, gomock.Any(), testIdempotencyKey).Return(id, nil)
 		request := &apiv1.CreateTransactionRequest{
 			Transaction: &apiv1.Transaction{
-				SenderId:   "1",
-				ReceiverId: "2",
+				SenderId:   uuid.Must(uuid.NewV7()).String(),
+				ReceiverId: uuid.Must(uuid.NewV7()).String(),
 				Amount:     "10.23",
 			},
 		}
@@ -130,7 +132,7 @@ func TestTransactionCommand_CreateTransaction(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.NotNil(t, res)
-		assert.Equal(t, "id", res.Data.GetId())
+		assert.Equal(t, id.String(), res.Data.GetId())
 	})
 }
 

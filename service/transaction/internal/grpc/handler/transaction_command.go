@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"google.golang.org/grpc/metadata"
 
@@ -49,13 +50,13 @@ func (uc *TransactionCommand) CreateTransaction(ctx context.Context, request *ap
 		app.Logger.Errorf(ctx, "[TransactionCommand-CreateTransaction] fail register transaction: %v", err)
 		return nil, err
 	}
-	return &apiv1.CreateTransactionResponse{Data: &apiv1.Transaction{Id: id}}, nil
+	return &apiv1.CreateTransactionResponse{Data: &apiv1.Transaction{Id: id.String()}}, nil
 }
 
 func createTransactionFromCreateTransactionRequest(request *apiv1.CreateTransactionRequest, amount decimal.Decimal) *entity.Transaction {
 	return &entity.Transaction{
-		SenderID:   request.GetTransaction().GetSenderId(),
-		ReceiverID: request.GetTransaction().GetReceiverId(),
+		SenderID:   uuid.MustParse(request.GetTransaction().GetSenderId()),
+		ReceiverID: uuid.MustParse(request.GetTransaction().GetReceiverId()),
 		Amount:     amount,
 	}
 }

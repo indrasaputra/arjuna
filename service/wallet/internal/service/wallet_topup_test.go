@@ -3,6 +3,7 @@ package service_test
 import (
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -15,7 +16,7 @@ import (
 )
 
 var (
-	testWalletID       = "1"
+	testWalletID       = uuid.Must(uuid.NewV7())
 	testAmount, _      = decimal.NewFromString("10.23")
 	testIdempotencyKey = "idempotency-key"
 )
@@ -73,7 +74,7 @@ func TestWalletTopup_Topup(t *testing.T) {
 	t.Run("wallet id is invalid", func(t *testing.T) {
 		st := createWalletTopupSuite(ctrl)
 		topup := createTestTopupWallet()
-		topup.WalletID = ""
+		topup.WalletID = uuid.Nil
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
 		err := st.topup.Topup(testCtx, topup)
@@ -84,7 +85,7 @@ func TestWalletTopup_Topup(t *testing.T) {
 	t.Run("user id is invalid", func(t *testing.T) {
 		st := createWalletTopupSuite(ctrl)
 		topup := createTestTopupWallet()
-		topup.UserID = ""
+		topup.UserID = uuid.Nil
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
 		err := st.topup.Topup(testCtx, topup)

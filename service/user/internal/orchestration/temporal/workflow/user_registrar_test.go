@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.temporal.io/sdk/activity"
@@ -187,7 +188,7 @@ func TestRegisterUser(t *testing.T) {
 
 func createTestUser() *entity.User {
 	return &entity.User{
-		ID:    "first-id",
+		ID:    uuid.Must(uuid.NewV7()),
 		Name:  "First User",
 		Email: "first@user.com",
 	}

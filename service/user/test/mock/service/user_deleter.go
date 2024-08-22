@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 
 	uow "github.com/indrasaputra/arjuna/pkg/sdk/uow"
@@ -43,7 +44,7 @@ func (m *MockDeleteUser) EXPECT() *MockDeleteUserMockRecorder {
 }
 
 // HardDelete mocks base method.
-func (m *MockDeleteUser) HardDelete(ctx context.Context, id string) error {
+func (m *MockDeleteUser) HardDelete(ctx context.Context, id uuid.UUID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HardDelete", ctx, id)
 	ret0, _ := ret[0].(error)
@@ -80,7 +81,7 @@ func (m *MockDeleteUserRepository) EXPECT() *MockDeleteUserRepositoryMockRecorde
 }
 
 // GetByID mocks base method.
-func (m *MockDeleteUserRepository) GetByID(ctx context.Context, id string) (*entity.User, error) {
+func (m *MockDeleteUserRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByID", ctx, id)
 	ret0, _ := ret[0].(*entity.User)
@@ -95,7 +96,7 @@ func (mr *MockDeleteUserRepositoryMockRecorder) GetByID(ctx, id any) *gomock.Cal
 }
 
 // HardDeleteWithTx mocks base method.
-func (m *MockDeleteUserRepository) HardDeleteWithTx(ctx context.Context, tx uow.Tx, id string) error {
+func (m *MockDeleteUserRepository) HardDeleteWithTx(ctx context.Context, tx uow.Tx, id uuid.UUID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HardDeleteWithTx", ctx, tx, id)
 	ret0, _ := ret[0].(error)

@@ -3,6 +3,7 @@ package handler_test
 import (
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
@@ -56,8 +57,8 @@ func TestUserCommandInternal_DeleteUser(t *testing.T) {
 
 	t.Run("user deleter service returns error", func(t *testing.T) {
 		st := createUserCommandInternalSuite(ctrl)
-		id := "1"
-		request := &apiv1.DeleteUserRequest{Id: id}
+		id := uuid.Must(uuid.NewV7())
+		request := &apiv1.DeleteUserRequest{Id: id.String()}
 
 		errors := []error{
 			entity.ErrEmptyUser(),
@@ -78,8 +79,8 @@ func TestUserCommandInternal_DeleteUser(t *testing.T) {
 	})
 
 	t.Run("success delete user", func(t *testing.T) {
-		id := "1"
-		request := &apiv1.DeleteUserRequest{Id: id}
+		id := uuid.Must(uuid.NewV7())
+		request := &apiv1.DeleteUserRequest{Id: id.String()}
 		st := createUserCommandInternalSuite(ctrl)
 		st.deleter.EXPECT().HardDelete(testCtx, id).Return(nil)
 

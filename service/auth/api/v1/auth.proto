@@ -84,13 +84,18 @@ message Account {
   // id represents unique id.
   string id = 1 [
     (google.api.field_behavior) = OUTPUT_ONLY,
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {example : "\"123\""}
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      example : "\"01917a0c-475e-7d4a-9ec1-a56d14d78569\""
+    }
   ];
 
   // user_id represents user's id.
   string user_id = 2 [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) =
-        {description : "User's id", format : "string", example : "\"1\""},
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description : "User's id",
+      format : "string",
+      example : "\"01917a0c-cdfe-7696-9259-1c9821c8fd73\""
+    },
     json_name = "user_id"
   ];
 

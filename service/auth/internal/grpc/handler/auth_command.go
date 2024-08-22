@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/google/uuid"
+
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/auth/entity"
 	"github.com/indrasaputra/arjuna/service/auth/internal/app"
@@ -85,7 +87,7 @@ func validateRegisterAccountRequest(request *apiv1.RegisterAccountRequest) error
 
 func createAccountFromRegisterAccountRequest(request *apiv1.RegisterAccountRequest) *entity.Account {
 	return &entity.Account{
-		UserID:   request.GetAccount().GetUserId(),
+		UserID:   uuid.MustParse(request.GetAccount().GetUserId()),
 		Email:    request.GetAccount().GetEmail(),
 		Password: request.GetAccount().GetPassword(),
 	}
