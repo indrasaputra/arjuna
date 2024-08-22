@@ -132,7 +132,12 @@ message GetAllUsersResponse {
 // User represents a user data.
 message User {
   // id represents a user's id.
-  string id = 1 [ (google.api.field_behavior) = OUTPUT_ONLY ];
+  string id = 1 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      example : "\"01917a0c-cdfe-7e4f-9692-635eb6a6f358\""
+    }
+  ];
 
   // email represents a user's email.
   string email = 2 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
@@ -190,7 +195,12 @@ enum UserOutboxStatus {
 // UserOutbox represents a user outbox data.
 message UserOutbox {
   // id represents a users_outbox's id.
-  string id = 1 [ (google.api.field_behavior) = OUTPUT_ONLY ];
+  string id = 1 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      example : "\"01917a0c-cdfe-7cf5-afc1-620959bf240e\""
+    }
+  ];
 
   // status represents specific status.
   UserOutboxStatus status = 2;

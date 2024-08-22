@@ -294,14 +294,14 @@
       "properties": {
         "id": {
           "type": "string",
-          "example": "123",
+          "example": "01917a0c-475e-7d4a-9ec1-a56d14d78569",
           "description": "id represents unique id.",
           "readOnly": true
         },
         "user_id": {
           "type": "string",
           "format": "string",
-          "example": "1",
+          "example": "01917a0c-cdfe-7696-9259-1c9821c8fd73",
           "description": "User's id"
         },
         "email": {
@@ -427,7 +427,7 @@
       "properties": {
         "wallet_id": {
           "type": "string",
-          "example": "1",
+          "example": "01917a0c-cdfe-701e-9547-ed45a24d7c84",
           "description": "Wallet's id"
         },
         "amount": {
@@ -447,18 +447,18 @@
       "properties": {
         "id": {
           "type": "string",
-          "example": "123",
+          "example": "01917a0c-cdfe-7d3c-b0fc-ea83671bf6d9",
           "description": "id represents unique id.",
           "readOnly": true
         },
         "sender_id": {
           "type": "string",
-          "example": "1",
+          "example": "01917a0c-cdfe-7ce9-a9aa-a921cfd6c289",
           "description": "Transaction's sender's id"
         },
         "receiver_id": {
           "type": "string",
-          "example": "2",
+          "example": "01917a0c-cdfe-7f72-9b8f-12c3480d5baf",
           "description": "Transaction's receiver's id"
         },
         "amount": {
@@ -480,22 +480,22 @@
       "properties": {
         "sender_id": {
           "type": "string",
-          "example": "1",
+          "example": "01917a10-1086-74a6-8cfb-0074f65bebe3",
           "description": "Sender's id"
         },
         "sender_wallet_id": {
           "type": "string",
-          "example": "2",
+          "example": "01917a10-1086-7faa-9c9e-0bf6a9cf6928",
           "description": "Sender's wallet's id"
         },
         "receiver_id": {
           "type": "string",
-          "example": "3",
+          "example": "01917a10-1086-7c94-93c4-32de26621dae",
           "description": "Receiver's id"
         },
         "receiver_wallet_id": {
           "type": "string",
-          "example": "4",
+          "example": "01917a10-1086-72df-818a-b72d663fb3b5",
           "description": "Receiver's wallet's id"
         },
         "amount": {
@@ -515,6 +515,7 @@
       "properties": {
         "id": {
           "type": "string",
+          "example": "01917a0c-cdfe-7e4f-9692-635eb6a6f358",
           "description": "id represents a user's id.",
           "readOnly": true
         },
@@ -560,13 +561,13 @@
       "properties": {
         "id": {
           "type": "string",
-          "example": "123",
+          "example": "01917a0c-cdfe-74dd-9d95-4d87b5d1f0b8",
           "description": "id represents unique id.",
           "readOnly": true
         },
         "user_id": {
           "type": "string",
-          "example": "1",
+          "example": "01917a0c-cdfe-7aae-b311-a8c7c32f5c70",
           "description": "Wallet's user's id"
         },
         "balance": {

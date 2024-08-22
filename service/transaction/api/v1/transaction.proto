@@ -74,14 +74,16 @@ message Transaction {
   // id represents unique id.
   string id = 1 [
     (google.api.field_behavior) = OUTPUT_ONLY,
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {example : "\"123\""}
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      example : "\"01917a0c-cdfe-7d3c-b0fc-ea83671bf6d9\""
+    }
   ];
 
   // sender_id represents sender's id.
   string sender_id = 2 [
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description : "Transaction's sender's id"
-      example : "\"1\""
+      example : "\"01917a0c-cdfe-7ce9-a9aa-a921cfd6c289\""
     },
     json_name = "sender_id"
   ];
@@ -90,7 +92,7 @@ message Transaction {
   string receiver_id = 3 [
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description : "Transaction's receiver's id"
-      example : "\"2\""
+      example : "\"01917a0c-cdfe-7f72-9b8f-12c3480d5baf\""
     },
     json_name = "receiver_id"
   ];
