@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
@@ -140,8 +141,8 @@ func TestAccount_GetByEmail(t *testing.T) {
 
 func createTestAccount() *entity.Account {
 	return &entity.Account{
-		ID:       "1",
-		UserID:   "1",
+		ID:       uuid.Must(uuid.NewV7()),
+		UserID:   uuid.Must(uuid.NewV7()),
 		Email:    "first@account.com",
 		Password: "password",
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	"golang.org/x/crypto/bcrypt"
@@ -56,7 +57,7 @@ func TestAuth_Register(t *testing.T) {
 	t.Run("user id is invalid", func(t *testing.T) {
 		st := createAuthSuite(ctrl)
 		account := createTestAccount()
-		account.UserID = ""
+		account.UserID = uuid.Nil
 
 		err := st.auth.Register(testCtx, account)
 
@@ -208,8 +209,8 @@ func createAuthSuite(ctrl *gomock.Controller) *AuthSuite {
 func createTestAccount() *entity.Account {
 	hash, _ := bcrypt.GenerateFromPassword([]byte(testPassword), bcrypt.MinCost)
 	return &entity.Account{
-		ID:       "1",
-		UserID:   "1",
+		ID:       uuid.Must(uuid.NewV7()),
+		UserID:   uuid.Must(uuid.NewV7()),
 		Email:    "first@account.com",
 		Password: string(hash),
 	}

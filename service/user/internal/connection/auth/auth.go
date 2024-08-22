@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gogo/status"
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 
 	enauth "github.com/indrasaputra/arjuna/service/auth/entity"
@@ -24,7 +25,7 @@ func NewAuth(c *sdkauth.Client) *Auth {
 
 // CreateAccount creates an account.
 func (a *Auth) CreateAccount(ctx context.Context, user *entity.User) error {
-	req := &enauth.Account{UserID: user.ID, Email: user.Email, Password: user.Password}
+	req := &enauth.Account{UserID: uuid.MustParse(user.ID), Email: user.Email, Password: user.Password}
 	err := a.client.Register(ctx, req)
 	if err != nil {
 		app.Logger.Errorf(ctx, "[Auth-CreateAccount] fail call register: %v", err)

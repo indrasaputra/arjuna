@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 // Token represents token.
@@ -16,19 +17,19 @@ type Token struct {
 
 // Account represents account.
 type Account struct {
-	ID       string
-	UserID   string
+	Auditable
 	Email    string
 	Password string
-	Auditable
+	ID       uuid.UUID
+	UserID   uuid.UUID
 }
 
 // Claims represents token claims.
 type Claims struct {
-	AccountID string `json:"account_id"`
-	UserID    string `json:"user_id"`
-	Email     string `json:"email"`
 	jwt.RegisteredClaims
+	Email     string    `json:"email"`
+	AccountID uuid.UUID `json:"account_id"`
+	UserID    uuid.UUID `json:"user_id"`
 }
 
 // Auditable defines logical data related to audit.

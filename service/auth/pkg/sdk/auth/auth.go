@@ -49,7 +49,7 @@ func NewClient(cfg *Config) (*Client, error) {
 // Register registers an account.
 func (c *Client) Register(ctx context.Context, account *entity.Account) error {
 	req := &apiv1.RegisterAccountRequest{Account: &apiv1.Account{
-		UserId:   account.UserID,
+		UserId:   account.UserID.String(),
 		Email:    account.Email,
 		Password: account.Password,
 	}}
