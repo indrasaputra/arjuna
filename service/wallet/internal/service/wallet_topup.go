@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"strings"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"github.com/indrasaputra/arjuna/service/wallet/entity"
@@ -20,7 +20,7 @@ type TopupWallet interface {
 // TopupWalletRepository defines the interface to update wallet in repository.
 type TopupWalletRepository interface {
 	// AddWalletBalance adds certain amount (can be negative) to certain wallet.
-	AddWalletBalance(ctx context.Context, id string, amount decimal.Decimal) error
+	AddWalletBalance(ctx context.Context, id uuid.UUID, amount decimal.Decimal) error
 }
 
 // IdempotencyKeyRepository defines  interface for idempotency check flow and repository.
@@ -52,7 +52,6 @@ func (wt *WalletTopup) Topup(ctx context.Context, topup *entity.TopupWallet) err
 		return err
 	}
 
-	sanitizeTopupWallet(topup)
 	if err := validateTopupWallet(topup); err != nil {
 		app.Logger.Errorf(ctx, "[WalletTopup-Topup] wallet is invalid: %v", err)
 		return err
@@ -77,16 +76,11 @@ func (wt *WalletTopup) validateIdempotencyKey(ctx context.Context, key string) e
 	return nil
 }
 
-func sanitizeTopupWallet(topup *entity.TopupWallet) {
-	topup.WalletID = strings.TrimSpace(topup.WalletID)
-	topup.UserID = strings.TrimSpace(topup.UserID)
-}
-
 func validateTopupWallet(topup *entity.TopupWallet) error {
-	if topup.WalletID == "" {
+	if topup.WalletID == uuid.Nil {
 		return entity.ErrEmptyWallet()
 	}
-	if topup.UserID == "" {
+	if topup.UserID == uuid.Nil {
 		return entity.ErrInvalidUser()
 	}
 	if decimal.Zero.Equal(topup.Amount) {

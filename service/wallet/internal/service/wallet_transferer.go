@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"strings"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
@@ -20,9 +20,9 @@ type TransferWallet interface {
 // WalletTransfererRepository defines the interface to get wallet in repository.
 type WalletTransfererRepository interface {
 	// GetUserWalletWithTx gets user's wallet from repository using transaction.
-	GetUserWalletWithTx(ctx context.Context, tx uow.Tx, id string, userID string) (*entity.Wallet, error)
+	GetUserWalletWithTx(ctx context.Context, tx uow.Tx, id uuid.UUID, userID uuid.UUID) (*entity.Wallet, error)
 	// AddWalletBalanceWithTx adds certain amount (can be negative) to certain wallet using transaction.
-	AddWalletBalanceWithTx(ctx context.Context, tx uow.Tx, id string, amount decimal.Decimal) error
+	AddWalletBalanceWithTx(ctx context.Context, tx uow.Tx, id uuid.UUID, amount decimal.Decimal) error
 }
 
 // WalletTransferer is responsible for transfer balance between wallets.
@@ -42,7 +42,6 @@ func (wt *WalletTransferer) TransferBalance(ctx context.Context, transfer *entit
 	if transfer == nil {
 		return entity.ErrInvalidTransfer()
 	}
-	sanitizeTransferWallet(transfer)
 	if err := validateTransferWalletRequest(transfer); err != nil {
 		return err
 	}
@@ -83,7 +82,7 @@ func (wt *WalletTransferer) processTransferBalance(ctx context.Context, transfer
 
 // deliberately get wallet from the lower id first to avoid deadlock.
 func (wt *WalletTransferer) getSenderAndReceiverWallet(ctx context.Context, tx uow.Tx, transfer *entity.TransferWallet) (*entity.Wallet, *entity.Wallet, error) {
-	if transfer.SenderWalletID < transfer.ReceiverWalletID {
+	if transfer.SenderWalletID.String() < transfer.ReceiverWalletID.String() {
 		senWallet, err := wt.walletRepo.GetUserWalletWithTx(ctx, tx, transfer.SenderWalletID, transfer.SenderID)
 		if err != nil {
 			app.Logger.Errorf(ctx, "[WalletTransferer-getSenderAndReceiverWallet] sender < receiver; get sender wallet fail: %v", err)
@@ -120,13 +119,6 @@ func (wt *WalletTransferer) updateUserBalances(ctx context.Context, tx uow.Tx, t
 		return err
 	}
 	return nil
-}
-
-func sanitizeTransferWallet(transfer *entity.TransferWallet) {
-	transfer.SenderID = strings.TrimSpace(transfer.SenderID)
-	transfer.SenderWalletID = strings.TrimSpace(transfer.SenderWalletID)
-	transfer.ReceiverID = strings.TrimSpace(transfer.ReceiverID)
-	transfer.ReceiverWalletID = strings.TrimSpace(transfer.ReceiverWalletID)
 }
 
 func validateTransferWalletRequest(transfer *entity.TransferWallet) error {

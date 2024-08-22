@@ -3,6 +3,7 @@ package service_test
 import (
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -53,7 +54,7 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 
 	t.Run("sender and receiver are same", func(t *testing.T) {
 		st := createWalletTransfererSuite(ctrl)
-		trf := createTestTransferWallet("1", "2")
+		trf := createTestTransferWallet("01917a52-86af-73aa-817f-46baf900d0e8", "01917a52-86af-7d6f-994f-771bcf2ffa8b")
 		trf.ReceiverID = trf.SenderID
 
 		err := st.wallet.TransferBalance(testCtx, trf)
@@ -64,7 +65,7 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 
 	t.Run("invalid amount", func(t *testing.T) {
 		st := createWalletTransfererSuite(ctrl)
-		trf := createTestTransferWallet("1", "2")
+		trf := createTestTransferWallet("01917a52-86af-73aa-817f-46baf900d0e8", "01917a52-86af-7d6f-994f-771bcf2ffa8b")
 		trf.Amount = decimal.Zero
 
 		err := st.wallet.TransferBalance(testCtx, trf)
@@ -75,7 +76,7 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 
 	t.Run("transaction begin returns error", func(t *testing.T) {
 		st := createWalletTransfererSuite(ctrl)
-		trf := createTestTransferWallet("1", "2")
+		trf := createTestTransferWallet("01917a52-86af-73aa-817f-46baf900d0e8", "01917a52-86af-7d6f-994f-771bcf2ffa8b")
 		st.uow.EXPECT().Begin(testCtx).Return(nil, testErrInternal)
 
 		err := st.wallet.TransferBalance(testCtx, trf)
@@ -85,7 +86,7 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 
 	t.Run("get sender returns error; swid < rwid", func(t *testing.T) {
 		st := createWalletTransfererSuite(ctrl)
-		trf := createTestTransferWallet("1", "2")
+		trf := createTestTransferWallet("01917a52-86af-73aa-817f-46baf900d0e8", "01917a52-86af-7d6f-994f-771bcf2ffa8b")
 		st.uow.EXPECT().Begin(testCtx).Return(st.tx, nil)
 		st.repo.EXPECT().GetUserWalletWithTx(testCtx, st.tx, trf.SenderWalletID, trf.SenderID).Return(nil, testErrInternal)
 		st.uow.EXPECT().Finish(testCtx, st.tx, testErrInternal)
@@ -97,7 +98,7 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 
 	t.Run("get receiver returns error; swid < rwid", func(t *testing.T) {
 		st := createWalletTransfererSuite(ctrl)
-		trf := createTestTransferWallet("1", "2")
+		trf := createTestTransferWallet("01917a52-86af-73aa-817f-46baf900d0e8", "01917a52-86af-7d6f-994f-771bcf2ffa8b")
 		sw := createTestWallet()
 		st.uow.EXPECT().Begin(testCtx).Return(st.tx, nil)
 		st.repo.EXPECT().GetUserWalletWithTx(testCtx, st.tx, trf.SenderWalletID, trf.SenderID).Return(sw, nil)
@@ -111,7 +112,7 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 
 	t.Run("get receiver returns error; swid >= rwid", func(t *testing.T) {
 		st := createWalletTransfererSuite(ctrl)
-		trf := createTestTransferWallet("2", "1")
+		trf := createTestTransferWallet("01917a52-86af-7d6f-994f-771bcf2ffa8b", "01917a52-86af-73aa-817f-46baf900d0e8")
 		rw := createTestWallet()
 		st.uow.EXPECT().Begin(testCtx).Return(st.tx, nil)
 		st.repo.EXPECT().GetUserWalletWithTx(testCtx, st.tx, trf.ReceiverWalletID, trf.ReceiverID).Return(rw, testErrInternal)
@@ -124,7 +125,7 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 
 	t.Run("get sender returns error; swid >= rwid", func(t *testing.T) {
 		st := createWalletTransfererSuite(ctrl)
-		trf := createTestTransferWallet("2", "1")
+		trf := createTestTransferWallet("01917a52-86af-7d6f-994f-771bcf2ffa8b", "01917a52-86af-73aa-817f-46baf900d0e8")
 		rw := createTestWallet()
 		st.uow.EXPECT().Begin(testCtx).Return(st.tx, nil)
 		st.repo.EXPECT().GetUserWalletWithTx(testCtx, st.tx, trf.ReceiverWalletID, trf.ReceiverID).Return(rw, nil)
@@ -138,7 +139,7 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 
 	t.Run("sender is nil", func(t *testing.T) {
 		st := createWalletTransfererSuite(ctrl)
-		trf := createTestTransferWallet("2", "1")
+		trf := createTestTransferWallet("01917a52-86af-7d6f-994f-771bcf2ffa8b", "01917a52-86af-73aa-817f-46baf900d0e8")
 		rw := createTestWallet()
 		st.uow.EXPECT().Begin(testCtx).Return(st.tx, nil)
 		st.repo.EXPECT().GetUserWalletWithTx(testCtx, st.tx, trf.ReceiverWalletID, trf.ReceiverID).Return(rw, nil)
@@ -153,7 +154,7 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 
 	t.Run("receiver is nil", func(t *testing.T) {
 		st := createWalletTransfererSuite(ctrl)
-		trf := createTestTransferWallet("2", "1")
+		trf := createTestTransferWallet("01917a52-86af-7d6f-994f-771bcf2ffa8b", "01917a52-86af-73aa-817f-46baf900d0e8")
 		sw := createTestWallet()
 		st.uow.EXPECT().Begin(testCtx).Return(st.tx, nil)
 		st.repo.EXPECT().GetUserWalletWithTx(testCtx, st.tx, trf.ReceiverWalletID, trf.ReceiverID).Return(nil, nil)
@@ -168,7 +169,7 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 
 	t.Run("sender balance is insufficient", func(t *testing.T) {
 		st := createWalletTransfererSuite(ctrl)
-		trf := createTestTransferWallet("1", "2")
+		trf := createTestTransferWallet("01917a52-86af-73aa-817f-46baf900d0e8", "01917a52-86af-7d6f-994f-771bcf2ffa8b")
 		trf.Amount, _ = decimal.NewFromString("100.98")
 		sw := createTestWallet()
 		rw := createTestWallet()
@@ -185,7 +186,7 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 
 	t.Run("add sender wallet returns error", func(t *testing.T) {
 		st := createWalletTransfererSuite(ctrl)
-		trf := createTestTransferWallet("1", "2")
+		trf := createTestTransferWallet("01917a52-86af-73aa-817f-46baf900d0e8", "01917a52-86af-7d6f-994f-771bcf2ffa8b")
 		sw := createTestWallet()
 		rw := createTestWallet()
 		st.uow.EXPECT().Begin(testCtx).Return(st.tx, nil)
@@ -201,7 +202,7 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 
 	t.Run("add receiver wallet returns error", func(t *testing.T) {
 		st := createWalletTransfererSuite(ctrl)
-		trf := createTestTransferWallet("1", "2")
+		trf := createTestTransferWallet("01917a52-86af-73aa-817f-46baf900d0e8", "01917a52-86af-7d6f-994f-771bcf2ffa8b")
 		sw := createTestWallet()
 		rw := createTestWallet()
 		st.uow.EXPECT().Begin(testCtx).Return(st.tx, nil)
@@ -218,7 +219,7 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 
 	t.Run("success transfer balance", func(t *testing.T) {
 		st := createWalletTransfererSuite(ctrl)
-		trf := createTestTransferWallet("1", "2")
+		trf := createTestTransferWallet("01917a52-86af-73aa-817f-46baf900d0e8", "01917a52-86af-7d6f-994f-771bcf2ffa8b")
 		sw := createTestWallet()
 		rw := createTestWallet()
 		st.uow.EXPECT().Begin(testCtx).Return(st.tx, nil)
@@ -237,10 +238,10 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 func createTestTransferWallet(swid, rwid string) *entity.TransferWallet {
 	amount, _ := decimal.NewFromString("3.4")
 	return &entity.TransferWallet{
-		SenderID:         "1",
-		SenderWalletID:   swid,
-		ReceiverID:       "2",
-		ReceiverWalletID: rwid,
+		SenderID:         uuid.MustParse("01917a52-86af-73aa-817f-46baf900d0e8"),
+		SenderWalletID:   uuid.MustParse(swid),
+		ReceiverID:       uuid.MustParse("01917a52-86af-7d6f-994f-771bcf2ffa8b"),
+		ReceiverWalletID: uuid.MustParse(rwid),
 		Amount:           amount,
 	}
 }

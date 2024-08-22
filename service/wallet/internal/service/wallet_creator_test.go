@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -17,7 +18,7 @@ import (
 
 var (
 	testCtx        = context.Background()
-	testUserID     = "1"
+	testUserID     = uuid.Must(uuid.NewV7())
 	testEnv        = "development"
 	testBalance, _ = decimal.NewFromString("10.23")
 )
@@ -54,7 +55,7 @@ func TestWalletCreator_Create(t *testing.T) {
 	t.Run("user id is invalid", func(t *testing.T) {
 		st := createWalletCreatorSuite(ctrl)
 		wallet := createTestWallet()
-		wallet.UserID = ""
+		wallet.UserID = uuid.Nil
 
 		err := st.wallet.Create(testCtx, wallet)
 
@@ -93,7 +94,7 @@ func createWalletCreatorSuite(ctrl *gomock.Controller) *WalletCreatorSuite {
 
 func createTestWallet() *entity.Wallet {
 	return &entity.Wallet{
-		ID:      "1",
+		ID:      uuid.Must(uuid.NewV7()),
 		UserID:  testUserID,
 		Balance: testBalance,
 	}

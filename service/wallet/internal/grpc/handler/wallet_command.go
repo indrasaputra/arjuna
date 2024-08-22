@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"google.golang.org/grpc/metadata"
 
@@ -59,7 +60,7 @@ func (wc *WalletCommand) TopupWallet(ctx context.Context, request *apiv1.TopupWa
 		return nil, entity.ErrMissingIdempotencyKey()
 	}
 
-	userID := ctx.Value(interceptor.HeaderKeyUserID).(string)
+	userID := ctx.Value(interceptor.HeaderKeyUserID).(uuid.UUID)
 
 	if request == nil || request.GetTopup() == nil {
 		app.Logger.Errorf(ctx, "[WalletCommand-TopupWallet] empty or nil topup")
@@ -97,14 +98,14 @@ func (wc *WalletCommand) TransferBalance(ctx context.Context, request *apiv1.Tra
 
 func createWalletFromCreateWalletRequest(request *apiv1.CreateWalletRequest, balance decimal.Decimal) *entity.Wallet {
 	return &entity.Wallet{
-		UserID:  request.GetWallet().GetUserId(),
+		UserID:  uuid.MustParse(request.GetWallet().GetUserId()),
 		Balance: balance,
 	}
 }
 
-func createTopupWalletFromTopupWalletRequest(request *apiv1.TopupWalletRequest, userID string, amount decimal.Decimal, key string) *entity.TopupWallet {
+func createTopupWalletFromTopupWalletRequest(request *apiv1.TopupWalletRequest, userID uuid.UUID, amount decimal.Decimal, key string) *entity.TopupWallet {
 	return &entity.TopupWallet{
-		WalletID:       request.GetTopup().GetWalletId(),
+		WalletID:       uuid.MustParse(request.GetTopup().GetWalletId()),
 		UserID:         userID,
 		Amount:         amount,
 		IdempotencyKey: key,
@@ -113,10 +114,10 @@ func createTopupWalletFromTopupWalletRequest(request *apiv1.TopupWalletRequest, 
 
 func createTransferWalletFromTransferBalanceRequest(request *apiv1.TransferBalanceRequest, amount decimal.Decimal) *entity.TransferWallet {
 	return &entity.TransferWallet{
-		SenderID:         request.GetTransfer().GetSenderId(),
-		SenderWalletID:   request.GetTransfer().GetSenderWalletId(),
-		ReceiverID:       request.GetTransfer().GetReceiverId(),
-		ReceiverWalletID: request.GetTransfer().GetReceiverWalletId(),
+		SenderID:         uuid.MustParse(request.GetTransfer().GetSenderId()),
+		SenderWalletID:   uuid.MustParse(request.GetTransfer().GetSenderWalletId()),
+		ReceiverID:       uuid.MustParse(request.GetTransfer().GetReceiverId()),
+		ReceiverWalletID: uuid.MustParse(request.GetTransfer().GetReceiverWalletId()),
 		Amount:           amount,
 	}
 }

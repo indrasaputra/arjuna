@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -103,7 +104,7 @@ func TestWallet_AddWalletBalance(t *testing.T) {
 
 	t.Run("add account balance returns internal error", func(t *testing.T) {
 		st := createWalletSuite(ctrl)
-		id := "1"
+		id := uuid.Must(uuid.NewV7())
 		amount, _ := decimal.NewFromString("4.56")
 		st.db.EXPECT().
 			Exec(testCtx, query, amount, id).
@@ -116,7 +117,7 @@ func TestWallet_AddWalletBalance(t *testing.T) {
 
 	t.Run("add account balance returns success", func(t *testing.T) {
 		st := createWalletSuite(ctrl)
-		id := "1"
+		id := uuid.Must(uuid.NewV7())
 		amount, _ := decimal.NewFromString("4.56")
 		st.db.EXPECT().
 			Exec(testCtx, query, amount, id).
@@ -138,7 +139,7 @@ func TestWallet_AddWalletBalanceWithTx(t *testing.T) {
 
 	t.Run("tx is nil", func(t *testing.T) {
 		st := createWalletSuite(ctrl)
-		id := "1"
+		id := uuid.Must(uuid.NewV7())
 		amount, _ := decimal.NewFromString("4.56")
 
 		err := st.wallet.AddWalletBalanceWithTx(testCtx, nil, id, amount)
@@ -148,7 +149,7 @@ func TestWallet_AddWalletBalanceWithTx(t *testing.T) {
 
 	t.Run("add account balance with tx returns internal error", func(t *testing.T) {
 		st := createWalletSuite(ctrl)
-		id := "1"
+		id := uuid.Must(uuid.NewV7())
 		amount, _ := decimal.NewFromString("4.56")
 		st.tx.EXPECT().
 			Exec(testCtx, query, amount, id).
@@ -161,7 +162,7 @@ func TestWallet_AddWalletBalanceWithTx(t *testing.T) {
 
 	t.Run("add account balance with tx returns success", func(t *testing.T) {
 		st := createWalletSuite(ctrl)
-		id := "1"
+		id := uuid.Must(uuid.NewV7())
 		amount, _ := decimal.NewFromString("4.56")
 		st.tx.EXPECT().
 			Exec(testCtx, query, amount, id).
@@ -183,8 +184,8 @@ func TestWallet_GetUserWalletWithTx(t *testing.T) {
 
 	t.Run("tx is nil", func(t *testing.T) {
 		st := createWalletSuite(ctrl)
-		id := "1"
-		userID := "2"
+		id := uuid.Must(uuid.NewV7())
+		userID := uuid.Must(uuid.NewV7())
 
 		res, err := st.wallet.GetUserWalletWithTx(testCtx, nil, id, userID)
 
@@ -194,8 +195,8 @@ func TestWallet_GetUserWalletWithTx(t *testing.T) {
 
 	t.Run("add account balance returns no rows", func(t *testing.T) {
 		st := createWalletSuite(ctrl)
-		id := "1"
-		userID := "2"
+		id := uuid.Must(uuid.NewV7())
+		userID := uuid.Must(uuid.NewV7())
 		st.tx.EXPECT().
 			Query(testCtx, gomock.Any(), query, id, userID).
 			Return(sql.ErrNoRows)
@@ -209,8 +210,8 @@ func TestWallet_GetUserWalletWithTx(t *testing.T) {
 
 	t.Run("add account balance returns internal error", func(t *testing.T) {
 		st := createWalletSuite(ctrl)
-		id := "1"
-		userID := "2"
+		id := uuid.Must(uuid.NewV7())
+		userID := uuid.Must(uuid.NewV7())
 		st.tx.EXPECT().
 			Query(testCtx, gomock.Any(), query, id, userID).
 			Return(entity.ErrInternal(""))
@@ -223,8 +224,8 @@ func TestWallet_GetUserWalletWithTx(t *testing.T) {
 
 	t.Run("success add balance", func(t *testing.T) {
 		st := createWalletSuite(ctrl)
-		id := "1"
-		userID := "2"
+		id := uuid.Must(uuid.NewV7())
+		userID := uuid.Must(uuid.NewV7())
 		st.tx.EXPECT().
 			Query(testCtx, gomock.Any(), query, id, userID).
 			Return(nil)
@@ -239,8 +240,8 @@ func TestWallet_GetUserWalletWithTx(t *testing.T) {
 func createTestWallet() *entity.Wallet {
 	b, _ := decimal.NewFromString("10.23")
 	return &entity.Wallet{
-		ID:      "123",
-		UserID:  "1",
+		ID:      uuid.Must(uuid.NewV7()),
+		UserID:  uuid.Must(uuid.NewV7()),
 		Balance: b,
 	}
 }

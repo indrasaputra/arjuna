@@ -25,7 +25,7 @@ func NewWallet(c *sdkwallet.Client) *Wallet {
 
 // CreateWallet creates an account.
 func (a *Wallet) CreateWallet(ctx context.Context, user *entity.User) error {
-	req := &enwallet.Wallet{UserID: user.ID.String(), Balance: decimal.Zero}
+	req := &enwallet.Wallet{UserID: user.ID, Balance: decimal.Zero}
 	err := a.client.CreateWallet(ctx, req)
 	if err != nil {
 		app.Logger.Errorf(ctx, "[Wallet-CreateWallet] fail call register: %v", err)

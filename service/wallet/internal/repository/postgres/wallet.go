@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
@@ -53,12 +54,12 @@ func (w *Wallet) Insert(ctx context.Context, trx *entity.Wallet) error {
 }
 
 // AddWalletBalance adds some amount to specific user's wallet.
-func (w *Wallet) AddWalletBalance(ctx context.Context, id string, amount decimal.Decimal) error {
+func (w *Wallet) AddWalletBalance(ctx context.Context, id uuid.UUID, amount decimal.Decimal) error {
 	return w.addWalletBalance(ctx, w.db, id, amount)
 }
 
 // AddWalletBalanceWithTx adds some amount to specific user's wallet.
-func (w *Wallet) AddWalletBalanceWithTx(ctx context.Context, tx uow.Tx, id string, amount decimal.Decimal) error {
+func (w *Wallet) AddWalletBalanceWithTx(ctx context.Context, tx uow.Tx, id uuid.UUID, amount decimal.Decimal) error {
 	if tx == nil {
 		app.Logger.Errorf(ctx, "[WalletPostgres-AddWalletBalanceWithTx] internal error: tx is nil")
 		return entity.ErrInternal("something went wrong")
@@ -67,7 +68,7 @@ func (w *Wallet) AddWalletBalanceWithTx(ctx context.Context, tx uow.Tx, id strin
 }
 
 // AddWalletBalance adds some amount to specific user's wallet.
-func (w *Wallet) addWalletBalance(ctx context.Context, db uow.DB, id string, amount decimal.Decimal) error {
+func (w *Wallet) addWalletBalance(ctx context.Context, db uow.DB, id uuid.UUID, amount decimal.Decimal) error {
 	query := "UPDATE wallets SET balance = balance + ? WHERE id = ?"
 	_, err := db.Exec(ctx, query, amount, id)
 	if err != nil {
@@ -78,7 +79,7 @@ func (w *Wallet) addWalletBalance(ctx context.Context, db uow.DB, id string, amo
 }
 
 // GetUserWalletWithTx gets user's wallet from repository.
-func (w *Wallet) GetUserWalletWithTx(ctx context.Context, tx uow.Tx, id string, userID string) (*entity.Wallet, error) {
+func (w *Wallet) GetUserWalletWithTx(ctx context.Context, tx uow.Tx, id uuid.UUID, userID uuid.UUID) (*entity.Wallet, error) {
 	if tx == nil {
 		app.Logger.Errorf(ctx, "[WalletPostgres-GetUserWalletWithTx] internal error: tx is nil")
 		return nil, entity.ErrInternal("something went wrong")
