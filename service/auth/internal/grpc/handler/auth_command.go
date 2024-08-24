@@ -30,8 +30,8 @@ func (a *Auth) Login(ctx context.Context, request *apiv1.LoginRequest) (*apiv1.L
 		return nil, err
 	}
 
-	email := request.GetCredential().GetEmail()
-	password := request.GetCredential().GetPassword()
+	email := strings.TrimSpace(request.GetCredential().GetEmail())
+	password := strings.TrimSpace(request.GetCredential().GetPassword())
 
 	token, err := a.auth.Login(ctx, email, password)
 	if err != nil {
