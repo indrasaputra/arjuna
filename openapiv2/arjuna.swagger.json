@@ -352,6 +352,10 @@
       },
       "description": "Credential represents login credential."
     },
+    "v1DeleteAllAccountsResponse": {
+      "type": "object",
+      "description": "DeleteAllAccountsResponse represents response for delete all accounts."
+    },
     "v1DeleteUserResponse": {
       "type": "object",
       "description": "DeleteUserResponse represents response from delete user."

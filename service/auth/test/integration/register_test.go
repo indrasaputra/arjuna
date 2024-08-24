@@ -11,6 +11,8 @@ import (
 )
 
 func TestRegister(t *testing.T) {
+	deleteAllAccounts()
+
 	t.Run("unauthenticated request", func(t *testing.T) {
 		account := createAccount()
 		req := &apiv1.RegisterAccountRequest{Account: account}

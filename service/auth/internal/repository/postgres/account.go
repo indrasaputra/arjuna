@@ -65,3 +65,14 @@ func (a *Account) GetByEmail(ctx context.Context, email string) (*entity.Account
 	}
 	return &res, nil
 }
+
+// DeleteAll deletes all accounts.
+func (a *Account) DeleteAll(ctx context.Context) error {
+	query := "DELETE FROM accounts"
+	_, err := a.db.Exec(ctx, query)
+	if err != nil {
+		app.Logger.Errorf(ctx, "[PostgresAccount-DeleteAll] fail delete all accounts: %v", err)
+		return entity.ErrInternal(err.Error())
+	}
+	return nil
+}

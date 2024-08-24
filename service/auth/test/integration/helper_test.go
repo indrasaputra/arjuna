@@ -1,9 +1,13 @@
 package integration
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -40,4 +44,45 @@ func setupClients() {
 	grpcClient = apiv1.NewAuthServiceClient(conn)
 
 	httpClient = http.DefaultClient
+}
+
+func sendPost(url string, payload map[string]any, token string) (int, []byte) {
+	return sendHTTPRequest(http.MethodPost, url, payload, token)
+}
+
+func sendHTTPRequest(method, url string, payload map[string]any, token string) (int, []byte) {
+	var body io.Reader
+	if payload != nil {
+		p, err := json.Marshal(payload)
+		if err != nil {
+			log.Fatal(err)
+		}
+		body = bytes.NewReader(p)
+	}
+	req, err := http.NewRequestWithContext(testCtx, method, url, body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Add("Content-Type", "application/json")
+	if token != "" {
+		req.Header.Add("Authorization", "Bearer "+token)
+	}
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	b, err := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return resp.StatusCode, b
+}
+
+func deleteAllAccounts() {
+	_, err := grpcClient.DeleteAllAccounts(testCtxBasic, &apiv1.DeleteAllAccountsRequest{})
+	if err != nil {
+		panic(err)
+	}
 }

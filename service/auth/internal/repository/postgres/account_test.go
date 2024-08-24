@@ -139,6 +139,35 @@ func TestAccount_GetByEmail(t *testing.T) {
 	})
 }
 
+func TestAccount_DeleteAll(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	app.Logger = sdklog.NewLogger(testEnv)
+	query := `DELETE FROM accounts`
+
+	t.Run("delete all returns error", func(t *testing.T) {
+		st := createAccountSuite(ctrl)
+		st.db.EXPECT().
+			Exec(testCtx, query).
+			Return(int64(0), entity.ErrInternal("error"))
+
+		err := st.account.DeleteAll(testCtx)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("delete all returns success", func(t *testing.T) {
+		st := createAccountSuite(ctrl)
+		st.db.EXPECT().
+			Exec(testCtx, query).
+			Return(int64(1), nil)
+
+		err := st.account.DeleteAll(testCtx)
+
+		assert.NoError(t, err)
+	})
+}
+
 func createTestAccount() *entity.Account {
 	return &entity.Account{
 		ID:       uuid.Must(uuid.NewV7()),

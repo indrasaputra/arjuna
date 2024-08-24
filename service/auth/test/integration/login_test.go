@@ -1,20 +1,19 @@
 package integration
 
 import (
-	"bytes"
-	"encoding/json"
-	"io"
-	"log"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 )
 
 func TestLogin(t *testing.T) {
 	loginEmail := "auth-login+1@arjuna.com"
+
+	deleteAllAccounts()
 	registerAccount(loginEmail)
 
 	t.Run("invalid email", func(t *testing.T) {
@@ -23,7 +22,7 @@ func TestLogin(t *testing.T) {
 		status, resp := sendPost(httpURL+"/v1/auth/login", payload, "")
 
 		assert.Equal(t, http.StatusBadRequest, status)
-		assert.Equal(t, float64(3), resp["code"])
+		assert.Equal(t, float64(3), gjson.GetBytes(resp, "code").Float())
 	})
 
 	t.Run("invalid password", func(t *testing.T) {
@@ -32,7 +31,7 @@ func TestLogin(t *testing.T) {
 		status, resp := sendPost(httpURL+"/v1/auth/login", payload, "")
 
 		assert.Equal(t, http.StatusBadRequest, status)
-		assert.Equal(t, float64(3), resp["code"])
+		assert.Equal(t, float64(3), gjson.GetBytes(resp, "code").Float())
 	})
 
 	t.Run("success login", func(t *testing.T) {
@@ -40,48 +39,10 @@ func TestLogin(t *testing.T) {
 
 		status, resp := sendPost(httpURL+"/v1/auth/login", payload, "")
 
-		assert.Equal(t, http.StatusBadRequest, status)
-		assert.NotEmpty(t, resp["access_token"])
-		assert.NotEmpty(t, resp["access_token_expires_in"])
+		assert.Equal(t, http.StatusOK, status)
+		assert.NotEmpty(t, gjson.GetBytes(resp, "data.access_token").String())
+		assert.NotEmpty(t, gjson.GetBytes(resp, "data.access_token_expires_in").String())
 	})
-}
-
-func sendPost(url string, payload map[string]any, token string) (int, map[string]any) {
-	return sendHTTPRequest(http.MethodPost, url, payload, token)
-}
-
-func sendHTTPRequest(method, url string, payload map[string]any, token string) (int, map[string]any) {
-	var body io.Reader
-	if payload != nil {
-		p, err := json.Marshal(payload)
-		if err != nil {
-			log.Fatal(err)
-		}
-		body = bytes.NewReader(p)
-	}
-	req, err := http.NewRequestWithContext(testCtx, method, url, body)
-	if err != nil {
-		log.Fatal(err)
-	}
-	req.Header.Add("Content-Type", "application/json")
-	if token != "" {
-		req.Header.Add("Authorization", "Bearer "+token)
-	}
-
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-	b, err := io.ReadAll(resp.Body)
-	_ = resp.Body.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var v map[string]any
-	_ = json.Unmarshal(b, &v)
-
-	return resp.StatusCode, v
 }
 
 func registerAccount(email string) {

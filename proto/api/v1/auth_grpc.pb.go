@@ -22,8 +22,9 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	AuthService_Login_FullMethodName           = "/api.v1.AuthService/Login"
-	AuthService_RegisterAccount_FullMethodName = "/api.v1.AuthService/RegisterAccount"
+	AuthService_Login_FullMethodName             = "/api.v1.AuthService/Login"
+	AuthService_RegisterAccount_FullMethodName   = "/api.v1.AuthService/RegisterAccount"
+	AuthService_DeleteAllAccounts_FullMethodName = "/api.v1.AuthService/DeleteAllAccounts"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -37,10 +38,15 @@ type AuthServiceClient interface {
 	// This endpoint logs in an account.
 	// As of now, refresh token is not implemented and it only returns access token.
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
-	// Register a new account.
+	// RegisterAccount.
 	//
 	// This endpoint register an account.
 	RegisterAccount(ctx context.Context, in *RegisterAccountRequest, opts ...grpc.CallOption) (*RegisterAccountResponse, error)
+	// DeleteAllAccounts.
+	//
+	// This endpoint deletes all accounts.
+	// It is ONLY USED FOR testing purpose and MUST NOT be used in production.
+	DeleteAllAccounts(ctx context.Context, in *DeleteAllAccountsRequest, opts ...grpc.CallOption) (*DeleteAllAccountsResponse, error)
 }
 
 type authServiceClient struct {
@@ -71,6 +77,16 @@ func (c *authServiceClient) RegisterAccount(ctx context.Context, in *RegisterAcc
 	return out, nil
 }
 
+func (c *authServiceClient) DeleteAllAccounts(ctx context.Context, in *DeleteAllAccountsRequest, opts ...grpc.CallOption) (*DeleteAllAccountsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteAllAccountsResponse)
+	err := c.cc.Invoke(ctx, AuthService_DeleteAllAccounts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
@@ -82,10 +98,15 @@ type AuthServiceServer interface {
 	// This endpoint logs in an account.
 	// As of now, refresh token is not implemented and it only returns access token.
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
-	// Register a new account.
+	// RegisterAccount.
 	//
 	// This endpoint register an account.
 	RegisterAccount(context.Context, *RegisterAccountRequest) (*RegisterAccountResponse, error)
+	// DeleteAllAccounts.
+	//
+	// This endpoint deletes all accounts.
+	// It is ONLY USED FOR testing purpose and MUST NOT be used in production.
+	DeleteAllAccounts(context.Context, *DeleteAllAccountsRequest) (*DeleteAllAccountsResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -98,6 +119,9 @@ func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*Lo
 }
 func (UnimplementedAuthServiceServer) RegisterAccount(context.Context, *RegisterAccountRequest) (*RegisterAccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterAccount not implemented")
+}
+func (UnimplementedAuthServiceServer) DeleteAllAccounts(context.Context, *DeleteAllAccountsRequest) (*DeleteAllAccountsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAllAccounts not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 
@@ -148,6 +172,24 @@ func _AuthService_RegisterAccount_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_DeleteAllAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAllAccountsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).DeleteAllAccounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_DeleteAllAccounts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).DeleteAllAccounts(ctx, req.(*DeleteAllAccountsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -162,6 +204,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RegisterAccount",
 			Handler:    _AuthService_RegisterAccount_Handler,
+		},
+		{
+			MethodName: "DeleteAllAccounts",
+			Handler:    _AuthService_DeleteAllAccounts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
