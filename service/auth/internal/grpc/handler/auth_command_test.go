@@ -157,7 +157,7 @@ func TestAuth_DeleteAllAccounts(t *testing.T) {
 		assert.Nil(t, res)
 	})
 
-	t.Run("success login", func(t *testing.T) {
+	t.Run("auth service returns success", func(t *testing.T) {
 		st := createAuthSuite(ctrl)
 		st.auth.EXPECT().DeleteAllAccounts(testCtx).Return(nil)
 

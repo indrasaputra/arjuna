@@ -22,7 +22,8 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	TransactionCommandService_CreateTransaction_FullMethodName = "/api.v1.TransactionCommandService/CreateTransaction"
+	TransactionCommandService_CreateTransaction_FullMethodName     = "/api.v1.TransactionCommandService/CreateTransaction"
+	TransactionCommandService_DeleteAllTransactions_FullMethodName = "/api.v1.TransactionCommandService/DeleteAllTransactions"
 )
 
 // TransactionCommandServiceClient is the client API for TransactionCommandService service.
@@ -35,6 +36,11 @@ type TransactionCommandServiceClient interface {
 	//
 	// This endpoint creates a transaction.
 	CreateTransaction(ctx context.Context, in *CreateTransactionRequest, opts ...grpc.CallOption) (*CreateTransactionResponse, error)
+	// DeleteAllTransactions.
+	//
+	// This endpoint deletes all transactions.
+	// It is ONLY USED FOR testing purpose and MUST NOT be used in production.
+	DeleteAllTransactions(ctx context.Context, in *DeleteAllTransactionsRequest, opts ...grpc.CallOption) (*DeleteAllTransactionsResponse, error)
 }
 
 type transactionCommandServiceClient struct {
@@ -55,6 +61,16 @@ func (c *transactionCommandServiceClient) CreateTransaction(ctx context.Context,
 	return out, nil
 }
 
+func (c *transactionCommandServiceClient) DeleteAllTransactions(ctx context.Context, in *DeleteAllTransactionsRequest, opts ...grpc.CallOption) (*DeleteAllTransactionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteAllTransactionsResponse)
+	err := c.cc.Invoke(ctx, TransactionCommandService_DeleteAllTransactions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TransactionCommandServiceServer is the server API for TransactionCommandService service.
 // All implementations must embed UnimplementedTransactionCommandServiceServer
 // for forward compatibility
@@ -65,6 +81,11 @@ type TransactionCommandServiceServer interface {
 	//
 	// This endpoint creates a transaction.
 	CreateTransaction(context.Context, *CreateTransactionRequest) (*CreateTransactionResponse, error)
+	// DeleteAllTransactions.
+	//
+	// This endpoint deletes all transactions.
+	// It is ONLY USED FOR testing purpose and MUST NOT be used in production.
+	DeleteAllTransactions(context.Context, *DeleteAllTransactionsRequest) (*DeleteAllTransactionsResponse, error)
 	mustEmbedUnimplementedTransactionCommandServiceServer()
 }
 
@@ -74,6 +95,9 @@ type UnimplementedTransactionCommandServiceServer struct {
 
 func (UnimplementedTransactionCommandServiceServer) CreateTransaction(context.Context, *CreateTransactionRequest) (*CreateTransactionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTransaction not implemented")
+}
+func (UnimplementedTransactionCommandServiceServer) DeleteAllTransactions(context.Context, *DeleteAllTransactionsRequest) (*DeleteAllTransactionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAllTransactions not implemented")
 }
 func (UnimplementedTransactionCommandServiceServer) mustEmbedUnimplementedTransactionCommandServiceServer() {
 }
@@ -107,6 +131,24 @@ func _TransactionCommandService_CreateTransaction_Handler(srv interface{}, ctx c
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TransactionCommandService_DeleteAllTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAllTransactionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TransactionCommandServiceServer).DeleteAllTransactions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TransactionCommandService_DeleteAllTransactions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TransactionCommandServiceServer).DeleteAllTransactions(ctx, req.(*DeleteAllTransactionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TransactionCommandService_ServiceDesc is the grpc.ServiceDesc for TransactionCommandService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -117,6 +159,10 @@ var TransactionCommandService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateTransaction",
 			Handler:    _TransactionCommandService_CreateTransaction_Handler,
+		},
+		{
+			MethodName: "DeleteAllTransactions",
+			Handler:    _TransactionCommandService_DeleteAllTransactions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

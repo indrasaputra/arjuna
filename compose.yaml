@@ -486,7 +486,7 @@ services:
       - REDIS_ADDRESS=redis:6379
       - TOKEN_SECRET_KEY=arjuna-secret-key
       - APPLIED_AUTH_BEARER=/api.v1.TransactionCommandService/CreateTransaction
-      - APPLIED_AUTH_BASIC=
+      - APPLIED_AUTH_BASIC=/api.v1.TransactionCommandService/DeleteAllTransactions
     profiles:
       - service
 

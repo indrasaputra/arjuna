@@ -356,6 +356,10 @@
       "type": "object",
       "description": "DeleteAllAccountsResponse represents response for delete all accounts."
     },
+    "v1DeleteAllTransactionsResponse": {
+      "type": "object",
+      "description": "DeleteAllTransactionsResponse represents response for delete all transactions."
+    },
     "v1DeleteUserResponse": {
       "type": "object",
       "description": "DeleteUserResponse represents response from delete user."

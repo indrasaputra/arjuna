@@ -61,7 +61,7 @@ service AuthService {
   // This endpoint deletes all accounts.
   // It is ONLY USED FOR testing purpose and MUST NOT be used in production.
   rpc DeleteAllAccounts(DeleteAllAccountsRequest) returns (DeleteAllAccountsResponse) {
-  }
+  };
 }
 
 // LoginRequest represents request for login.
