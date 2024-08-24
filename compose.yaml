@@ -297,7 +297,7 @@ services:
       - SERVICE_NAME=gateway-server
       - APP_ENV=development
       - PORT=8000
-      - USER_SERVICE_ADDRESS=user-server:8001
+      - USER_SERVICE_ADDRESS=user-api:8001
       - AUTH_SERVICE_ADDRESS=auth-server:8002
       - TRANSACTION_SERVICE_ADDRESS=transaction-server:8003
       - WALLET_SERVICE_ADDRESS=wallet-server:8004
@@ -339,10 +339,11 @@ services:
     profiles:
       - service
 
-  user-server:
+  user-api:
     <<: *arjuna-backend-default
     image: indrasaputra/arjuna-user-server:latest
-    container_name: arjuna-user-server
+    container_name: arjuna-user-api
+    command: ["api"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -354,7 +355,7 @@ services:
       - 8001:8001
       - 7001:7001
     environment:
-      - SERVICE_NAME=user-server
+      - SERVICE_NAME=user-api
       - APP_ENV=development
       - PORT=8001
       - PROMETHEUS_PORT=7001
@@ -383,8 +384,9 @@ services:
 
   user-worker:
     <<: *arjuna-backend-default
-    image: indrasaputra/arjuna-user-worker:latest
+    image: indrasaputra/arjuna-user-server:latest
     container_name: arjuna-user-worker
+    command: ["worker"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -420,8 +422,9 @@ services:
 
   user-relayer:
     <<: *arjuna-backend-default
-    image: indrasaputra/arjuna-user-relayer:latest
+    image: indrasaputra/arjuna-user-server:latest
     container_name: arjuna-user-relayer
+    command: ["relayer"]
     depends_on:
       postgres:
         condition: service_healthy
