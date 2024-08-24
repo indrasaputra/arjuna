@@ -299,7 +299,7 @@ services:
       - PORT=8000
       - USER_SERVICE_ADDRESS=user-api:8001
       - AUTH_SERVICE_ADDRESS=auth-server:8002
-      - TRANSACTION_SERVICE_ADDRESS=transaction-server:8003
+      - TRANSACTION_SERVICE_ADDRESS=transaction-api:8003
       - WALLET_SERVICE_ADDRESS=wallet-server:8004
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
     profiles:
@@ -455,10 +455,11 @@ services:
     profiles:
       - service
   
-  transaction-server:
+  transaction-api:
     <<: *arjuna-backend-default
     image: indrasaputra/arjuna-transaction-server:latest
-    container_name: arjuna-transaction-server
+    container_name: arjuna-transaction-api
+    command: ["api"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -468,7 +469,7 @@ services:
       - 8003:8003
       - 7003:7003
     environment:
-      - SERVICE_NAME=transaction-server
+      - SERVICE_NAME=transaction-api
       - APP_ENV=development
       - PORT=8003
       - PROMETHEUS_PORT=7003

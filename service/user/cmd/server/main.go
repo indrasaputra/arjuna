@@ -53,7 +53,8 @@ func main() {
 	}
 }
 
-func API(cmd *cobra.Command, args []string) {
+// API is the entry point for running the API server.
+func API(_ *cobra.Command, _ []string) {
 	ctx := context.Background()
 
 	cfg, err := config.NewConfig(".env")
@@ -96,7 +97,8 @@ func API(cmd *cobra.Command, args []string) {
 	srv.GracefulStop()
 }
 
-func Worker(cmd *cobra.Command, args []string) {
+// Worker is the entry point for running the worker server.
+func Worker(_ *cobra.Command, _ []string) {
 	ctx := context.Background()
 
 	cfg, err := config.NewConfig(".env")
@@ -135,7 +137,8 @@ func Worker(cmd *cobra.Command, args []string) {
 	}
 }
 
-func Relayer(cmd *cobra.Command, args []string) {
+// Relayer is the entry point for running the Relayer server.
+func Relayer(_ *cobra.Command, _ []string) {
 	ctx := context.Background()
 
 	cfg, err := config.NewConfig(".env")
