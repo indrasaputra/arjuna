@@ -41,6 +41,20 @@ func (m *MockAuthentication) EXPECT() *MockAuthenticationMockRecorder {
 	return m.recorder
 }
 
+// DeleteAllAccounts mocks base method.
+func (m *MockAuthentication) DeleteAllAccounts(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAllAccounts", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAllAccounts indicates an expected call of DeleteAllAccounts.
+func (mr *MockAuthenticationMockRecorder) DeleteAllAccounts(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAllAccounts", reflect.TypeOf((*MockAuthentication)(nil).DeleteAllAccounts), ctx)
+}
+
 // Login mocks base method.
 func (m *MockAuthentication) Login(ctx context.Context, email, password string) (*entity.Token, error) {
 	m.ctrl.T.Helper()
@@ -91,6 +105,20 @@ func NewMockAuthRepository(ctrl *gomock.Controller) *MockAuthRepository {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockAuthRepository) EXPECT() *MockAuthRepositoryMockRecorder {
 	return m.recorder
+}
+
+// DeleteAll mocks base method.
+func (m *MockAuthRepository) DeleteAll(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAll", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAll indicates an expected call of DeleteAll.
+func (mr *MockAuthRepositoryMockRecorder) DeleteAll(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAll", reflect.TypeOf((*MockAuthRepository)(nil).DeleteAll), ctx)
 }
 
 // GetByEmail mocks base method.

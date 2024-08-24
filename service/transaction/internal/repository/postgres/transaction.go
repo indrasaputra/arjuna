@@ -49,3 +49,14 @@ func (t *Transaction) Insert(ctx context.Context, trx *entity.Transaction) error
 	}
 	return nil
 }
+
+// DeleteAll deletes all transactions.
+func (t *Transaction) DeleteAll(ctx context.Context) error {
+	query := "DELETE FROM transactions"
+	_, err := t.db.Exec(ctx, query)
+	if err != nil {
+		app.Logger.Errorf(ctx, "[PostgresTransaction-DeleteAll] fail delete all transactions: %v", err)
+		return entity.ErrInternal(err.Error())
+	}
+	return nil
+}

@@ -79,15 +79,15 @@ build.all: ## Build docker for all services.
 ##@ Test
 .PHONY: test.unit
 test.unit: ## Run unit test.
-	tool/script/test.sh unit
+	tool/script/test.sh unit $(svc)
 
 .PHONY: test.cover
 test.cover: ## Run unit test.
-	tool/script/test.sh cover
+	tool/script/test.sh cover $(svc)
 
 .PHONY: test.e2e
 test.e2e: ## Run e2e test using Godog.
-	tool/script/godog.sh
+	tool/script/test.sh e2e
 
 ##@ Migration
 .PHONY: migration

@@ -35,7 +35,7 @@ func TestNewTransactionCreator(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	t.Run("successfully create an instance of Transaction", func(t *testing.T) {
+	t.Run("successfully create an instance of TransactionCreator", func(t *testing.T) {
 		st := createTransactionCreatorSuite(ctrl)
 		assert.NotNil(t, st.trx)
 	})

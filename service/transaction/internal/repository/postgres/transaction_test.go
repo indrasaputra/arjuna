@@ -92,6 +92,35 @@ func TestTransaction_Insert(t *testing.T) {
 	})
 }
 
+func TestTransaction_DeleteAll(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	app.Logger = sdklog.NewLogger(testEnv)
+	query := `DELETE FROM transactions`
+
+	t.Run("delete all returns error", func(t *testing.T) {
+		st := createTransactionSuite(ctrl)
+		st.db.EXPECT().
+			Exec(testCtx, query).
+			Return(int64(0), entity.ErrInternal("error"))
+
+		err := st.trx.DeleteAll(testCtx)
+
+		assert.Error(t, err)
+	})
+
+	t.Run("delete all returns success", func(t *testing.T) {
+		st := createTransactionSuite(ctrl)
+		st.db.EXPECT().
+			Exec(testCtx, query).
+			Return(int64(1), nil)
+
+		err := st.trx.DeleteAll(testCtx)
+
+		assert.NoError(t, err)
+	})
+}
+
 func createTestTransaction() *entity.Transaction {
 	a, _ := decimal.NewFromString("10.23")
 	return &entity.Transaction{

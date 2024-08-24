@@ -142,6 +142,32 @@ func TestAuth_RegisterAccount(t *testing.T) {
 	})
 }
 
+func TestAuth_DeleteAllAccounts(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	app.Logger = sdklog.NewLogger(testEnv)
+
+	t.Run("auth service returns error", func(t *testing.T) {
+		st := createAuthSuite(ctrl)
+		st.auth.EXPECT().DeleteAllAccounts(testCtx).Return(errors.New("error"))
+
+		res, err := st.handler.DeleteAllAccounts(testCtx, nil)
+
+		assert.Error(t, err)
+		assert.Nil(t, res)
+	})
+
+	t.Run("auth service returns success", func(t *testing.T) {
+		st := createAuthSuite(ctrl)
+		st.auth.EXPECT().DeleteAllAccounts(testCtx).Return(nil)
+
+		res, err := st.handler.DeleteAllAccounts(testCtx, nil)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, res)
+	})
+}
+
 func createAuthSuite(ctrl *gomock.Controller) *AuthSuite {
 	r := mock_service.NewMockAuthentication(ctrl)
 	h := handler.NewAuth(r)

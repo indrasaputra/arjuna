@@ -30,8 +30,8 @@ func (a *Auth) Login(ctx context.Context, request *apiv1.LoginRequest) (*apiv1.L
 		return nil, err
 	}
 
-	email := request.GetCredential().GetEmail()
-	password := request.GetCredential().GetPassword()
+	email := strings.TrimSpace(request.GetCredential().GetEmail())
+	password := strings.TrimSpace(request.GetCredential().GetPassword())
 
 	token, err := a.auth.Login(ctx, email, password)
 	if err != nil {
@@ -54,6 +54,16 @@ func (a *Auth) RegisterAccount(ctx context.Context, request *apiv1.RegisterAccou
 		return nil, err
 	}
 	return &apiv1.RegisterAccountResponse{}, nil
+}
+
+// DeleteAllAccounts handles HTTP/2 gRPC request similar to POST in HTTP/1.1.
+func (a *Auth) DeleteAllAccounts(ctx context.Context, _ *apiv1.DeleteAllAccountsRequest) (*apiv1.DeleteAllAccountsResponse, error) {
+	err := a.auth.DeleteAllAccounts(ctx)
+	if err != nil {
+		app.Logger.Errorf(ctx, "[AuthHandler-DeleteAllAccounts] delete all accounts fail: %v", err)
+		return nil, err
+	}
+	return &apiv1.DeleteAllAccountsResponse{}, nil
 }
 
 func validateLoginRequest(request *apiv1.LoginRequest) error {
