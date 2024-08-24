@@ -87,7 +87,7 @@ test.cover: ## Run unit test.
 
 .PHONY: test.e2e
 test.e2e: ## Run e2e test using Godog.
-	tool/script/godog.sh
+	tool/script/test.sh e2e
 
 ##@ Migration
 .PHONY: migration
