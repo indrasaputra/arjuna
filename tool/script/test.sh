@@ -7,7 +7,7 @@ if [[ $1 = 'cover' ]]; then
         if [[ -f ${dir}/go.mod ]]; then
             (cd ${dir} && 
                 go clean -testcache &&
-                go test -count=1 -failfast -v -race -coverprofile=coverage.out ./... &&
+                go test -count=1 -failfast -v -race -coverprofile=coverage.out $(go list ./... | grep -v /test/) &&
                 go tool cover -html=coverage.out -o coverage.html &&
                 go tool cover -func coverage.out)
         fi
@@ -17,7 +17,7 @@ elif [[ $1 = 'unit' ]]; then
         if [[ -f ${dir}/go.mod ]]; then
             (cd ${dir} && 
                 go clean -testcache &&
-                go test -count=1 -failfast -v -race ./...)
+                go test -count=1 -failfast -v -race $(go list ./... | grep -v /test/))
         fi
     done
 elif [[ $1 = 'e2e' ]]; then
