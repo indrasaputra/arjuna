@@ -83,7 +83,7 @@ test.unit: ## Run unit test.
 
 .PHONY: test.cover
 test.cover: ## Run unit test.
-	tool/script/test.sh cover
+	tool/script/test.sh cover $(svc)
 
 .PHONY: test.e2e
 test.e2e: ## Run e2e test using Godog.
