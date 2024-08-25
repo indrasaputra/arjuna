@@ -9,10 +9,10 @@ import (
 // User defines the logical data of a user.
 type User struct {
 	Auditable
-	Name     string
-	Email    string
-	Password string
-	ID       uuid.UUID
+	Name     string    `json:"name"`
+	Email    string    `json:"email"`
+	Password string    `json:"password"`
+	ID       uuid.UUID `json:"id"`
 }
 
 // UserOutboxStatus enumerates user outbox status.

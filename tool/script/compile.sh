@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-CMD_DIRS=(server worker relayer)
+CMD=server
 OUTPUT_DIR=deploy/output
 APP_DIR=
 
@@ -12,13 +12,11 @@ else
     APP_DIR=service/$1
 fi
 
-for cmd in "${CMD_DIRS[@]}"; do
-    if [ -d ${APP_DIR}/cmd/${cmd} ]; then
-        echo "compiling ${APP_DIR}/cmd/${cmd}..."
-        (cd ${APP_DIR} && \
-            GO111MODULE=on CGO_ENABLED=0 GOOS=linux \
-            go build -a -installsuffix cgo -ldflags '-extldflags "-static"' \
-            -o ${OUTPUT_DIR}/${cmd}/$1 \
-            cmd/${cmd}/main.go)
-    fi
-done
+if [ -d ${APP_DIR}/cmd/${CMD} ]; then
+    echo "compiling ${APP_DIR}/cmd/${CMD}..."
+    (cd ${APP_DIR} && \
+        GO111MODULE=on CGO_ENABLED=0 GOOS=linux \
+        go build -a -installsuffix cgo -ldflags '-extldflags "-static"' \
+        -o ${OUTPUT_DIR}/${CMD}/$1 \
+        cmd/${CMD}/main.go)
+fi

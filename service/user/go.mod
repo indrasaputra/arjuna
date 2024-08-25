@@ -37,6 +37,7 @@ require (
 	github.com/redis/go-redis/v9 v9.5.4
 	github.com/shopspring/decimal v1.4.0
 	github.com/spf13/cobra v1.8.1
+	github.com/uptrace/bun v1.1.9
 	go.temporal.io/sdk v1.19.0
 	go.uber.org/mock v0.4.0
 )
@@ -82,7 +83,6 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
-	github.com/uptrace/bun v1.1.9 // indirect
 	github.com/uptrace/bun/dialect/pgdialect v1.1.9 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
