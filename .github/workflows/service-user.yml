@@ -80,16 +80,13 @@ jobs:
     name: Build and push docker
     needs: [compile-binary]
     if: ${{ needs.change-check.outputs.has-change == 'true' }}
-    strategy:
-      matrix:
-        cmd: [server, worker, relayer]
     uses: ./.github/workflows/reusable-go-build-ci.yml
     with:
       target: service/user
       service: user
       dockerfile: ./service/user/dockerfile/user.dockerfile
       need_go_binary: true
-      cmd: ${{ matrix.cmd }}
+      cmd: server
     secrets:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}

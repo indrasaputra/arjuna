@@ -3,8 +3,13 @@ package main
 
 import (
 	"context"
+	"log"
 	"strings"
+	"time"
 
+	"github.com/spf13/cobra"
+	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/worker"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
@@ -15,10 +20,41 @@ import (
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/builder"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
+	connauth "github.com/indrasaputra/arjuna/service/user/internal/connection/auth"
+	connwallet "github.com/indrasaputra/arjuna/service/user/internal/connection/wallet"
 	"github.com/indrasaputra/arjuna/service/user/internal/grpc/handler"
+	orcact "github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/activity"
+	orcwork "github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/workflow"
+	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
+	"github.com/indrasaputra/arjuna/service/user/internal/service"
 )
 
 func main() {
+	command := &cobra.Command{Use: "user", Short: "Start the service."}
+
+	command.AddCommand(&cobra.Command{
+		Use:   "api",
+		Short: "Run the API server.",
+		Run:   API,
+	})
+	command.AddCommand(&cobra.Command{
+		Use:   "worker",
+		Short: "Run the worker.",
+		Run:   Worker,
+	})
+	command.AddCommand(&cobra.Command{
+		Use:   "relayer",
+		Short: "Run the relayer.",
+		Run:   Relayer,
+	})
+
+	if err := command.Execute(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// API is the entry point for running the API server.
+func API(_ *cobra.Command, _ []string) {
 	ctx := context.Background()
 
 	cfg, err := config.NewConfig(".env")
@@ -59,6 +95,79 @@ func main() {
 
 	_ = srv.Serve()
 	srv.GracefulStop()
+}
+
+// Worker is the entry point for running the worker server.
+func Worker(_ *cobra.Command, _ []string) {
+	ctx := context.Background()
+
+	cfg, err := config.NewConfig(".env")
+	checkError(err)
+
+	app.Logger = sdklog.NewLogger(cfg.AppEnv)
+
+	_, err = trace.NewProvider(ctx, cfg.Tracer)
+	checkError(err)
+
+	temporalClient, err := builder.BuildTemporalClient(cfg.Temporal.Address)
+	checkError(err)
+	defer temporalClient.Close()
+	bunDB, err := builder.BuildBunDB(cfg.Postgres)
+	checkError(err)
+	authClient, err := builder.BuildAuthClient(cfg.AuthServiceHost, cfg.AuthServiceUsername, cfg.AuthServicePassword)
+	checkError(err)
+	walletClient, err := builder.BuildWalletClient(cfg.WalletServiceHost, cfg.WalletServiceUsername, cfg.WalletServicePassword)
+	checkError(err)
+
+	ac := connauth.NewAuth(authClient)
+	wc := connwallet.NewWallet(walletClient)
+	db := postgres.NewUser(bunDB)
+
+	act := orcact.NewRegisterUserActivity(ac, wc, db)
+
+	w := worker.New(temporalClient, orcwork.TaskQueueRegisterUser, worker.Options{
+		DisableRegistrationAliasing: true,
+	})
+	w.RegisterWorkflow(orcwork.RegisterUser)
+	w.RegisterActivityWithOptions(act, activity.RegisterOptions{Name: "RegisterUserActivity", SkipInvalidStructFunctions: true})
+
+	err = w.Run(worker.InterruptCh())
+	if err != nil {
+		log.Panic("Unable to start worker", err)
+	}
+}
+
+// Relayer is the entry point for running the Relayer server.
+func Relayer(_ *cobra.Command, _ []string) {
+	ctx := context.Background()
+
+	cfg, err := config.NewConfig(".env")
+	checkError(err)
+
+	app.Logger = sdklog.NewLogger(cfg.AppEnv)
+
+	_, err = trace.NewProvider(ctx, cfg.Tracer)
+	checkError(err)
+
+	temporalClient, err := builder.BuildTemporalClient(cfg.Temporal.Address)
+	checkError(err)
+	defer temporalClient.Close()
+
+	bunDB, err := builder.BuildBunDB(cfg.Postgres)
+	checkError(err)
+
+	p := postgres.NewUserOutbox(bunDB)
+	w := orcwork.NewRegisterUserWorkflow(temporalClient)
+
+	svc := service.NewUserRelayRegistrar(p, w)
+
+	for {
+		app.Logger.Infof(ctx, "running user registration relayer at %v", time.Now())
+		if err := svc.Register(ctx); err != nil {
+			app.Logger.Errorf(ctx, "error during relay register: %v", err)
+		}
+		time.Sleep(time.Duration(cfg.RelayerSleepTimeMillisecond) * time.Millisecond)
+	}
 }
 
 func registerGrpcService(srv *server.Server, dep *builder.Dependency) {

@@ -22,5 +22,5 @@ COPY --from=builder /bin/wait-for ./wait-for
 COPY --from=builder /app/service/${SERVICE}/${OUTPUT_DIR}/${CMD}/${SERVICE} .
 COPY --from=builder /app/tool/script/start.sh ./start.sh
 RUN chmod +x /app/start.sh /app/wait-for /app/${SERVICE}
-EXPOSE 8003
-CMD ["./start.sh", "wallet"]
+EXPOSE 8004
+ENTRYPOINT ["./wallet"]
