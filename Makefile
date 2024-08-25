@@ -98,6 +98,12 @@ migration: ## Create database migration.
 migrate: ## Run database migrations.
 	migrate -path service/$(svc)/db/migrations -database "$(url)" -verbose up
 
+.PHONY: seed
+seed: ## Run database seeder.
+	for svc in $(SERVICES); do \
+		tool/script/seed.sh $$svc; \
+	done
+
 ##@ Run
 .PHONY: up
 up: ## Run all containers in compose.yaml
