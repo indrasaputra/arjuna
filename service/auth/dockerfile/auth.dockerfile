@@ -23,4 +23,4 @@ COPY --from=builder /app/service/${SERVICE}/${OUTPUT_DIR}/${CMD}/${SERVICE} .
 COPY --from=builder /app/tool/script/start.sh ./start.sh
 RUN chmod +x /app/start.sh /app/wait-for /app/${SERVICE}
 EXPOSE 8001
-CMD ["./start.sh", "auth"]
+ENTRYPOINT ["./auth"]

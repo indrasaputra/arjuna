@@ -7,6 +7,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
@@ -21,6 +22,21 @@ import (
 )
 
 func main() {
+	command := &cobra.Command{Use: "auth", Short: "Start the service."}
+
+	command.AddCommand(&cobra.Command{
+		Use:   "api",
+		Short: "Run the API server.",
+		Run:   API,
+	})
+
+	if err := command.Execute(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// API is the entry point for running the API server.
+func API(_ *cobra.Command, _ []string) {
 	ctx := context.Background()
 
 	cfg, err := config.NewConfig(".env")
