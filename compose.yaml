@@ -512,7 +512,7 @@ services:
       - SERVICE_NAME=wallet-api
       - APP_ENV=development
       - PORT=8004
-      - PROMETHEUS_PORT=7003
+      - PROMETHEUS_PORT=7004
       - USERNAME=wallet-user
       - PASSWORD=wallet-password
       - POSTGRES_HOST=postgres

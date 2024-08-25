@@ -10,9 +10,9 @@ import (
 // Wallet defines logical data related to wallet.
 type Wallet struct {
 	Auditable
-	Balance decimal.Decimal
-	ID      uuid.UUID
-	UserID  uuid.UUID
+	Balance decimal.Decimal `json:"balance"`
+	ID      uuid.UUID       `json:"id"`
+	UserID  uuid.UUID       `json:"user_id"`
 }
 
 // TopupWallet defines logical data related to topup wallet.

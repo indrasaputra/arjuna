@@ -18,10 +18,10 @@ type Token struct {
 // Account represents account.
 type Account struct {
 	Auditable
-	Email    string
-	Password string
-	ID       uuid.UUID
-	UserID   uuid.UUID
+	Email    string    `json:"email"`
+	Password string    `json:"password"`
+	ID       uuid.UUID `json:"id"`
+	UserID   uuid.UUID `json:"user_id"`
 }
 
 // Claims represents token claims.
