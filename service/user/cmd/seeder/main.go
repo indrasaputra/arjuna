@@ -1,3 +1,4 @@
+// Main seeder program to insert users data into the database.
 package main
 
 import (
@@ -6,11 +7,12 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 
-	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
+	"github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/service/user/entity"
+	"github.com/indrasaputra/arjuna/service/user/internal/builder"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
-	"github.com/uptrace/bun"
 )
 
 func main() {
@@ -18,16 +20,16 @@ func main() {
 
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
-	bunDB, err := sdkpg.NewDBWithPgx(cfg.Postgres)
+	db, err := builder.BuildBunDB(cfg.Postgres)
 	checkError(err)
 
-	val := openJson("test/fixture/users.json")
+	val := openJSON("test/fixture/users.json")
 
-	insertUsers(ctx, bunDB, val)
+	insertUsers(ctx, db, val)
 }
 
-func openJson(file string) []byte {
-	jsonFile, err := os.Open(file)
+func openJSON(file string) []byte {
+	jsonFile, err := os.Open(filepath.Clean(file))
 	checkError(err)
 	defer func() {
 		_ = jsonFile.Close()
@@ -39,14 +41,13 @@ func openJson(file string) []byte {
 	return val
 }
 
-func insertUsers(ctx context.Context, db *bun.DB, val []byte) {
+func insertUsers(ctx context.Context, db *postgres.BunDB, val []byte) {
 	var users []*entity.User
 	_ = json.Unmarshal(val, &users)
 
 	query := "INSERT INTO users (id, name, created_at, updated_at) VALUES (?, ?, NOW(), NOW())"
 	for _, user := range users {
-		// password, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.MinCost)
-		_, err := db.ExecContext(ctx, query, user.ID, user.Name)
+		_, err := db.Exec(ctx, query, user.ID, user.Name)
 		checkError(err)
 	}
 	log.Printf("Successfully insert %d users\n", len(users))
