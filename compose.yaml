@@ -300,7 +300,7 @@ services:
       - USER_SERVICE_ADDRESS=user-api:8001
       - AUTH_SERVICE_ADDRESS=auth-api:8002
       - TRANSACTION_SERVICE_ADDRESS=transaction-api:8003
-      - WALLET_SERVICE_ADDRESS=wallet-server:8004
+      - WALLET_SERVICE_ADDRESS=wallet-api:8004
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
     profiles:
       - service
@@ -375,7 +375,7 @@ services:
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - AUTH_SERVICE_HOST=auth-api:8002
-      - WALLET_SERVICE_HOST=wallet-server:8004
+      - WALLET_SERVICE_HOST=wallet-api:8004
       - REDIS_ADDRESS=redis:6379
       - TOKEN_SECRET_KEY=arjuna-secret-key
       - APPLIED_AUTH_BEARER=/api.v1.UserQueryService/GetAllUsers
@@ -411,7 +411,7 @@ services:
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - AUTH_SERVICE_HOST=auth-api:8002
-      - WALLET_SERVICE_HOST=wallet-server:8004
+      - WALLET_SERVICE_HOST=wallet-api:8004
       - REDIS_ADDRESS=redis:6379
       - TOKEN_SECRET_KEY=arjuna-secret-key
       - AUTH_SERVICE_USERNAME=auth-user
@@ -450,7 +450,7 @@ services:
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - AUTH_SERVICE_HOST=auth-api:8002
-      - WALLET_SERVICE_HOST=wallet-server:8004
+      - WALLET_SERVICE_HOST=wallet-api:8004
       - REDIS_ADDRESS=redis:6379
       - TOKEN_SECRET_KEY=arjuna-secret-key
     profiles:
@@ -495,10 +495,11 @@ services:
     profiles:
       - service
 
-  wallet-server:
+  wallet-api:
     <<: *arjuna-backend-default
     image: indrasaputra/arjuna-wallet-server:latest
-    container_name: arjuna-wallet-server
+    container_name: arjuna-wallet-api
+    command: ["api"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -508,7 +509,7 @@ services:
       - 8004:8004
       - 7004:7004
     environment:
-      - SERVICE_NAME=wallet-server
+      - SERVICE_NAME=wallet-api
       - APP_ENV=development
       - PORT=8004
       - PROMETHEUS_PORT=7003
