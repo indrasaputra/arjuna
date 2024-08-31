@@ -55,13 +55,6 @@ service TransactionCommandService {
       },
     };
   };
-
-  // DeleteAllTransactions.
-  //
-  // This endpoint deletes all transactions.
-  // It is ONLY USED FOR testing purpose and MUST NOT be used in production.
-  rpc DeleteAllTransactions(DeleteAllTransactionsRequest) returns (DeleteAllTransactionsResponse) {
-  };
 }
 
 // CreateTransactionRequest represents request for create transaction.
@@ -113,14 +106,6 @@ message Transaction {
   // created_at represents when the transaction was created.
   google.protobuf.Timestamp created_at = 5
       [ (google.api.field_behavior) = OUTPUT_ONLY, json_name = "created_at" ];
-}
-
-// DeleteAllTransactionsRequest represents request for delete all transactions.
-message DeleteAllTransactionsRequest {
-}
-
-// DeleteAllTransactionsResponse represents response for delete all transactions.
-message DeleteAllTransactionsResponse {
 }
 
 // TransactionError represents message for any error happening in transaction service.

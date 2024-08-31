@@ -3,6 +3,7 @@ package integration
 import (
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -11,8 +12,6 @@ import (
 )
 
 func TestRegister(t *testing.T) {
-	deleteAllAccounts()
-
 	t.Run("unauthenticated request", func(t *testing.T) {
 		account := createAccount()
 		req := &apiv1.RegisterAccountRequest{Account: account}
@@ -73,8 +72,8 @@ func TestRegister(t *testing.T) {
 
 func createAccount() *apiv1.Account {
 	return &apiv1.Account{
-		UserId:   userID.String(),
-		Email:    email,
-		Password: password,
+		UserId:   uuid.Must(uuid.NewV7()).String(),
+		Email:    "auth-register+1@arjuna.com",
+		Password: "password",
 	}
 }

@@ -92,7 +92,7 @@ service UserQueryService {
       tags : "User"
       parameters : {headers : [ {name : "Authorization" type : STRING required : true} ]},
     };
-  }
+  };
 }
 
 // RegisterUserRequest represents request for register user.

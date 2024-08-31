@@ -27,9 +27,8 @@ func BuildTransactionCommandHandler(dep *Dependency) *handler.TransactionCommand
 	i := redis.NewIdempotencyKey(dep.RedisClient)
 
 	c := service.NewTransactionCreator(p, i)
-	d := service.NewTransactionDeleter(p)
 
-	return handler.NewTransactionCommand(c, d)
+	return handler.NewTransactionCommand(c)
 }
 
 // BuildBunDB builds BunDB.

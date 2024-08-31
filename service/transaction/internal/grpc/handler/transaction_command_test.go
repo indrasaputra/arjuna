@@ -2,7 +2,6 @@ package handler_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -31,7 +30,6 @@ var (
 type TransactionCommandSuite struct {
 	handler *handler.TransactionCommand
 	creator *mock_service.MockCreateTransaction
-	deleter *mock_service.MockDeleteTransaction
 }
 
 func TestNewTransactionCommand(t *testing.T) {
@@ -138,40 +136,11 @@ func TestTransactionCommand_CreateTransaction(t *testing.T) {
 	})
 }
 
-func TestTransactionCommand_DeleteAllTransactions(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
-
-	t.Run("deleter service returns error", func(t *testing.T) {
-		st := createTransactionCommandSuite(ctrl)
-		st.deleter.EXPECT().DeleteAllTransactions(testCtx).Return(errors.New("error"))
-
-		res, err := st.handler.DeleteAllTransactions(testCtx, nil)
-
-		assert.Error(t, err)
-		assert.Nil(t, res)
-	})
-
-	t.Run("deleter service returns success", func(t *testing.T) {
-		st := createTransactionCommandSuite(ctrl)
-		st.deleter.EXPECT().DeleteAllTransactions(testCtx).Return(nil)
-
-		res, err := st.handler.DeleteAllTransactions(testCtx, nil)
-
-		assert.NoError(t, err)
-		assert.NotNil(t, res)
-	})
-}
-
 func createTransactionCommandSuite(ctrl *gomock.Controller) *TransactionCommandSuite {
 	c := mock_service.NewMockCreateTransaction(ctrl)
-	d := mock_service.NewMockDeleteTransaction(ctrl)
-
-	h := handler.NewTransactionCommand(c, d)
+	h := handler.NewTransactionCommand(c)
 	return &TransactionCommandSuite{
 		handler: h,
 		creator: c,
-		deleter: d,
 	}
 }

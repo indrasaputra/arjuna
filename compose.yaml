@@ -343,7 +343,7 @@ services:
       - TOKEN_SECRET_KEY=arjuna-secret-key
       - TOKEN_EXPIRY_TIME_IN_MINUTE=30
       - APPLIED_AUTH_BEARER=
-      - APPLIED_AUTH_BASIC=/api.v1.AuthService/RegisterAccount,/api.v1.AuthService/DeleteAllAccounts
+      - APPLIED_AUTH_BASIC=/api.v1.AuthService/RegisterAccount
     profiles:
       - service
 
