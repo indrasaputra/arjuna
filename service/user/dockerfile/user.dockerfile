@@ -12,7 +12,7 @@ ARG SERVICE=user
 ARG OUTPUT_DIR=deploy/output
 ARG CMD=server
 WORKDIR /app
-COPY --from=builder /app/service/${SERVICE}/test/fixture/accounts.json ./test/fixture/accounts.json
+COPY --from=builder /app/service/${SERVICE}/test/fixture/users.json ./test/fixture/users.json
 COPY --from=builder /app/bin/grpc_health_probe-linux-amd64-v0.4.28 ./grpc_health_probe
 COPY --from=builder /app/service/${SERVICE}/${OUTPUT_DIR}/${CMD}/${SERVICE} .
 EXPOSE 8001

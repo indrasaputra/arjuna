@@ -12,7 +12,7 @@ ARG SERVICE=wallet
 ARG OUTPUT_DIR=deploy/output
 ARG CMD=server
 WORKDIR /app
-COPY --from=builder /app/service/${SERVICE}/test/fixture/accounts.json ./test/fixture/accounts.json
+COPY --from=builder /app/service/${SERVICE}/test/fixture/wallets.json ./test/fixture/wallets.json
 COPY --from=builder /app/bin/grpc_health_probe-linux-amd64-v0.4.28 ./grpc_health_probe
 COPY --from=builder /app/service/${SERVICE}/${OUTPUT_DIR}/${CMD}/${SERVICE} .
 EXPOSE 8004
