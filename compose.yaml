@@ -309,10 +309,17 @@ services:
     <<: *arjuna-backend-default
     image: indrasaputra/arjuna-auth-server:latest
     container_name: arjuna-auth-api
-    command: ["./auth", "api"]
+    command:
+      - /bin/sh
+      - -c
+      - |
+        ./auth seed
+        ./auth api
     depends_on:
       postgres:
         condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
     ports:
       - 8002:8002
       - 7002:7002
@@ -344,7 +351,12 @@ services:
     <<: *arjuna-backend-default
     image: indrasaputra/arjuna-user-server:latest
     container_name: arjuna-user-api
-    command: ["./user", "api"]
+    command:
+      - /bin/sh
+      - -c
+      - |
+        ./user seed
+        ./user api
     depends_on:
       postgres:
         condition: service_healthy
@@ -352,6 +364,8 @@ services:
         condition: service_healthy
       temporal:
         condition: service_started
+      db-migrate:
+        condition: service_completed_successfully
     ports:
       - 8001:8001
       - 7001:7001
@@ -499,12 +513,19 @@ services:
     <<: *arjuna-backend-default
     image: indrasaputra/arjuna-wallet-server:latest
     container_name: arjuna-wallet-api
-    command: ["./wallet", "api"]
+    command:
+      - /bin/sh
+      - -c
+      - |
+        ./wallet seed
+        ./wallet api
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
     ports:
       - 8004:8004
       - 7004:7004
