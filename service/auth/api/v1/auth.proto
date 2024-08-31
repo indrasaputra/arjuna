@@ -54,13 +54,6 @@ service AuthService {
   //
   // This endpoint register an account.
   rpc RegisterAccount(RegisterAccountRequest) returns (RegisterAccountResponse) {
-  }
-
-  // DeleteAllAccounts.
-  //
-  // This endpoint deletes all accounts.
-  // It is ONLY USED FOR testing purpose and MUST NOT be used in production.
-  rpc DeleteAllAccounts(DeleteAllAccountsRequest) returns (DeleteAllAccountsResponse) {
   };
 }
 
@@ -84,14 +77,6 @@ message RegisterAccountRequest {
 
 // RegisterAccountResponse represents response for account registration.
 message RegisterAccountResponse {
-}
-
-// DeleteAllAccountsRequest represents request for delete all accounts.
-message DeleteAllAccountsRequest {
-}
-
-// DeleteAllAccountsResponse represents response for delete all accounts.
-message DeleteAllAccountsResponse {
 }
 
 // Account represents account.

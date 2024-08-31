@@ -10,7 +10,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
@@ -28,9 +27,8 @@ var (
 	grpcClient apiv1.AuthServiceClient
 	httpClient *http.Client
 
-	userID        = uuid.Must(uuid.NewV7())
-	email         = "auth-register+1@arjuna.com"
-	password      = "WeakPassword123"
+	email         = "user+1@arjuna.com" // from test/fixture/accounts.json
+	password      = "password"          // from test/fixture/accounts.json
 	basicUsername = "auth-user"
 	basicPassword = "auth-password"
 )
@@ -78,11 +76,4 @@ func sendHTTPRequest(method, url string, payload map[string]any, token string) (
 		log.Fatal(err)
 	}
 	return resp.StatusCode, b
-}
-
-func deleteAllAccounts() {
-	_, err := grpcClient.DeleteAllAccounts(testCtxBasic, &apiv1.DeleteAllAccountsRequest{})
-	if err != nil {
-		panic(err)
-	}
 }

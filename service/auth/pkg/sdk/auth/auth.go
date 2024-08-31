@@ -61,15 +61,6 @@ func (c *Client) Register(ctx context.Context, account *entity.Account) error {
 	return err
 }
 
-// DeleteAllAccounts deletes all accounts.
-func (c *Client) DeleteAllAccounts(ctx context.Context) error {
-	token := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", c.config.Username, c.config.Password)))
-	ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs(headerAuthorization, fmt.Sprintf("basic %s", token)))
-
-	_, err := c.handler.DeleteAllAccounts(ctx, nil)
-	return err
-}
-
 // ParseToken parses the token.
 func ParseToken(tokenString string, secret []byte) (*entity.Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &entity.Claims{}, func(token *jwt.Token) (interface{}, error) {

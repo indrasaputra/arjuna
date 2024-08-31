@@ -27,9 +27,6 @@ type Authentication interface {
 	Login(ctx context.Context, email, password string) (*entity.Token, error)
 	// Register registers an account.
 	Register(ctx context.Context, account *entity.Account) error
-	// DeleteAllAccounts deletes all accounts.
-	// It is used for testing purpose and MUST NOT be used in production.
-	DeleteAllAccounts(ctx context.Context) error
 }
 
 // AuthRepository defines the interface to authenticate.
@@ -38,8 +35,6 @@ type AuthRepository interface {
 	GetByEmail(ctx context.Context, email string) (*entity.Account, error)
 	// Insert inserts an account.
 	Insert(ctx context.Context, account *entity.Account) error
-	// DeleteAll deletes all accounts.
-	DeleteAll(ctx context.Context) error
 }
 
 // Auth is responsible for authentication.
@@ -99,12 +94,6 @@ func (a *Auth) Register(ctx context.Context, account *entity.Account) error {
 		return err
 	}
 	return nil
-}
-
-// DeleteAllAccounts deletes all accounts.
-// It is used for testing purpose and MUST NOT be used in production.
-func (a *Auth) DeleteAllAccounts(ctx context.Context) error {
-	return a.repo.DeleteAll(ctx)
 }
 
 func validateAccount(account *entity.Account) error {
