@@ -44,11 +44,11 @@ func setupClients() {
 	httpClient = http.DefaultClient
 }
 
-func sendPost(url string, payload map[string]any, token string) (int, []byte) {
-	return sendHTTPRequest(http.MethodPost, url, payload, token)
+func sendPost(url string, payload map[string]any) (int, []byte) {
+	return sendHTTPRequest(http.MethodPost, url, payload)
 }
 
-func sendHTTPRequest(method, url string, payload map[string]any, token string) (int, []byte) {
+func sendHTTPRequest(method, url string, payload map[string]any) (int, []byte) {
 	var body io.Reader
 	if payload != nil {
 		p, err := json.Marshal(payload)
@@ -62,9 +62,6 @@ func sendHTTPRequest(method, url string, payload map[string]any, token string) (
 		log.Fatal(err)
 	}
 	req.Header.Add("Content-Type", "application/json")
-	if token != "" {
-		req.Header.Add("Authorization", "Bearer "+token)
-	}
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
