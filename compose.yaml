@@ -309,7 +309,7 @@ services:
     <<: *arjuna-backend-default
     image: indrasaputra/arjuna-auth-server:latest
     container_name: arjuna-auth-api
-    command: ["api"]
+    command: ["./auth", "api"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -344,7 +344,7 @@ services:
     <<: *arjuna-backend-default
     image: indrasaputra/arjuna-user-server:latest
     container_name: arjuna-user-api
-    command: ["api"]
+    command: ["./user", "api"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -387,7 +387,7 @@ services:
     <<: *arjuna-backend-default
     image: indrasaputra/arjuna-user-server:latest
     container_name: arjuna-user-worker
-    command: ["worker"]
+    command: ["./user", "worker"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -425,7 +425,7 @@ services:
     <<: *arjuna-backend-default
     image: indrasaputra/arjuna-user-server:latest
     container_name: arjuna-user-relayer
-    command: ["relayer"]
+    command: ["./user", "relayer"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -460,7 +460,7 @@ services:
     <<: *arjuna-backend-default
     image: indrasaputra/arjuna-transaction-server:latest
     container_name: arjuna-transaction-api
-    command: ["api"]
+    command: ["./transaction", "api"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -499,7 +499,7 @@ services:
     <<: *arjuna-backend-default
     image: indrasaputra/arjuna-wallet-server:latest
     container_name: arjuna-wallet-api
-    command: ["api"]
+    command: ["./wallet", "api"]
     depends_on:
       postgres:
         condition: service_healthy
