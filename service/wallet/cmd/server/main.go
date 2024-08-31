@@ -34,6 +34,11 @@ func main() {
 		Short: "Run the API server.",
 		Run:   API,
 	})
+	command.AddCommand(&cobra.Command{
+		Use:   "seed",
+		Short: "Run the seeder.",
+		Run:   Seed,
+	})
 
 	if err := command.Execute(); err != nil {
 		log.Fatal(err)
