@@ -24,13 +24,13 @@ elif [[ $1 = 'unit' ]]; then
     if [ $2 ]; then
         (cd ./$2 && 
             go clean -testcache &&
-            go test -count=1 -failfast -v -race $(go list ./... | grep -v /test/))
+            go test -count=1 -failfast -v -race ./...)
     else
         for dir in `find . -type d`; do
             if [[ -f ${dir}/go.mod ]]; then
                 (cd ${dir} && 
                     go clean -testcache &&
-                    go test -count=1 -failfast -v -race $(go list ./... | grep -v /test/))
+                    go test -count=1 -failfast -v -race ./...)
             fi
         done
     fi
