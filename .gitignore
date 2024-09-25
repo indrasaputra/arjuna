@@ -23,4 +23,8 @@ vendor/
 **/cmd/client
 **/cmd/playground
 
+# from https://github.com/indrasaputra/arjuna/pull/55#pullrequestreview-2328166288
+*.prof
+*.swp
 .vscode
+.idea
