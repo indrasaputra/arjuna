@@ -15,7 +15,7 @@ x-arjuna-backend-default:
 services:
   postgres:
     <<: *default
-    image: postgres:14.6
+    image: postgres:16.4
     container_name: arjuna-postgres
     volumes:
       - ${PWD}/tool/database:/docker-entrypoint-initdb.d
