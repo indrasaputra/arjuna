@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
+	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 	pgxdecimal "github.com/jackc/pgx-shopspring-decimal"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -43,8 +45,18 @@ type Config struct {
 	SSLMode  string `env:"POSTGRES_SSL_MODE,default=disable"`
 }
 
-// NewDBWithPgx creates a bun.DB using pgx as driver.
-func NewDBWithPgx(cfg Config) (*bun.DB, error) {
+// NewTxGetter creates a new transaction getter.
+func NewTxGetter() *trmpgx.CtxGetter {
+	return trmpgx.DefaultCtxGetter
+}
+
+// NewTxManager creates a new transaction manager using pgx as driver.
+func NewTxManager(pool *pgxpool.Pool) (*manager.Manager, error) {
+	return manager.New(trmpgx.NewDefaultFactory(pool))
+}
+
+// NewPgxPool creates a new pgx pool.
+func NewPgxPool(cfg Config) (*pgxpool.Pool, error) {
 	connStr := fmt.Sprintf(postgresConnFormat,
 		cfg.Host,
 		cfg.Port,
@@ -62,7 +74,12 @@ func NewDBWithPgx(cfg Config) (*bun.DB, error) {
 		return nil
 	}
 
-	pool, err := pgxpool.NewWithConfig(context.Background(), connCfg)
+	return pgxpool.NewWithConfig(context.Background(), connCfg)
+}
+
+// NewDBWithPgx creates a bun.DB using pgx as driver.
+func NewDBWithPgx(cfg Config) (*bun.DB, error) {
+	pool, err := NewPgxPool(cfg)
 	if err != nil {
 		return nil, err
 	}
