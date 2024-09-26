@@ -16,7 +16,6 @@ import (
 	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 
-	uow "github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	entity "github.com/indrasaputra/arjuna/service/user/entity"
 )
 
@@ -81,18 +80,18 @@ func (m *MockRegisterUserRepository) EXPECT() *MockRegisterUserRepositoryMockRec
 	return m.recorder
 }
 
-// InsertWithTx mocks base method.
-func (m *MockRegisterUserRepository) InsertWithTx(ctx context.Context, tx uow.Tx, user *entity.User) error {
+// Insert mocks base method.
+func (m *MockRegisterUserRepository) Insert(ctx context.Context, user *entity.User) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InsertWithTx", ctx, tx, user)
+	ret := m.ctrl.Call(m, "Insert", ctx, user)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// InsertWithTx indicates an expected call of InsertWithTx.
-func (mr *MockRegisterUserRepositoryMockRecorder) InsertWithTx(ctx, tx, user any) *gomock.Call {
+// Insert indicates an expected call of Insert.
+func (mr *MockRegisterUserRepositoryMockRecorder) Insert(ctx, user any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithTx", reflect.TypeOf((*MockRegisterUserRepository)(nil).InsertWithTx), ctx, tx, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockRegisterUserRepository)(nil).Insert), ctx, user)
 }
 
 // MockRegisterUserOutboxRepository is a mock of RegisterUserOutboxRepository interface.
@@ -118,18 +117,18 @@ func (m *MockRegisterUserOutboxRepository) EXPECT() *MockRegisterUserOutboxRepos
 	return m.recorder
 }
 
-// InsertWithTx mocks base method.
-func (m *MockRegisterUserOutboxRepository) InsertWithTx(ctx context.Context, tx uow.Tx, payload *entity.UserOutbox) error {
+// Insert mocks base method.
+func (m *MockRegisterUserOutboxRepository) Insert(ctx context.Context, payload *entity.UserOutbox) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InsertWithTx", ctx, tx, payload)
+	ret := m.ctrl.Call(m, "Insert", ctx, payload)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// InsertWithTx indicates an expected call of InsertWithTx.
-func (mr *MockRegisterUserOutboxRepositoryMockRecorder) InsertWithTx(ctx, tx, payload any) *gomock.Call {
+// Insert indicates an expected call of Insert.
+func (mr *MockRegisterUserOutboxRepositoryMockRecorder) Insert(ctx, payload any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertWithTx", reflect.TypeOf((*MockRegisterUserOutboxRepository)(nil).InsertWithTx), ctx, tx, payload)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockRegisterUserOutboxRepository)(nil).Insert), ctx, payload)
 }
 
 // MockIdempotencyKeyRepository is a mock of IdempotencyKeyRepository interface.

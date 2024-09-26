@@ -17,10 +17,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
-	skdpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
+	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/grpc/server"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
+	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
@@ -79,7 +80,10 @@ func API(_ *cobra.Command, _ []string) {
 	temporalClient, err := builder.BuildTemporalClient(cfg.Temporal.Address)
 	checkError(err)
 	defer temporalClient.Close()
-	bunDB, err := builder.BuildBunDB(cfg.Postgres)
+	pool, err := sdkpostgres.NewPgxPool(cfg.Postgres)
+	checkError(err)
+	defer pool.Close()
+	txm, err := sdkpostgres.NewTxManager(pool)
 	checkError(err)
 	redisClient, err := builder.BuildRedisClient(&cfg.Redis)
 	checkError(err)
@@ -87,8 +91,9 @@ func API(_ *cobra.Command, _ []string) {
 	dep := &builder.Dependency{
 		TemporalClient: temporalClient,
 		Config:         cfg,
-		DB:             bunDB,
+		DB:             pool,
 		RedisClient:    redisClient,
+		TxManager:      txm,
 	}
 
 	c := &server.Config{
@@ -123,16 +128,17 @@ func Worker(_ *cobra.Command, _ []string) {
 	temporalClient, err := builder.BuildTemporalClient(cfg.Temporal.Address)
 	checkError(err)
 	defer temporalClient.Close()
-	bunDB, err := builder.BuildBunDB(cfg.Postgres)
-	checkError(err)
 	authClient, err := builder.BuildAuthClient(cfg.AuthServiceHost, cfg.AuthServiceUsername, cfg.AuthServicePassword)
 	checkError(err)
 	walletClient, err := builder.BuildWalletClient(cfg.WalletServiceHost, cfg.WalletServiceUsername, cfg.WalletServicePassword)
 	checkError(err)
+	pool, err := sdkpostgres.NewPgxPool(cfg.Postgres)
+	checkError(err)
+	defer pool.Close()
 
 	ac := connauth.NewAuth(authClient)
 	wc := connwallet.NewWallet(walletClient)
-	db := postgres.NewUser(bunDB)
+	db := postgres.NewUser(pool, sdkpostgres.NewTxGetter())
 
 	act := orcact.NewRegisterUserActivity(ac, wc, db)
 
@@ -164,10 +170,11 @@ func Relayer(_ *cobra.Command, _ []string) {
 	checkError(err)
 	defer temporalClient.Close()
 
-	bunDB, err := builder.BuildBunDB(cfg.Postgres)
+	pool, err := sdkpostgres.NewPgxPool(cfg.Postgres)
 	checkError(err)
+	defer pool.Close()
 
-	p := postgres.NewUserOutbox(bunDB)
+	p := postgres.NewUserOutbox(pool, sdkpostgres.NewTxGetter())
 	w := orcwork.NewRegisterUserWorkflow(temporalClient)
 
 	svc := service.NewUserRelayRegistrar(p, w)
@@ -187,12 +194,13 @@ func Seed(_ *cobra.Command, _ []string) {
 
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
-	db, err := builder.BuildBunDB(cfg.Postgres)
+	pool, err := sdkpostgres.NewPgxPool(cfg.Postgres)
 	checkError(err)
+	defer pool.Close()
 
 	val := openJSON("test/fixture/users.json")
 
-	insertUsers(ctx, db, val)
+	insertUsers(ctx, pool, val)
 }
 
 func registerGrpcService(srv *server.Server, dep *builder.Dependency) {
@@ -224,11 +232,11 @@ func openJSON(file string) []byte {
 	return val
 }
 
-func insertUsers(ctx context.Context, db *skdpostgres.BunDB, val []byte) {
+func insertUsers(ctx context.Context, db uow.Tr, val []byte) {
 	var users []*entity.User
 	_ = json.Unmarshal(val, &users)
 
-	query := "INSERT INTO users (id, name, created_at, updated_at) VALUES (?, ?, NOW(), NOW())"
+	query := "INSERT INTO users (id, name, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())"
 	for _, user := range users {
 		_, err := db.Exec(ctx, query, user.ID, user.Name)
 		checkError(err)

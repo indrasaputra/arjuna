@@ -33,13 +33,15 @@ type RegisterUser interface {
 // RegisterUserRepository defines interface to register user to repository.
 type RegisterUserRepository interface {
 	// InsertWithTx inserts user to repository using transaction.
-	InsertWithTx(ctx context.Context, tx uow.Tx, user *entity.User) error
+	// InsertWithTx(ctx context.Context, tx uow.Tx, user *entity.User) error
+	Insert(ctx context.Context, user *entity.User) error
 }
 
 // RegisterUserOutboxRepository defines interface to register user outbox to repository.
 type RegisterUserOutboxRepository interface {
 	// InsertWithTx inserts user outbox to repository using transaction.
-	InsertWithTx(ctx context.Context, tx uow.Tx, payload *entity.UserOutbox) error
+	// InsertWithTx(ctx context.Context, tx uow.Tx, payload *entity.UserOutbox) error
+	Insert(ctx context.Context, payload *entity.UserOutbox) error
 }
 
 // IdempotencyKeyRepository defines  interface for idempotency check flow and repository.
@@ -50,18 +52,18 @@ type IdempotencyKeyRepository interface {
 
 // UserRegistrar is responsible for registering a new user.
 type UserRegistrar struct {
+	txManager      uow.TxManager
 	userRepo       RegisterUserRepository
 	userOutboxRepo RegisterUserOutboxRepository
-	unit           uow.UnitOfWork
 	keyRepo        IdempotencyKeyRepository
 }
 
 // NewUserRegistrar creates an instance of UserRegistrar.
-func NewUserRegistrar(ur RegisterUserRepository, uor RegisterUserOutboxRepository, u uow.UnitOfWork, k IdempotencyKeyRepository) *UserRegistrar {
+func NewUserRegistrar(txm uow.TxManager, ur RegisterUserRepository, uor RegisterUserOutboxRepository, k IdempotencyKeyRepository) *UserRegistrar {
 	return &UserRegistrar{
+		txManager:      txm,
 		userRepo:       ur,
 		userOutboxRepo: uor,
-		unit:           u,
 		keyRepo:        k,
 	}
 }
@@ -93,26 +95,18 @@ func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User, key st
 }
 
 func (ur *UserRegistrar) saveUserToRepository(ctx context.Context, user *entity.User) error {
-	tx, err := ur.unit.Begin(ctx)
-	if err != nil {
-		app.Logger.Errorf(ctx, "[UserRegistrar-saveUserToRepository] fail init transaction: %v", err)
-		return entity.ErrInternal("fail to begin transaction")
-	}
-
-	if err = ur.userRepo.InsertWithTx(ctx, tx, user); err != nil {
-		app.Logger.Errorf(ctx, "[UserRegistrar-saveUserToRepository] fail insert user to repo: %v", err)
-		_ = ur.unit.Finish(ctx, tx, err)
+	return ur.txManager.Do(ctx, func(ctx context.Context) error {
+		if err := ur.userRepo.Insert(ctx, user); err != nil {
+			app.Logger.Errorf(ctx, "[UserRegistrar-saveUserToRepository] fail insert user to repo: %v", err)
+			return err
+		}
+		payload := createUserOutbox(user)
+		err := ur.userOutboxRepo.Insert(ctx, payload)
+		if err != nil {
+			app.Logger.Errorf(ctx, "[UserRegistrar-saveUserToRepository] fail insert user outbox to repo: %v", err)
+		}
 		return err
-	}
-
-	payload := createUserOutbox(user)
-	err = ur.userOutboxRepo.InsertWithTx(ctx, tx, payload)
-	if err != nil {
-		app.Logger.Errorf(ctx, "[UserRegistrar-saveUserToRepository] fail insert user outbox to repo: %v", err)
-		_ = ur.unit.Finish(ctx, tx, err)
-		return err
-	}
-	return ur.unit.Finish(ctx, tx, err)
+	})
 }
 
 func (ur *UserRegistrar) validateIdempotencyKey(ctx context.Context, key string) error {
