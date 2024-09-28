@@ -33,7 +33,6 @@ func BuildUserCommandHandler(dep *Dependency) *handler.UserCommand {
 	pu := postgres.NewUser(dep.DB, sdkpg.NewTxGetter())
 	puo := postgres.NewUserOutbox(dep.DB, sdkpg.NewTxGetter())
 	ik := redis.NewIdempotencyKey(dep.RedisClient)
-	// u := uow.NewUnitWorker(dep.DB)
 
 	rg := service.NewUserRegistrar(dep.TxManager, pu, puo, ik)
 	return handler.NewUserCommand(rg)
@@ -42,7 +41,7 @@ func BuildUserCommandHandler(dep *Dependency) *handler.UserCommand {
 // BuildUserCommandInternalHandler builds user command handler including all of its dependencies.
 func BuildUserCommandInternalHandler(dep *Dependency) *handler.UserCommandInternal {
 	pg := postgres.NewUser(dep.DB, sdkpg.NewTxGetter())
-	d := service.NewUserDeleter(dep.TxManager, pg)
+	d := service.NewUserDeleter(pg)
 	return handler.NewUserCommandInternal(d)
 }
 
@@ -51,15 +50,6 @@ func BuildUserQueryHandler(dep *Dependency) *handler.UserQuery {
 	pg := postgres.NewUser(dep.DB, sdkpg.NewTxGetter())
 	g := service.NewUserGetter(pg)
 	return handler.NewUserQuery(g)
-}
-
-// BuildBunDB builds BunDB.
-func BuildBunDB(cfg sdkpg.Config) (*sdkpg.BunDB, error) {
-	pdb, err := sdkpg.NewDBWithPgx(cfg)
-	if err != nil {
-		return nil, err
-	}
-	return sdkpg.NewBunDB(pdb)
 }
 
 // BuildTemporalClient builds temporal client.

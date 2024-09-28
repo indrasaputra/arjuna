@@ -6,6 +6,8 @@ import (
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	trm "github.com/avito-tech/go-transaction-manager/trm/v2"
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
+	pgx "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // DB defines an interface for database functionality.
@@ -78,7 +80,16 @@ type TxManager interface {
 }
 
 // Tr defines an interface for transaction.
-type Tr trmpgx.Tr
+// Copied from https://pkg.go.dev/github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2#Tr
+// It is used mostly for testing.
+type Tr interface {
+	Begin(ctx context.Context) (pgx.Tx, error)
+	CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error)
+	SendBatch(ctx context.Context, b *pgx.Batch) pgx.BatchResults
+	Exec(ctx context.Context, sql string, arguments ...interface{}) (commandTag pgconn.CommandTag, err error)
+	Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
+}
 
 // TxGetter defines an interface to get transaction from context or use db from param.
 // Copied from https://pkg.go.dev/github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2#CtxGetter.

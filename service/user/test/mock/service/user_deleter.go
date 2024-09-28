@@ -15,8 +15,6 @@ import (
 
 	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
-
-	entity "github.com/indrasaputra/arjuna/service/user/entity"
 )
 
 // MockDeleteUser is a mock of DeleteUser interface.
@@ -77,21 +75,6 @@ func NewMockDeleteUserRepository(ctrl *gomock.Controller) *MockDeleteUserReposit
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockDeleteUserRepository) EXPECT() *MockDeleteUserRepositoryMockRecorder {
 	return m.recorder
-}
-
-// GetByID mocks base method.
-func (m *MockDeleteUserRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByID", ctx, id)
-	ret0, _ := ret[0].(*entity.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByID indicates an expected call of GetByID.
-func (mr *MockDeleteUserRepositoryMockRecorder) GetByID(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockDeleteUserRepository)(nil).GetByID), ctx, id)
 }
 
 // HardDelete mocks base method.

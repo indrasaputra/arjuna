@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"log"
 	"net/mail"
 	"regexp"
 	"strings"
@@ -85,6 +86,8 @@ func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User, key st
 
 	setUserID(user)
 	setUserAuditableProperties(user)
+
+	log.Println("asdaosdhoas")
 
 	err := ur.saveUserToRepository(ctx, user)
 	if err != nil {

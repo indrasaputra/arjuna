@@ -47,44 +47,11 @@ func (u *User) Insert(ctx context.Context, user *entity.User) error {
 		return entity.ErrAlreadyExists()
 	}
 	if err != nil {
-		app.Logger.Errorf(ctx, "[PostgresUser-Insert] fail insert user with tx: %v", err)
+		app.Logger.Errorf(ctx, "[PostgresUser-Insert] fail insert user: %v", err)
 		return entity.ErrInternal(err.Error())
 	}
 	return nil
 }
-
-// InsertWithTx inserts the user into users table using transaction.
-// func (u *User) InsertWithTx(ctx context.Context, tx uow.Tx, user *entity.User) error {
-// 	if tx == nil {
-// 		app.Logger.Errorf(ctx, "[PostgresUser-InsertWithTx] transaction is not set")
-// 		return entity.ErrInternal("transaction is not set")
-// 	}
-// 	if user == nil {
-// 		return entity.ErrEmptyUser()
-// 	}
-
-// 	query := "INSERT INTO " +
-// 		"users (id, name, created_at, updated_at, created_by, updated_by) " +
-// 		"VALUES (?, ?, ?, ?, ?, ?)"
-
-// 	_, err := tx.Exec(ctx, query,
-// 		user.ID,
-// 		user.Name,
-// 		user.CreatedAt,
-// 		user.UpdatedAt,
-// 		user.CreatedBy,
-// 		user.UpdatedBy,
-// 	)
-
-// 	if err == sdkpg.ErrAlreadyExist {
-// 		return entity.ErrAlreadyExists()
-// 	}
-// 	if err != nil {
-// 		app.Logger.Errorf(ctx, "[PostgresUser-InsertWithTx] fail insert user with tx: %v", err)
-// 		return entity.ErrInternal(err.Error())
-// 	}
-// 	return nil
-// }
 
 // GetByID gets a user from database.
 // It returns entity.ErrNotFound if user can't be found.
@@ -127,26 +94,12 @@ func (u *User) GetAll(ctx context.Context, limit uint) ([]*entity.User, error) {
 	return res, nil
 }
 
-// HardDeleteWithTx deletes a user from database.
-// If the user doesn't exist, it doesn't returns error.
-// func (u *User) HardDeleteWithTx(ctx context.Context, tx uow.Tx, id uuid.UUID) error {
-// 	if tx == nil {
-// 		app.Logger.Errorf(ctx, "[PostgresUser-HardDeleteWithTx] transaction is not set")
-// 		return entity.ErrInternal("transaction is not set")
-// 	}
-// 	return u.doHardDelete(ctx, tx, id)
-// }
-
 // HardDelete deletes a user from database.
 // If the user doesn't exist, it doesn't returns error.
 func (u *User) HardDelete(ctx context.Context, id uuid.UUID) error {
 	tx := u.getter.DefaultTrOrDB(ctx, u.db)
-	return u.doHardDelete(ctx, tx, id)
-}
-
-func (u *User) doHardDelete(ctx context.Context, db uow.Tr, id uuid.UUID) error {
 	query := "DELETE FROM users WHERE id = $1"
-	_, err := db.Exec(ctx, query, id)
+	_, err := tx.Exec(ctx, query, id)
 	if err != nil {
 		app.Logger.Errorf(ctx, "[PostgresUser-doHardDelete] fail delete user: %v", err)
 		return entity.ErrInternal(err.Error())
