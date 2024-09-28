@@ -2,14 +2,19 @@ package postgres
 
 import (
 	"context"
-	"log"
+	"strings"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 
-	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
+)
+
+const (
+	// errCodeUniqueViolation is derived from https://www.postgresql.org/docs/11/errcodes-appendix.html
+	errCodeUniqueViolation = "23505"
 )
 
 // User is responsible to connect user entity with users table in PostgreSQL.
@@ -42,8 +47,7 @@ func (u *User) Insert(ctx context.Context, user *entity.User) error {
 		user.CreatedBy,
 		user.UpdatedBy,
 	)
-
-	if err == sdkpg.ErrAlreadyExist {
+	if isUniqueViolationErr(err) {
 		return entity.ErrAlreadyExists()
 	}
 	if err != nil {
@@ -62,6 +66,9 @@ func (u *User) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) 
 	var res entity.User
 	row := tx.QueryRow(ctx, query, id)
 	err := row.Scan(&res.ID, &res.Name, &res.CreatedAt, &res.UpdatedAt, &res.CreatedBy, &res.UpdatedBy)
+	if err == pgx.ErrNoRows {
+		return nil, entity.ErrNotFound()
+	}
 	if err != nil {
 		app.Logger.Errorf(ctx, "[PostgresUser-GetByID] fail get user: %v", err)
 		return nil, entity.ErrInternal(err.Error())
@@ -85,8 +92,8 @@ func (u *User) GetAll(ctx context.Context, limit uint) ([]*entity.User, error) {
 	for rows.Next() {
 		var tmp entity.User
 		if err := rows.Scan(&tmp.ID, &tmp.Name, &tmp.CreatedAt, &tmp.UpdatedAt, &tmp.CreatedBy, &tmp.UpdatedBy); err != nil {
-			log.Printf("[PostgresUser-GetAll] scan rows error: %s", err.Error())
-			continue
+			app.Logger.Errorf(ctx, "[PostgresUser-GetAll] scan rows error: %v", err)
+			return []*entity.User{}, entity.ErrInternal(err.Error())
 		}
 		res = append(res, &tmp)
 	}
@@ -105,4 +112,11 @@ func (u *User) HardDelete(ctx context.Context, id uuid.UUID) error {
 		return entity.ErrInternal(err.Error())
 	}
 	return nil
+}
+
+func isUniqueViolationErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	return strings.Contains(err.Error(), errCodeUniqueViolation)
 }

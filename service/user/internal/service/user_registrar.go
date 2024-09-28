@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"log"
 	"net/mail"
 	"regexp"
 	"strings"
@@ -87,8 +86,6 @@ func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User, key st
 	setUserID(user)
 	setUserAuditableProperties(user)
 
-	log.Println("asdaosdhoas")
-
 	err := ur.saveUserToRepository(ctx, user)
 	if err != nil {
 		app.Logger.Errorf(ctx, "[UserRegistrar-Register] fail save to repository: %v", err)
@@ -98,7 +95,7 @@ func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User, key st
 }
 
 func (ur *UserRegistrar) saveUserToRepository(ctx context.Context, user *entity.User) error {
-	return ur.txManager.Do(ctx, func(ctx context.Context) error {
+	err := ur.txManager.Do(ctx, func(ctx context.Context) error {
 		if err := ur.userRepo.Insert(ctx, user); err != nil {
 			app.Logger.Errorf(ctx, "[UserRegistrar-saveUserToRepository] fail insert user to repo: %v", err)
 			return err
@@ -110,6 +107,10 @@ func (ur *UserRegistrar) saveUserToRepository(ctx context.Context, user *entity.
 		}
 		return err
 	})
+	if err != nil {
+		app.Logger.Errorf(ctx, "[UserRegistrar-saveUserToRepository] transaction fail: %v", err)
+	}
+	return err
 }
 
 func (ur *UserRegistrar) validateIdempotencyKey(ctx context.Context, key string) error {

@@ -25,7 +25,7 @@ const (
 )
 
 var (
-	postgresConnFormat = "host=%s port=%s user=%s password=%s dbname=%s sslmode=%s"
+	postgresConnFormat = "host=%s port=%d user=%s password=%s dbname=%s sslmode=%s"
 )
 
 var (
@@ -38,11 +38,11 @@ var (
 // Config holds configuration for PostgreSQL.
 type Config struct {
 	Host     string `env:"POSTGRES_HOST,default=localhost"`
-	Port     string `env:"POSTGRES_PORT,default=5432"`
 	User     string `env:"POSTGRES_USER,required"`
 	Password string `env:"POSTGRES_PASSWORD,required"`
 	Name     string `env:"POSTGRES_NAME,required"`
 	SSLMode  string `env:"POSTGRES_SSL_MODE,default=disable"`
+	Port     int    `env:"POSTGRES_PORT,default=5432"`
 }
 
 // NewTxGetter creates a new transaction getter.
@@ -52,6 +52,8 @@ func NewTxGetter() *trmpgx.CtxGetter {
 
 // NewTxManager creates a new transaction manager using pgx as driver.
 func NewTxManager(pool *pgxpool.Pool) (*manager.Manager, error) {
+	// see https://pkg.go.dev/github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2#NewDefaultFactory
+	// to understand the usage of trmpgx.NewDefaultFactory.
 	return manager.New(trmpgx.NewDefaultFactory(pool))
 }
 

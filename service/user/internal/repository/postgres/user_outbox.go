@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"log"
 
 	"github.com/google/uuid"
 
@@ -48,7 +47,7 @@ func (uo *UserOutbox) Insert(ctx context.Context, payload *entity.UserOutbox) er
 		return entity.ErrAlreadyExists()
 	}
 	if err != nil {
-		app.Logger.Errorf(ctx, "[PostgresUserOutbox-InsertWithTx] fail insert user with tx: %v", err)
+		app.Logger.Errorf(ctx, "[PostgresUserOutbox-Insert] fail insert user with tx: %v", err)
 		return entity.ErrInternal(err.Error())
 	}
 	return nil
@@ -71,8 +70,8 @@ func (uo *UserOutbox) GetAllReady(ctx context.Context, limit uint) ([]*entity.Us
 	for rows.Next() {
 		var tmp entity.UserOutbox
 		if err := rows.Scan(&tmp.ID, &tmp.Status, &tmp.Payload); err != nil {
-			log.Printf("[PostgresUser-GetAll] scan rows error: %s", err.Error())
-			continue
+			app.Logger.Errorf(ctx, "[PostgresUserOutbox-GetAll] scan rows error: %v", err)
+			return []*entity.UserOutbox{}, entity.ErrInternal(err.Error())
 		}
 		res = append(res, &tmp)
 	}

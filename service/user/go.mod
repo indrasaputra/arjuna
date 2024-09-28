@@ -31,6 +31,7 @@ require (
 	github.com/go-redis/redismock/v9 v9.2.0
 	github.com/gogo/status v1.1.1
 	github.com/google/uuid v1.6.0
+	github.com/jackc/pgx/v5 v5.7.0
 	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd
 	github.com/joho/godotenv v1.5.1
 	github.com/pashagolub/pgxmock/v4 v4.3.0
@@ -73,7 +74,6 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgx-shopspring-decimal v0.0.0-20220624020537-1d36b5a1853e // indirect
-	github.com/jackc/pgx/v5 v5.7.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect

@@ -16,7 +16,7 @@ type DeleteUser interface {
 
 // DeleteUserRepository defines interface to delete user from repository.
 type DeleteUserRepository interface {
-	// HardDeleteWithTx hard-deletes a single user from the repository using transaction.
+	// HardDelete hard-deletes a single user from the repository using transaction.
 	// If the user can't be found, it doesn't return error.
 	HardDelete(ctx context.Context, id uuid.UUID) error
 }
@@ -27,8 +27,8 @@ type UserDeleter struct {
 }
 
 // NewUserDeleter creates an instance of UserDeleter.
-func NewUserDeleter(db DeleteUserRepository) *UserDeleter {
-	return &UserDeleter{repo: db}
+func NewUserDeleter(repo DeleteUserRepository) *UserDeleter {
+	return &UserDeleter{repo: repo}
 }
 
 // HardDelete hard-deletes a user in system.
