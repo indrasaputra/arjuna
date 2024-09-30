@@ -11,7 +11,6 @@ import (
 
 // Config holds configuration for the project.
 type Config struct {
-	Postgres          sdkpg.Config
 	Tracer            trace.Config
 	ServiceName       string `env:"SERVICE_NAME,default=transaction-server"`
 	AppEnv            string `env:"APP_ENV,default=development"`
@@ -23,6 +22,7 @@ type Config struct {
 	AppliedAuthBasic  string `env:"APPLIED_AUTH_BASIC"`
 	SecretKey         string `env:"TOKEN_SECRET_KEY,required"`
 	Redis             Redis
+	Postgres          sdkpg.Config
 }
 
 // Redis holds configuration for Redis.

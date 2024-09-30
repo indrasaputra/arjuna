@@ -6,10 +6,11 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
@@ -24,9 +25,9 @@ var (
 )
 
 type UserSuite struct {
-	user *postgres.User
-	db   *mock_uow.MockDB
-	tx   *mock_uow.MockTx
+	user   *postgres.User
+	db     pgxmock.PgxPoolIface
+	getter *mock_uow.MockTxGetter
 }
 
 func TestNewUser(t *testing.T) {
@@ -34,32 +35,22 @@ func TestNewUser(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("successfully create an instance of User", func(t *testing.T) {
-		st := createUserSuite(ctrl)
+		st := createUserSuite(t, ctrl)
 		assert.NotNil(t, st.user)
 	})
 }
 
-func TestUser_InsertWithTx(t *testing.T) {
+func TestUser_Insert(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	app.Logger = sdklog.NewLogger(testEnv)
 
-	query := "INSERT INTO " +
-		"users (id, name, created_at, updated_at, created_by, updated_by) " +
-		"VALUES (?, ?, ?, ?, ?, ?)"
-
-	t.Run("nil tx is prohibited", func(t *testing.T) {
-		st := createUserSuite(ctrl)
-
-		err := st.user.InsertWithTx(testCtx, nil, nil)
-
-		assert.Error(t, err)
-	})
+	query := `INSERT INTO users \(id, name, created_at, updated_at, created_by, updated_by\) VALUES \(\$1, \$2, \$3, \$4, \$5, \$6\)`
 
 	t.Run("nil user is prohibited", func(t *testing.T) {
-		st := createUserSuite(ctrl)
+		st := createUserSuite(t, ctrl)
 
-		err := st.user.InsertWithTx(testCtx, st.tx, nil)
+		err := st.user.Insert(testCtx, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyUser(), err)
@@ -67,12 +58,11 @@ func TestUser_InsertWithTx(t *testing.T) {
 
 	t.Run("insert duplicate user", func(t *testing.T) {
 		user := createTestUser()
-		st := createUserSuite(ctrl)
-		st.tx.EXPECT().
-			Exec(testCtx, query, user.ID, user.Name, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).
-			Return(int64(0), sdkpg.ErrAlreadyExist)
+		st := createUserSuite(t, ctrl)
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectExec(query).WithArgs(user.ID, user.Name, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).WillReturnError(errors.New("23505"))
 
-		err := st.user.InsertWithTx(testCtx, st.tx, user)
+		err := st.user.Insert(testCtx, user)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrAlreadyExists(), err)
@@ -80,24 +70,22 @@ func TestUser_InsertWithTx(t *testing.T) {
 
 	t.Run("insert returns error", func(t *testing.T) {
 		user := createTestUser()
-		st := createUserSuite(ctrl)
-		st.tx.EXPECT().
-			Exec(testCtx, query, user.ID, user.Name, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).
-			Return(int64(0), entity.ErrInternal(""))
+		st := createUserSuite(t, ctrl)
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectExec(query).WithArgs(user.ID, user.Name, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).WillReturnError(errPostgresInternal)
 
-		err := st.user.InsertWithTx(testCtx, st.tx, user)
+		err := st.user.Insert(testCtx, user)
 
 		assert.Error(t, err)
 	})
 
 	t.Run("success insert user", func(t *testing.T) {
 		user := createTestUser()
-		st := createUserSuite(ctrl)
-		st.tx.EXPECT().
-			Exec(testCtx, query, user.ID, user.Name, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).
-			Return(int64(1), nil)
+		st := createUserSuite(t, ctrl)
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectExec(query).WithArgs(user.ID, user.Name, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy).WillReturnResult(pgxmock.NewResult("INSERT", 1))
 
-		err := st.user.InsertWithTx(testCtx, st.tx, user)
+		err := st.user.Insert(testCtx, user)
 
 		assert.NoError(t, err)
 	})
@@ -108,27 +96,26 @@ func TestUser_GetByID(t *testing.T) {
 	defer ctrl.Finish()
 	app.Logger = sdklog.NewLogger(testEnv)
 
-	query := `SELECT id, name, created_at, updated_at, created_by, updated_by FROM users WHERE id = ? LIMIT 1`
+	query := `SELECT id, name, created_at, updated_at, created_by, updated_by FROM users WHERE id = \$1 LIMIT 1`
 
 	t.Run("select by id returns empty row", func(t *testing.T) {
 		user := createTestUser()
-		st := createUserSuite(ctrl)
-		st.db.EXPECT().
-			Query(testCtx, gomock.Any(), query, user.ID).
-			Return(entity.ErrNotFound())
+		st := createUserSuite(t, ctrl)
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectQuery(query).WithArgs(user.ID).WillReturnError(pgx.ErrNoRows)
 
 		res, err := st.user.GetByID(testCtx, user.ID)
 
 		assert.Error(t, err)
+		assert.Equal(t, entity.ErrNotFound(), err)
 		assert.Nil(t, res)
 	})
 
-	t.Run("select by id returns empty row", func(t *testing.T) {
+	t.Run("select by id returns error", func(t *testing.T) {
 		user := createTestUser()
-		st := createUserSuite(ctrl)
-		st.db.EXPECT().
-			Query(testCtx, gomock.Any(), query, user.ID).
-			Return(errPostgresInternal)
+		st := createUserSuite(t, ctrl)
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectQuery(query).WithArgs(user.ID).WillReturnError(errPostgresInternal)
 
 		res, err := st.user.GetByID(testCtx, user.ID)
 
@@ -138,10 +125,11 @@ func TestUser_GetByID(t *testing.T) {
 
 	t.Run("success select by id", func(t *testing.T) {
 		user := createTestUser()
-		st := createUserSuite(ctrl)
-		st.db.EXPECT().
-			Query(testCtx, gomock.Any(), query, user.ID).
-			Return(nil)
+		st := createUserSuite(t, ctrl)
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectQuery(query).WithArgs(user.ID).WillReturnRows(pgxmock.
+			NewRows([]string{"id", "name", "created_at", "updated_at", "created_by", "updated_by"}).
+			AddRow(user.ID, user.Name, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy))
 
 		res, err := st.user.GetByID(testCtx, user.ID)
 
@@ -155,14 +143,13 @@ func TestUser_GetAll(t *testing.T) {
 	defer ctrl.Finish()
 	app.Logger = sdklog.NewLogger(testEnv)
 
-	query := `SELECT id, name, created_at, updated_at, created_by, updated_by FROM users LIMIT ?`
+	query := `SELECT id, name, created_at, updated_at, created_by, updated_by FROM users LIMIT \$1`
 	limit := uint(10)
 
 	t.Run("get all returns error", func(t *testing.T) {
-		st := createUserSuite(ctrl)
-		st.db.EXPECT().
-			Query(testCtx, gomock.Any(), query, limit).
-			Return(errPostgresInternal)
+		st := createUserSuite(t, ctrl)
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectQuery(query).WithArgs(limit).WillReturnError(errPostgresInternal)
 
 		res, err := st.user.GetAll(testCtx, limit)
 
@@ -171,56 +158,17 @@ func TestUser_GetAll(t *testing.T) {
 	})
 
 	t.Run("success get all", func(t *testing.T) {
-		st := createUserSuite(ctrl)
-		st.db.EXPECT().
-			Query(testCtx, gomock.Any(), query, limit).
-			Return(nil)
+		user := createTestUser()
+		st := createUserSuite(t, ctrl)
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectQuery(query).WithArgs(limit).WillReturnRows(pgxmock.
+			NewRows([]string{"id", "name", "created_at", "updated_at", "created_by", "updated_by"}).
+			AddRow(user.ID, user.Name, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy))
 
 		res, err := st.user.GetAll(testCtx, limit)
 
 		assert.NoError(t, err)
-		assert.Empty(t, res)
-	})
-}
-
-func TestUser_HardDeleteWithTx(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
-
-	query := "DELETE FROM users WHERE id = ?"
-
-	t.Run("tx is not set", func(t *testing.T) {
-		user := createTestUser()
-		st := createUserSuite(ctrl)
-
-		err := st.user.HardDeleteWithTx(testCtx, nil, user.ID)
-
-		assert.Error(t, err)
-	})
-
-	t.Run("hard delete returns error", func(t *testing.T) {
-		user := createTestUser()
-		st := createUserSuite(ctrl)
-		st.tx.EXPECT().
-			Exec(testCtx, query, user.ID).
-			Return(int64(0), errPostgresInternal)
-
-		err := st.user.HardDeleteWithTx(testCtx, st.tx, user.ID)
-
-		assert.Error(t, err)
-	})
-
-	t.Run("success hard delete", func(t *testing.T) {
-		user := createTestUser()
-		st := createUserSuite(ctrl)
-		st.tx.EXPECT().
-			Exec(testCtx, query, user.ID).
-			Return(int64(0), nil)
-
-		err := st.user.HardDeleteWithTx(testCtx, st.tx, user.ID)
-
-		assert.NoError(t, err)
+		assert.Len(t, res, 1)
 	})
 }
 
@@ -229,14 +177,13 @@ func TestUser_HardDelete(t *testing.T) {
 	defer ctrl.Finish()
 	app.Logger = sdklog.NewLogger(testEnv)
 
-	query := "DELETE FROM users WHERE id = ?"
+	query := `DELETE FROM users WHERE id = \$1`
 
 	t.Run("hard delete returns error", func(t *testing.T) {
 		user := createTestUser()
-		st := createUserSuite(ctrl)
-		st.db.EXPECT().
-			Exec(testCtx, query, user.ID).
-			Return(int64(0), errPostgresInternal)
+		st := createUserSuite(t, ctrl)
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectExec(query).WithArgs(user.ID).WillReturnError(errPostgresInternal)
 
 		err := st.user.HardDelete(testCtx, user.ID)
 
@@ -245,10 +192,9 @@ func TestUser_HardDelete(t *testing.T) {
 
 	t.Run("success hard delete", func(t *testing.T) {
 		user := createTestUser()
-		st := createUserSuite(ctrl)
-		st.db.EXPECT().
-			Exec(testCtx, query, user.ID).
-			Return(int64(0), nil)
+		st := createUserSuite(t, ctrl)
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectExec(query).WithArgs(user.ID).WillReturnResult(pgxmock.NewResult("DELETE", 1))
 
 		err := st.user.HardDelete(testCtx, user.ID)
 
@@ -264,13 +210,17 @@ func createTestUser() *entity.User {
 	}
 }
 
-func createUserSuite(ctrl *gomock.Controller) *UserSuite {
-	db := mock_uow.NewMockDB(ctrl)
-	tx := mock_uow.NewMockTx(ctrl)
-	user := postgres.NewUser(db)
+func createUserSuite(t *testing.T, ctrl *gomock.Controller) *UserSuite {
+	db, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("error opening a stub database connection: %v\n", err)
+	}
+	defer db.Close()
+	g := mock_uow.NewMockTxGetter(ctrl)
+	user := postgres.NewUser(db, g)
 	return &UserSuite{
-		user: user,
-		db:   db,
-		tx:   tx,
+		user:   user,
+		db:     db,
+		getter: g,
 	}
 }

@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
+	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 	pgxdecimal "github.com/jackc/pgx-shopspring-decimal"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -23,7 +25,7 @@ const (
 )
 
 var (
-	postgresConnFormat = "host=%s port=%s user=%s password=%s dbname=%s sslmode=%s"
+	postgresConnFormat = "host=%s port=%d user=%s password=%s dbname=%s sslmode=%s"
 )
 
 var (
@@ -36,15 +38,27 @@ var (
 // Config holds configuration for PostgreSQL.
 type Config struct {
 	Host     string `env:"POSTGRES_HOST,default=localhost"`
-	Port     string `env:"POSTGRES_PORT,default=5432"`
 	User     string `env:"POSTGRES_USER,required"`
 	Password string `env:"POSTGRES_PASSWORD,required"`
 	Name     string `env:"POSTGRES_NAME,required"`
 	SSLMode  string `env:"POSTGRES_SSL_MODE,default=disable"`
+	Port     int    `env:"POSTGRES_PORT,default=5432"`
 }
 
-// NewDBWithPgx creates a bun.DB using pgx as driver.
-func NewDBWithPgx(cfg Config) (*bun.DB, error) {
+// NewTxGetter creates a new transaction getter.
+func NewTxGetter() *trmpgx.CtxGetter {
+	return trmpgx.DefaultCtxGetter
+}
+
+// NewTxManager creates a new transaction manager using pgx as driver.
+func NewTxManager(pool *pgxpool.Pool) (*manager.Manager, error) {
+	// see https://pkg.go.dev/github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2#NewDefaultFactory
+	// to understand the usage of trmpgx.NewDefaultFactory.
+	return manager.New(trmpgx.NewDefaultFactory(pool))
+}
+
+// NewPgxPool creates a new pgx pool.
+func NewPgxPool(cfg Config) (*pgxpool.Pool, error) {
 	connStr := fmt.Sprintf(postgresConnFormat,
 		cfg.Host,
 		cfg.Port,
@@ -62,7 +76,12 @@ func NewDBWithPgx(cfg Config) (*bun.DB, error) {
 		return nil
 	}
 
-	pool, err := pgxpool.NewWithConfig(context.Background(), connCfg)
+	return pgxpool.NewWithConfig(context.Background(), connCfg)
+}
+
+// NewDBWithPgx creates a bun.DB using pgx as driver.
+func NewDBWithPgx(cfg Config) (*bun.DB, error) {
+	pool, err := NewPgxPool(cfg)
 	if err != nil {
 		return nil, err
 	}

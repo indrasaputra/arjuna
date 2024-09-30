@@ -15,9 +15,6 @@ import (
 
 	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
-
-	uow "github.com/indrasaputra/arjuna/pkg/sdk/uow"
-	entity "github.com/indrasaputra/arjuna/service/user/entity"
 )
 
 // MockDeleteUser is a mock of DeleteUser interface.
@@ -80,31 +77,16 @@ func (m *MockDeleteUserRepository) EXPECT() *MockDeleteUserRepositoryMockRecorde
 	return m.recorder
 }
 
-// GetByID mocks base method.
-func (m *MockDeleteUserRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
+// HardDelete mocks base method.
+func (m *MockDeleteUserRepository) HardDelete(ctx context.Context, id uuid.UUID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByID", ctx, id)
-	ret0, _ := ret[0].(*entity.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByID indicates an expected call of GetByID.
-func (mr *MockDeleteUserRepositoryMockRecorder) GetByID(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockDeleteUserRepository)(nil).GetByID), ctx, id)
-}
-
-// HardDeleteWithTx mocks base method.
-func (m *MockDeleteUserRepository) HardDeleteWithTx(ctx context.Context, tx uow.Tx, id uuid.UUID) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HardDeleteWithTx", ctx, tx, id)
+	ret := m.ctrl.Call(m, "HardDelete", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// HardDeleteWithTx indicates an expected call of HardDeleteWithTx.
-func (mr *MockDeleteUserRepositoryMockRecorder) HardDeleteWithTx(ctx, tx, id any) *gomock.Call {
+// HardDelete indicates an expected call of HardDelete.
+func (mr *MockDeleteUserRepositoryMockRecorder) HardDelete(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HardDeleteWithTx", reflect.TypeOf((*MockDeleteUserRepository)(nil).HardDeleteWithTx), ctx, tx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HardDelete", reflect.TypeOf((*MockDeleteUserRepository)(nil).HardDelete), ctx, id)
 }

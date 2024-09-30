@@ -11,26 +11,26 @@ import (
 
 // Config holds configuration for the project.
 type Config struct {
-	Postgres                    sdkpg.Config
 	Tracer                      trace.Config
-	SecretKey                   string `env:"TOKEN_SECRET_KEY,required"`
-	Username                    string `env:"USERNAME,default=user-user"`
+	Temporal                    Temporal
+	AppliedAuthBasic            string `env:"APPLIED_AUTH_BASIC"`
+	WalletServiceHost           string `env:"WALLET_SERVICE_HOST,required"`
 	ServiceName                 string `env:"SERVICE_NAME,default=user-server"`
 	AppEnv                      string `env:"APP_ENV,default=development"`
 	Port                        string `env:"PORT,default=8001"`
 	PrometheusPort              string `env:"PROMETHEUS_PORT,default=7001"`
 	AuthServiceHost             string `env:"AUTH_SERVICE_HOST,required"`
-	WalletServiceHost           string `env:"WALLET_SERVICE_HOST,required"`
-	Temporal                    Temporal
-	Redis                       Redis
+	Username                    string `env:"USERNAME,default=user-user"`
+	WalletServiceUsername       string `env:"WALLET_SERVICE_USERNAME"`
 	Password                    string `env:"PASSWORD,default=user-password"`
+	Redis                       Redis
 	AppliedAuthBearer           string `env:"APPLIED_AUTH_BEARER"`
-	AppliedAuthBasic            string `env:"APPLIED_AUTH_BASIC"`
+	SecretKey                   string `env:"TOKEN_SECRET_KEY,required"`
 	WalletServicePassword       string `env:"WALLET_SERVICE_PASSWORD"`
 	AuthServiceUsername         string `env:"AUTH_SERVICE_USERNAME"`
 	AuthServicePassword         string `env:"AUTH_SERVICE_PASSWORD"`
-	WalletServiceUsername       string `env:"WALLET_SERVICE_USERNAME"`
-	RelayerSleepTimeMillisecond int    `env:"RELAYER_SLEEP_TIME_MILLISECONDS,default=1000"`
+	Postgres                    sdkpg.Config
+	RelayerSleepTimeMillisecond int `env:"RELAYER_SLEEP_TIME_MILLISECONDS,default=1000"`
 }
 
 // Temporal holds configuration for Temporal.

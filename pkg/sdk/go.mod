@@ -23,6 +23,8 @@ require (
 require github.com/DATA-DOG/go-sqlmock v1.5.2
 
 require (
+	github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2 v2.0.0
+	github.com/avito-tech/go-transaction-manager/trm/v2 v2.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/jackc/pgx-shopspring-decimal v0.0.0-20220624020537-1d36b5a1853e

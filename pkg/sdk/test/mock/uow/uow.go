@@ -13,6 +13,9 @@ import (
 	context "context"
 	reflect "reflect"
 
+	v2 "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
+	v20 "github.com/avito-tech/go-transaction-manager/trm/v2"
+	manager "github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 	gomock "go.uber.org/mock/gomock"
 
 	uow "github.com/indrasaputra/arjuna/pkg/sdk/uow"
@@ -250,4 +253,108 @@ func (m *MockUnitOfWork) Finish(ctx context.Context, tx uow.Tx, err error) error
 func (mr *MockUnitOfWorkMockRecorder) Finish(ctx, tx, err any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Finish", reflect.TypeOf((*MockUnitOfWork)(nil).Finish), ctx, tx, err)
+}
+
+// MockTxManager is a mock of TxManager interface.
+type MockTxManager struct {
+	ctrl     *gomock.Controller
+	recorder *MockTxManagerMockRecorder
+}
+
+// MockTxManagerMockRecorder is the mock recorder for MockTxManager.
+type MockTxManagerMockRecorder struct {
+	mock *MockTxManager
+}
+
+// NewMockTxManager creates a new mock instance.
+func NewMockTxManager(ctrl *gomock.Controller) *MockTxManager {
+	mock := &MockTxManager{ctrl: ctrl}
+	mock.recorder = &MockTxManagerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTxManager) EXPECT() *MockTxManagerMockRecorder {
+	return m.recorder
+}
+
+// Do mocks base method.
+func (m *MockTxManager) Do(ctx context.Context, fn func(context.Context) error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Do", ctx, fn)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Do indicates an expected call of Do.
+func (mr *MockTxManagerMockRecorder) Do(ctx, fn any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Do", reflect.TypeOf((*MockTxManager)(nil).Do), ctx, fn)
+}
+
+// DoWithSettings mocks base method.
+func (m *MockTxManager) DoWithSettings(ctx context.Context, s v20.Settings, fn func(context.Context) error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DoWithSettings", ctx, s, fn)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DoWithSettings indicates an expected call of DoWithSettings.
+func (mr *MockTxManagerMockRecorder) DoWithSettings(ctx, s, fn any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoWithSettings", reflect.TypeOf((*MockTxManager)(nil).DoWithSettings), ctx, s, fn)
+}
+
+// Init mocks base method.
+func (m *MockTxManager) Init(ctx context.Context, s v20.Settings) (context.Context, manager.Closer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Init", ctx, s)
+	ret0, _ := ret[0].(context.Context)
+	ret1, _ := ret[1].(manager.Closer)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// Init indicates an expected call of Init.
+func (mr *MockTxManagerMockRecorder) Init(ctx, s any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockTxManager)(nil).Init), ctx, s)
+}
+
+// MockTxGetter is a mock of TxGetter interface.
+type MockTxGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockTxGetterMockRecorder
+}
+
+// MockTxGetterMockRecorder is the mock recorder for MockTxGetter.
+type MockTxGetterMockRecorder struct {
+	mock *MockTxGetter
+}
+
+// NewMockTxGetter creates a new mock instance.
+func NewMockTxGetter(ctrl *gomock.Controller) *MockTxGetter {
+	mock := &MockTxGetter{ctrl: ctrl}
+	mock.recorder = &MockTxGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTxGetter) EXPECT() *MockTxGetterMockRecorder {
+	return m.recorder
+}
+
+// DefaultTrOrDB mocks base method.
+func (m *MockTxGetter) DefaultTrOrDB(ctx context.Context, db v2.Tr) v2.Tr {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DefaultTrOrDB", ctx, db)
+	ret0, _ := ret[0].(v2.Tr)
+	return ret0
+}
+
+// DefaultTrOrDB indicates an expected call of DefaultTrOrDB.
+func (mr *MockTxGetterMockRecorder) DefaultTrOrDB(ctx, db any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DefaultTrOrDB", reflect.TypeOf((*MockTxGetter)(nil).DefaultTrOrDB), ctx, db)
 }

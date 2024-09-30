@@ -7,7 +7,6 @@ import (
 	"go.uber.org/mock/gomock"
 
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
-	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
@@ -15,10 +14,8 @@ import (
 )
 
 type UserDeleterSuite struct {
-	deleter  *service.UserDeleter
-	database *mock_service.MockDeleteUserRepository
-	unit     *mock_uow.MockUnitOfWork
-	tx       *mock_uow.MockTx
+	deleter *service.UserDeleter
+	db      *mock_service.MockDeleteUserRepository
 }
 
 func TestNewUserDeleter(t *testing.T) {
@@ -36,57 +33,12 @@ func TestUserDeleter_HardDelete(t *testing.T) {
 	defer ctrl.Finish()
 	app.Logger = sdklog.NewLogger(testEnv)
 
-	t.Run("get user by id returns error", func(t *testing.T) {
-		user := createTestUser()
-		errReturn := entity.ErrInternal("")
-		st := createUserDeleterSuite(ctrl)
-		st.database.EXPECT().GetByID(testCtx, user.ID).Return(nil, errReturn)
-
-		err := st.deleter.HardDelete(testCtx, user.ID)
-
-		assert.Error(t, err)
-		assert.Equal(t, errReturn, err)
-	})
-
-	t.Run("unit of work begin returns error", func(t *testing.T) {
+	t.Run("delete from db returns error", func(t *testing.T) {
 		user := createTestUser()
 		errReturn := entity.ErrInternal("")
 
 		st := createUserDeleterSuite(ctrl)
-		st.database.EXPECT().GetByID(testCtx, user.ID).Return(user, nil)
-		st.unit.EXPECT().Begin(testCtx).Return(nil, errReturn)
-
-		err := st.deleter.HardDelete(testCtx, user.ID)
-
-		assert.Error(t, err)
-		assert.Equal(t, errReturn, err)
-	})
-
-	t.Run("delete from database returns error and rollback", func(t *testing.T) {
-		user := createTestUser()
-		errReturn := entity.ErrInternal("")
-
-		st := createUserDeleterSuite(ctrl)
-		st.database.EXPECT().GetByID(testCtx, user.ID).Return(user, nil)
-		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
-		st.database.EXPECT().HardDeleteWithTx(testCtx, st.tx, user.ID).Return(errReturn)
-		st.unit.EXPECT().Finish(testCtx, st.tx, errReturn).Return(errReturn)
-
-		err := st.deleter.HardDelete(testCtx, user.ID)
-
-		assert.Error(t, err)
-		assert.Equal(t, errReturn, err)
-	})
-
-	t.Run("finish returns error", func(t *testing.T) {
-		user := createTestUser()
-		errReturn := entity.ErrInternal("")
-
-		st := createUserDeleterSuite(ctrl)
-		st.database.EXPECT().GetByID(testCtx, user.ID).Return(user, nil)
-		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
-		st.database.EXPECT().HardDeleteWithTx(testCtx, st.tx, user.ID).Return(nil)
-		st.unit.EXPECT().Finish(testCtx, st.tx, nil).Return(errReturn)
+		st.db.EXPECT().HardDelete(testCtx, user.ID).Return(errReturn)
 
 		err := st.deleter.HardDelete(testCtx, user.ID)
 
@@ -98,10 +50,7 @@ func TestUserDeleter_HardDelete(t *testing.T) {
 		user := createTestUser()
 
 		st := createUserDeleterSuite(ctrl)
-		st.database.EXPECT().GetByID(testCtx, user.ID).Return(user, nil)
-		st.unit.EXPECT().Begin(testCtx).Return(st.tx, nil)
-		st.database.EXPECT().HardDeleteWithTx(testCtx, st.tx, user.ID).Return(nil)
-		st.unit.EXPECT().Finish(testCtx, st.tx, nil).Return(nil)
+		st.db.EXPECT().HardDelete(testCtx, user.ID).Return(nil)
 
 		err := st.deleter.HardDelete(testCtx, user.ID)
 
@@ -111,13 +60,9 @@ func TestUserDeleter_HardDelete(t *testing.T) {
 
 func createUserDeleterSuite(ctrl *gomock.Controller) *UserDeleterSuite {
 	db := mock_service.NewMockDeleteUserRepository(ctrl)
-	u := mock_uow.NewMockUnitOfWork(ctrl)
-	tx := mock_uow.NewMockTx(ctrl)
-	d := service.NewUserDeleter(u, db)
+	d := service.NewUserDeleter(db)
 	return &UserDeleterSuite{
-		deleter:  d,
-		database: db,
-		unit:     u,
-		tx:       tx,
+		deleter: d,
+		db:      db,
 	}
 }

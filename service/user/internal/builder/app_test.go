@@ -6,7 +6,6 @@ import (
 	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
 
-	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/service/user/internal/builder"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
 )
@@ -42,17 +41,6 @@ func TestBuildUserQueryHandler(t *testing.T) {
 		handler := builder.BuildUserQueryHandler(dep)
 
 		assert.NotNil(t, handler)
-	})
-}
-
-func TestBuildBunDB(t *testing.T) {
-	t.Run("success create bundb", func(t *testing.T) {
-		cfg := sdkpg.Config{}
-
-		db, err := builder.BuildBunDB(cfg)
-
-		assert.NoError(t, err)
-		assert.NotNil(t, db)
 	})
 }
 
