@@ -1,18 +1,23 @@
 BEGIN;
 
 CREATE TABLE IF NOT EXISTS accounts (
-  id            VARCHAR(50)     PRIMARY KEY,
-  user_id       VARCHAR(50)     UNIQUE NOT NULL,
-  email         VARCHAR(50)     UNIQUE NOT NULL,
-  password      VARCHAR(100)    NOT NULL,
-  created_at    TIMESTAMP,
-  updated_at    TIMESTAMP,
-  deleted_at    TIMESTAMP,
-  created_by    VARCHAR(50),
-  updated_by    VARCHAR(50),
-  deleted_by    VARCHAR(50)
+    id UUID PRIMARY KEY,
+    user_id UUID UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    deleted_at TIMESTAMP,
+    created_by UUID NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_by UUID,
+
+    CONSTRAINT email_length CHECK (LENGTH(email) <= 255),
+    CONSTRAINT password_length CHECK (LENGTH(email) <= 255)
 );
 
-CREATE INDEX IF NOT EXISTS index_on_accounts_on_email ON accounts USING btree (email);
+CREATE INDEX IF NOT EXISTS index_on_accounts_on_email ON accounts USING btree (
+    email
+);
 
 COMMIT;
