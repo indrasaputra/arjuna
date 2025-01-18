@@ -9,7 +9,9 @@ CREATE TABLE IF NOT EXISTS wallets (
     deleted_at TIMESTAMP,
     created_by UUID NOT NULL,
     updated_by UUID NOT NULL,
-    deleted_by UUID
+    deleted_by UUID,
+
+    CONSTRAINT non_negative_balance CHECK (balance >= 0)
 );
 
 CREATE INDEX IF NOT EXISTS index_on_wallets_on_id_and_user_id ON wallets USING btree (

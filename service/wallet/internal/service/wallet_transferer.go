@@ -73,7 +73,14 @@ func (wt *WalletTransferer) processTransferBalance(ctx context.Context, transfer
 	return err
 }
 
-// deliberately get wallet from the lower id first to avoid deadlock.
+// Prevent deadlocks by consistently ordering wallet lock acquisition:
+// We always lock wallets in order of ascending wallet ID, regardless of whether a wallet
+// is the sender or receiver. This prevents deadlock scenarios where:
+// 1. Transaction A transfers from wallet 2 -> wallet 1
+// 2. Transaction B transfers from wallet 1 -> wallet 2
+// Without ordering, A could lock wallet 2 while B locks wallet 1, leading to deadlock.
+// By always locking the lower ID first, both transactions will attempt to lock wallet 1
+// before wallet 2, creating a consistent ordering that prevents circular wait conditions.
 func (wt *WalletTransferer) getSenderAndReceiverWallet(ctx context.Context, transfer *entity.TransferWallet) (*entity.Wallet, *entity.Wallet, error) {
 	if transfer.SenderWalletID.String() < transfer.ReceiverWalletID.String() {
 		senWallet, err := wt.walletRepo.GetUserWalletForUpdate(ctx, transfer.SenderWalletID, transfer.SenderID)
