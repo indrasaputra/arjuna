@@ -1,16 +1,16 @@
 BEGIN;
 
 CREATE TABLE IF NOT EXISTS transactions (
-    id VARCHAR(50) PRIMARY KEY,
-    sender_id VARCHAR(50) NOT NULL,
-    receiver_id VARCHAR(50) NOT NULL,
+    id UUID PRIMARY KEY,
+    sender_id UUID NOT NULL,
+    receiver_id UUID NOT NULL,
     amount NUMERIC NOT NULL,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP,
-    created_by VARCHAR(50),
-    updated_by VARCHAR(50),
-    deleted_by VARCHAR(50)
+    created_by UUID NOT NULL,
+    updated_by UUID NOT NULL,
+    deleted_by UUID
 );
 
 COMMIT;
