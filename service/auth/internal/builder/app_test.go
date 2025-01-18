@@ -3,9 +3,11 @@ package builder_test
 import (
 	"testing"
 
+	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 
-	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
+	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/auth/internal/builder"
 	"github.com/indrasaputra/arjuna/service/auth/internal/config"
 )
@@ -23,13 +25,20 @@ func TestBuildAuthHandler(t *testing.T) {
 	})
 }
 
-func TestBuildBunDB(t *testing.T) {
-	t.Run("success create bundb", func(t *testing.T) {
-		cfg := sdkpg.Config{}
+func TestBuildQueries(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-		db, err := builder.BuildBunDB(cfg)
+	t.Run("success create queries", func(t *testing.T) {
+		pool, err := pgxmock.NewPool()
+		if err != nil {
+			t.Fatalf("error opening a stub database connection: %v\n", err)
+		}
+		defer pool.Close()
+		g := mock_uow.NewMockTxGetter(ctrl)
 
-		assert.NoError(t, err)
-		assert.NotNil(t, db)
+		queries := builder.BuildQueries(pool, g)
+
+		assert.NotNil(t, queries)
 	})
 }

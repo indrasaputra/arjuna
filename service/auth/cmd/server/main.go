@@ -20,6 +20,7 @@ import (
 	"github.com/indrasaputra/arjuna/pkg/sdk/grpc/server"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
+	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/auth/entity"
 	"github.com/indrasaputra/arjuna/service/auth/internal/app"
@@ -59,14 +60,16 @@ func API(_ *cobra.Command, _ []string) {
 
 	app.Logger = sdklog.NewLogger(cfg.AppEnv)
 
-	bunDB, err := builder.BuildBunDB(cfg.Postgres)
+	pool, err := postgres.NewPgxPool(cfg.Postgres)
 	checkError(err)
+	defer pool.Close()
+	queries := builder.BuildQueries(pool, postgres.NewTxGetter())
 
 	dep := &builder.Dependency{
 		Config:             cfg,
-		DB:                 bunDB,
 		SigningKey:         cfg.Token.SecretKey,
 		ExpiryTimeInMinute: cfg.Token.ExpiryTimeInMinutes,
+		Queries:            queries,
 	}
 
 	c := &server.Config{
@@ -93,12 +96,13 @@ func Seed(_ *cobra.Command, _ []string) {
 
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
-	db, err := builder.BuildBunDB(cfg.Postgres)
+	pool, err := postgres.NewPgxPool(cfg.Postgres)
 	checkError(err)
+	defer pool.Close()
 
 	val := openJSON("test/fixture/accounts.json")
 
-	insertAccounts(ctx, db, val)
+	insertAccounts(ctx, pool, val)
 }
 
 func registerGrpcService(srv *server.Server, dep *builder.Dependency) {
@@ -129,7 +133,7 @@ func openJSON(file string) []byte {
 	return val
 }
 
-func insertAccounts(ctx context.Context, db *postgres.BunDB, val []byte) {
+func insertAccounts(ctx context.Context, db uow.Tr, val []byte) {
 	var accounts []*entity.Account
 	_ = json.Unmarshal(val, &accounts)
 

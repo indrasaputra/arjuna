@@ -16,6 +16,7 @@ import (
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
+	pgxuuid "github.com/vgarvardt/pgx-google-uuid/v5"
 
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 )
@@ -74,6 +75,7 @@ func NewPgxPool(cfg Config) (*pgxpool.Pool, error) {
 	}
 	connCfg.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
 		pgxdecimal.Register(conn.TypeMap())
+		pgxuuid.Register(conn.TypeMap())
 		return nil
 	}
 

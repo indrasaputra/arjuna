@@ -16,7 +16,7 @@ import (
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
-	sqlcdb "github.com/indrasaputra/arjuna/service/user/internal/repository/db"
+	"github.com/indrasaputra/arjuna/service/user/internal/repository/db"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
 )
 
@@ -225,7 +225,7 @@ func createUserSuite(t *testing.T, ctrl *gomock.Controller) *UserSuite {
 	defer pool.Close()
 	g := mock_uow.NewMockTxGetter(ctrl)
 	tx := uow.NewTxDB(pool, g)
-	q := sqlcdb.New(tx)
+	q := db.New(tx)
 	user := postgres.NewUser(q)
 	return &UserSuite{
 		user:   user,

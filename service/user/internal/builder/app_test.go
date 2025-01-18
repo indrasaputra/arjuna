@@ -4,8 +4,11 @@ import (
 	"testing"
 
 	"github.com/alicebob/miniredis/v2"
+	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 
+	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/user/internal/builder"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
 )
@@ -98,5 +101,23 @@ func TestBuildRedisClient(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.NotNil(t, client)
+	})
+}
+
+func TestBuildQueries(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	t.Run("success create queries", func(t *testing.T) {
+		pool, err := pgxmock.NewPool()
+		if err != nil {
+			t.Fatalf("error opening a stub database connection: %v\n", err)
+		}
+		defer pool.Close()
+		g := mock_uow.NewMockTxGetter(ctrl)
+
+		queries := builder.BuildQueries(pool, g)
+
+		assert.NotNil(t, queries)
 	})
 }

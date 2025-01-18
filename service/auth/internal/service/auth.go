@@ -147,8 +147,8 @@ func encryptPassword(ctx context.Context, password string) (string, error) {
 func setAccountAuditableProperties(account *entity.Account) {
 	account.CreatedAt = time.Now().UTC()
 	account.UpdatedAt = time.Now().UTC()
-	account.CreatedBy = account.ID.String()
-	account.UpdatedBy = account.ID.String()
+	account.CreatedBy = account.ID
+	account.UpdatedBy = account.ID
 }
 
 func createAccessToken(account *entity.Account, key []byte, exp int) (*entity.Token, error) {
