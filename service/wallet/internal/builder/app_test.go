@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	"github.com/alicebob/miniredis/v2"
+	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 
-	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
+	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/builder"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/config"
 )
@@ -20,17 +22,6 @@ func TestBuildWalletCommandHandler(t *testing.T) {
 		handler := builder.BuildWalletCommandHandler(dep)
 
 		assert.NotNil(t, handler)
-	})
-}
-
-func TestBuildBunDB(t *testing.T) {
-	t.Run("success create bundb", func(t *testing.T) {
-		cfg := sdkpg.Config{}
-
-		db, err := builder.BuildBunDB(cfg)
-
-		assert.NoError(t, err)
-		assert.NotNil(t, db)
 	})
 }
 
@@ -61,5 +52,23 @@ func TestBuildRedisClient(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.NotNil(t, client)
+	})
+}
+
+func TestBuildQueries(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	t.Run("success create queries", func(t *testing.T) {
+		pool, err := pgxmock.NewPool()
+		if err != nil {
+			t.Fatalf("error opening a stub database connection: %v\n", err)
+		}
+		defer pool.Close()
+		g := mock_uow.NewMockTxGetter(ctrl)
+
+		queries := builder.BuildQueries(pool, g)
+
+		assert.NotNil(t, queries)
 	})
 }

@@ -9,10 +9,10 @@ import (
 
 // Wallet defines logical data related to wallet.
 type Wallet struct {
-	Auditable
 	Balance decimal.Decimal `json:"balance"`
-	ID      uuid.UUID       `json:"id"`
-	UserID  uuid.UUID       `json:"user_id"`
+	Auditable
+	ID     uuid.UUID `json:"id"`
+	UserID uuid.UUID `json:"user_id"`
 }
 
 // TopupWallet defines logical data related to topup wallet.
@@ -37,7 +37,7 @@ type Auditable struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
-	CreatedBy string
-	UpdatedBy string
-	DeletedBy string
+	DeletedBy *uuid.UUID
+	CreatedBy uuid.UUID
+	UpdatedBy uuid.UUID
 }

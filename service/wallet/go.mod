@@ -14,8 +14,10 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/indrasaputra/arjuna/pkg/sdk v0.0.0
 	github.com/indrasaputra/arjuna/proto v0.0.0
+	github.com/jackc/pgx/v5 v5.7.0
 	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd
 	github.com/joho/godotenv v1.5.1
+	github.com/pashagolub/pgxmock/v4 v4.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.5.4
 	github.com/shopspring/decimal v1.4.0
@@ -46,7 +48,6 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgx-shopspring-decimal v0.0.0-20220624020537-1d36b5a1853e // indirect
-	github.com/jackc/pgx/v5 v5.7.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

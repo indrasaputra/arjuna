@@ -18,6 +18,7 @@ import (
 	"github.com/indrasaputra/arjuna/pkg/sdk/grpc/server"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
+	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/wallet/entity"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/app"
@@ -57,15 +58,20 @@ func API(_ *cobra.Command, _ []string) {
 	_, err = trace.NewProvider(ctx, cfg.Tracer)
 	checkError(err)
 
-	bunDB, err := builder.BuildBunDB(cfg.Postgres)
+	pool, err := postgres.NewPgxPool(cfg.Postgres)
+	checkError(err)
+	defer pool.Close()
+	txm, err := postgres.NewTxManager(pool)
 	checkError(err)
 	redisClient, err := builder.BuildRedisClient(&cfg.Redis)
 	checkError(err)
+	queries := builder.BuildQueries(pool, postgres.NewTxGetter())
 
 	dep := &builder.Dependency{
 		Config:      cfg,
-		DB:          bunDB,
 		RedisClient: redisClient,
+		TxManager:   txm,
+		Queries:     queries,
 	}
 
 	c := &server.Config{
@@ -91,12 +97,13 @@ func Seed(_ *cobra.Command, _ []string) {
 
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
-	db, err := builder.BuildBunDB(cfg.Postgres)
+	pool, err := postgres.NewPgxPool(cfg.Postgres)
 	checkError(err)
+	defer pool.Close()
 
 	val := openJSON("test/fixture/wallets.json")
 
-	insertWallets(ctx, db, val)
+	insertWallets(ctx, pool, val)
 }
 
 func registerGrpcService(srv *server.Server, dep *builder.Dependency) {
@@ -124,7 +131,7 @@ func openJSON(file string) []byte {
 	return val
 }
 
-func insertWallets(ctx context.Context, db *postgres.BunDB, val []byte) {
+func insertWallets(ctx context.Context, db uow.Tr, val []byte) {
 	var wallets []*entity.Wallet
 	_ = json.Unmarshal(val, &wallets)
 
