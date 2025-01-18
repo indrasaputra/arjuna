@@ -72,6 +72,6 @@ func generateUniqueID() uuid.UUID {
 func setWalletAuditableProperties(wallet *entity.Wallet) {
 	wallet.CreatedAt = time.Now().UTC()
 	wallet.UpdatedAt = time.Now().UTC()
-	wallet.CreatedBy = wallet.UserID.String()
-	wallet.UpdatedBy = wallet.UserID.String()
+	wallet.CreatedBy = wallet.UserID
+	wallet.UpdatedBy = wallet.UserID
 }

@@ -2,19 +2,22 @@ package postgres_test
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/pashagolub/pgxmock/v4"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
+	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/wallet/entity"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/app"
+	"github.com/indrasaputra/arjuna/service/wallet/internal/repository/db"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/repository/postgres"
 )
 
@@ -25,8 +28,8 @@ var (
 
 type WalletSuite struct {
 	wallet *postgres.Wallet
-	db     *mock_uow.MockDB
-	tx     *mock_uow.MockTx
+	db     pgxmock.PgxPoolIface
+	getter *mock_uow.MockTxGetter
 }
 
 func TestNewWallet(t *testing.T) {
@@ -34,7 +37,7 @@ func TestNewWallet(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("successfully create an instance of Wallet", func(t *testing.T) {
-		st := createWalletSuite(ctrl)
+		st := createWalletSuite(t, ctrl)
 		assert.NotNil(t, st.wallet)
 	})
 }
@@ -43,12 +46,11 @@ func TestWallet_Insert(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	app.Logger = sdklog.NewLogger(testEnv)
-	query := "INSERT INTO " +
-		"wallets (id, user_id, balance, created_at, updated_at, created_by, updated_by) " +
-		"VALUES (?, ?, ?, ?, ?, ?, ?)"
+	query := `INSERT INTO wallets \(id, user_id, balance, created_at, updated_at, created_by, updated_by\)
+				VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, \$7\)`
 
 	t.Run("nil wallets is prohibited", func(t *testing.T) {
-		st := createWalletSuite(ctrl)
+		st := createWalletSuite(t, ctrl)
 
 		err := st.wallet.Insert(testCtx, nil)
 
@@ -58,10 +60,11 @@ func TestWallet_Insert(t *testing.T) {
 
 	t.Run("insert duplicate wallets", func(t *testing.T) {
 		wallet := createTestWallet()
-		st := createWalletSuite(ctrl)
-		st.db.EXPECT().
-			Exec(testCtx, query, wallet.ID, wallet.UserID, wallet.Balance, wallet.CreatedAt, wallet.UpdatedAt, wallet.CreatedBy, wallet.UpdatedBy).
-			Return(int64(0), sdkpg.ErrAlreadyExist)
+		st := createWalletSuite(t, ctrl)
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectExec(query).
+			WithArgs(wallet.ID, wallet.UserID, wallet.Balance, wallet.CreatedAt, wallet.UpdatedAt, wallet.CreatedBy, wallet.UpdatedBy).
+			WillReturnError(&pgconn.PgError{Code: "23505"})
 
 		err := st.wallet.Insert(testCtx, wallet)
 
@@ -71,10 +74,11 @@ func TestWallet_Insert(t *testing.T) {
 
 	t.Run("insert returns error", func(t *testing.T) {
 		wallet := createTestWallet()
-		st := createWalletSuite(ctrl)
-		st.db.EXPECT().
-			Exec(testCtx, query, wallet.ID, wallet.UserID, wallet.Balance, wallet.CreatedAt, wallet.UpdatedAt, wallet.CreatedBy, wallet.UpdatedBy).
-			Return(int64(0), entity.ErrInternal(""))
+		st := createWalletSuite(t, ctrl)
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectExec(query).
+			WithArgs(wallet.ID, wallet.UserID, wallet.Balance, wallet.CreatedAt, wallet.UpdatedAt, wallet.CreatedBy, wallet.UpdatedBy).
+			WillReturnError(assert.AnError)
 
 		err := st.wallet.Insert(testCtx, wallet)
 
@@ -83,10 +87,11 @@ func TestWallet_Insert(t *testing.T) {
 
 	t.Run("success insert wallets", func(t *testing.T) {
 		wallet := createTestWallet()
-		st := createWalletSuite(ctrl)
-		st.db.EXPECT().
-			Exec(testCtx, query, wallet.ID, wallet.UserID, wallet.Balance, wallet.CreatedAt, wallet.UpdatedAt, wallet.CreatedBy, wallet.UpdatedBy).
-			Return(int64(1), nil)
+		st := createWalletSuite(t, ctrl)
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectExec(query).
+			WithArgs(wallet.ID, wallet.UserID, wallet.Balance, wallet.CreatedAt, wallet.UpdatedAt, wallet.CreatedBy, wallet.UpdatedBy).
+			WillReturnResult(pgxmock.NewResult("INSERT", 1))
 
 		err := st.wallet.Insert(testCtx, wallet)
 
@@ -100,15 +105,16 @@ func TestWallet_AddWalletBalance(t *testing.T) {
 
 	app.Logger = sdklog.NewLogger(testEnv)
 
-	query := `UPDATE wallets SET balance = balance + ? WHERE id = ?`
+	query := `UPDATE wallets SET balance = balance \+ \$2 WHERE id = \$1`
 
 	t.Run("add account balance returns internal error", func(t *testing.T) {
-		st := createWalletSuite(ctrl)
+		st := createWalletSuite(t, ctrl)
 		id := uuid.Must(uuid.NewV7())
 		amount, _ := decimal.NewFromString("4.56")
-		st.db.EXPECT().
-			Exec(testCtx, query, amount, id).
-			Return(int64(1), entity.ErrInternal(""))
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectExec(query).
+			WithArgs(id, amount).
+			WillReturnError(assert.AnError)
 
 		err := st.wallet.AddWalletBalance(testCtx, id, amount)
 
@@ -116,12 +122,13 @@ func TestWallet_AddWalletBalance(t *testing.T) {
 	})
 
 	t.Run("add account balance returns success", func(t *testing.T) {
-		st := createWalletSuite(ctrl)
+		st := createWalletSuite(t, ctrl)
 		id := uuid.Must(uuid.NewV7())
 		amount, _ := decimal.NewFromString("4.56")
-		st.db.EXPECT().
-			Exec(testCtx, query, amount, id).
-			Return(int64(1), nil)
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectExec(query).
+			WithArgs(id, amount).
+			WillReturnResult(pgxmock.NewResult("UPDATE", 1))
 
 		err := st.wallet.AddWalletBalance(testCtx, id, amount)
 
@@ -129,108 +136,55 @@ func TestWallet_AddWalletBalance(t *testing.T) {
 	})
 }
 
-func TestWallet_AddWalletBalanceWithTx(t *testing.T) {
+func TestWallet_GetUserWalletForUpdate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	app.Logger = sdklog.NewLogger(testEnv)
 
-	query := `UPDATE wallets SET balance = balance + ? WHERE id = ?`
+	query := `SELECT id, user_id, balance, created_at, updated_at, deleted_at, created_by, updated_by, deleted_by FROM wallets WHERE id = \$1 AND user_id = \$2 LIMIT 1 FOR NO KEY UPDATE`
 
-	t.Run("tx is nil", func(t *testing.T) {
-		st := createWalletSuite(ctrl)
-		id := uuid.Must(uuid.NewV7())
-		amount, _ := decimal.NewFromString("4.56")
-
-		err := st.wallet.AddWalletBalanceWithTx(testCtx, nil, id, amount)
-
-		assert.Error(t, err)
-	})
-
-	t.Run("add account balance with tx returns internal error", func(t *testing.T) {
-		st := createWalletSuite(ctrl)
-		id := uuid.Must(uuid.NewV7())
-		amount, _ := decimal.NewFromString("4.56")
-		st.tx.EXPECT().
-			Exec(testCtx, query, amount, id).
-			Return(int64(1), entity.ErrInternal(""))
-
-		err := st.wallet.AddWalletBalanceWithTx(testCtx, st.tx, id, amount)
-
-		assert.Error(t, err)
-	})
-
-	t.Run("add account balance with tx returns success", func(t *testing.T) {
-		st := createWalletSuite(ctrl)
-		id := uuid.Must(uuid.NewV7())
-		amount, _ := decimal.NewFromString("4.56")
-		st.tx.EXPECT().
-			Exec(testCtx, query, amount, id).
-			Return(int64(1), nil)
-
-		err := st.wallet.AddWalletBalanceWithTx(testCtx, st.tx, id, amount)
-
-		assert.NoError(t, err)
-	})
-}
-
-func TestWallet_GetUserWalletWithTx(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	app.Logger = sdklog.NewLogger(testEnv)
-
-	query := `SELECT id, user_id, balance FROM wallets WHERE id = ? AND user_id = ? LIMIT 1 FOR NO KEY UPDATE`
-
-	t.Run("tx is nil", func(t *testing.T) {
-		st := createWalletSuite(ctrl)
+	t.Run("wallet not found", func(t *testing.T) {
+		st := createWalletSuite(t, ctrl)
 		id := uuid.Must(uuid.NewV7())
 		userID := uuid.Must(uuid.NewV7())
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectQuery(query).WithArgs(id, userID).WillReturnError(pgx.ErrNoRows)
 
-		res, err := st.wallet.GetUserWalletWithTx(testCtx, nil, id, userID)
-
-		assert.Error(t, err)
-		assert.Nil(t, res)
-	})
-
-	t.Run("add account balance returns no rows", func(t *testing.T) {
-		st := createWalletSuite(ctrl)
-		id := uuid.Must(uuid.NewV7())
-		userID := uuid.Must(uuid.NewV7())
-		st.tx.EXPECT().
-			Query(testCtx, gomock.Any(), query, id, userID).
-			Return(sql.ErrNoRows)
-
-		res, err := st.wallet.GetUserWalletWithTx(testCtx, st.tx, id, userID)
+		res, err := st.wallet.GetUserWalletForUpdate(testCtx, id, userID)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyWallet(), err)
 		assert.Nil(t, res)
 	})
 
-	t.Run("add account balance returns internal error", func(t *testing.T) {
-		st := createWalletSuite(ctrl)
+	t.Run("select returns error", func(t *testing.T) {
+		st := createWalletSuite(t, ctrl)
 		id := uuid.Must(uuid.NewV7())
 		userID := uuid.Must(uuid.NewV7())
-		st.tx.EXPECT().
-			Query(testCtx, gomock.Any(), query, id, userID).
-			Return(entity.ErrInternal(""))
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectQuery(query).WithArgs(id, userID).WillReturnError(assert.AnError)
+		// st.db.ExpectQuery(query).WithArgs(id, userID).WillReturnRows(pgxmock.
+		// 	NewRows([]string{"id", "user_id", "balance", "created_at", "updated_at", "deleted_at", "created_by", "updated_by", "deleted_by"}).
+		// 	AddRow(wallet.ID, wallet.UserID, wallet.Balance, wallet.CreatedAt, wallet.UpdatedAt, wallet.DeletedAt, wallet.CreatedBy, wallet.UpdatedBy, wallet.DeletedBy))
 
-		res, err := st.wallet.GetUserWalletWithTx(testCtx, st.tx, id, userID)
+		res, err := st.wallet.GetUserWalletForUpdate(testCtx, id, userID)
 
 		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
 
-	t.Run("success add balance", func(t *testing.T) {
-		st := createWalletSuite(ctrl)
+	t.Run("select returns error", func(t *testing.T) {
+		wallet := createTestWallet()
+		st := createWalletSuite(t, ctrl)
 		id := uuid.Must(uuid.NewV7())
 		userID := uuid.Must(uuid.NewV7())
-		st.tx.EXPECT().
-			Query(testCtx, gomock.Any(), query, id, userID).
-			Return(nil)
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectQuery(query).WithArgs(id, userID).WillReturnRows(pgxmock.
+			NewRows([]string{"id", "user_id", "balance", "created_at", "updated_at", "deleted_at", "created_by", "updated_by", "deleted_by"}).
+			AddRow(wallet.ID, wallet.UserID, wallet.Balance, wallet.CreatedAt, wallet.UpdatedAt, wallet.DeletedAt, wallet.CreatedBy, wallet.UpdatedBy, wallet.DeletedBy))
 
-		res, err := st.wallet.GetUserWalletWithTx(testCtx, st.tx, id, userID)
+		res, err := st.wallet.GetUserWalletForUpdate(testCtx, id, userID)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, res)
@@ -246,13 +200,19 @@ func createTestWallet() *entity.Wallet {
 	}
 }
 
-func createWalletSuite(ctrl *gomock.Controller) *WalletSuite {
-	db := mock_uow.NewMockDB(ctrl)
-	t := mock_uow.NewMockTx(ctrl)
-	w := postgres.NewWallet(db)
+func createWalletSuite(t *testing.T, ctrl *gomock.Controller) *WalletSuite {
+	pool, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("error opening a stub database connection: %v\n", err)
+	}
+	defer pool.Close()
+	g := mock_uow.NewMockTxGetter(ctrl)
+	tx := uow.NewTxDB(pool, g)
+	q := db.New(tx)
+	w := postgres.NewWallet(q)
 	return &WalletSuite{
 		wallet: w,
-		db:     db,
-		tx:     t,
+		db:     pool,
+		getter: g,
 	}
 }
