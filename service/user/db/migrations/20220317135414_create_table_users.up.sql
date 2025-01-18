@@ -6,9 +6,9 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP,
-    created_by TEXT NOT NULL,
-    updated_by TEXT NOT NULL,
-    deleted_by TEXT,
+    created_by UUID NOT NULL,
+    updated_by UUID NOT NULL,
+    deleted_by UUID,
 
     CONSTRAINT name_length CHECK (LENGTH(name) <= 100)
 );

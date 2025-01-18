@@ -62,9 +62,9 @@ type User struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
-	CreatedBy string
-	UpdatedBy string
-	DeletedBy *string
+	CreatedBy uuid.UUID
+	UpdatedBy uuid.UUID
+	DeletedBy *uuid.UUID
 }
 
 type UsersOutbox struct {
@@ -74,7 +74,7 @@ type UsersOutbox struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
-	CreatedBy string
-	UpdatedBy string
-	DeletedBy *string
+	CreatedBy uuid.UUID
+	UpdatedBy uuid.UUID
+	DeletedBy *uuid.UUID
 }

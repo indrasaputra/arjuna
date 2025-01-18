@@ -23,8 +23,8 @@ type CreateUserParams struct {
 	Name      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	CreatedBy string
-	UpdatedBy string
+	CreatedBy uuid.UUID
+	UpdatedBy uuid.UUID
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
@@ -51,8 +51,8 @@ type CreateUserOutboxParams struct {
 	Payload   []byte
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	CreatedBy string
-	UpdatedBy string
+	CreatedBy uuid.UUID
+	UpdatedBy uuid.UUID
 }
 
 func (q *Queries) CreateUserOutbox(ctx context.Context, arg CreateUserOutboxParams) error {
@@ -170,7 +170,7 @@ UPDATE users_outbox SET status = $1, updated_at = NOW(), updated_by = $2 WHERE i
 
 type UpdateUserOutboxIDParams struct {
 	Status    Status
-	UpdatedBy string
+	UpdatedBy uuid.UUID
 	ID        uuid.UUID
 }
 

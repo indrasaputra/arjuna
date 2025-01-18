@@ -9,9 +9,9 @@ CREATE TABLE IF NOT EXISTS users_outbox (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP,
-    created_by TEXT NOT NULL,
-    updated_by TEXT NOT NULL,
-    deleted_by TEXT
+    created_by UUID NOT NULL,
+    updated_by UUID NOT NULL,
+    deleted_by UUID
 );
 
 CREATE INDEX IF NOT EXISTS index_on_users_outbox_on_status_and_created_at ON users_outbox USING btree (
