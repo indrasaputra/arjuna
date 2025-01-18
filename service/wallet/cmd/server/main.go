@@ -135,12 +135,19 @@ func insertWallets(ctx context.Context, db uow.Tr, val []byte) {
 	var wallets []*entity.Wallet
 	_ = json.Unmarshal(val, &wallets)
 
-	query := "INSERT INTO wallets (id, user_id, balance, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())"
+	query := "INSERT INTO wallets (id, user_id, balance, created_at, updated_at, created_by, updated_by) VALUES ($1, $2, $3, NOW(), NOW(), $4, $5)"
 	for _, wallet := range wallets {
-		_, err := db.Exec(ctx, query, wallet.ID, wallet.UserID, wallet.Balance)
-		checkError(err)
+		_, err := db.Exec(ctx, query, wallet.ID, wallet.UserID, wallet.Balance, wallet.UserID, wallet.UserID)
+		checkInsertError(err)
 	}
 	log.Printf("Successfully insert %d wallets\n", len(wallets))
+}
+
+func checkInsertError(err error) {
+	if uow.IsUniqueViolationError(err) {
+		return
+	}
+	checkError(err)
 }
 
 func checkError(err error) {

@@ -137,13 +137,20 @@ func insertAccounts(ctx context.Context, db uow.Tr, val []byte) {
 	var accounts []*entity.Account
 	_ = json.Unmarshal(val, &accounts)
 
-	query := "INSERT INTO accounts (id, user_id, email, password, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())"
+	query := "INSERT INTO accounts (id, user_id, email, password, created_at, updated_at, created_by, updated_by) VALUES ($1, $2, $3, $4, NOW(), NOW(), $5, $6)"
 	for _, account := range accounts {
 		password, _ := bcrypt.GenerateFromPassword([]byte(account.Password), bcrypt.MinCost)
-		_, err := db.Exec(ctx, query, account.ID, account.UserID, account.Email, string(password))
-		checkError(err)
+		_, err := db.Exec(ctx, query, account.ID, account.UserID, account.Email, string(password), account.ID, account.ID)
+		checkInsertError(err)
 	}
 	log.Printf("Successfully insert %d accounts\n", len(accounts))
+}
+
+func checkInsertError(err error) {
+	if uow.IsUniqueViolationError(err) {
+		return
+	}
+	checkError(err)
 }
 
 func checkError(err error) {
