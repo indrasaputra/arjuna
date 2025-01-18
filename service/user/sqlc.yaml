@@ -44,3 +44,8 @@ sql:
               import: "time"
               type: "Time"
               pointer: true
+          - column: "users_outbox.payload"
+            go_type:
+              import: "github.com/indrasaputra/arjuna/service/user/entity"
+              type: "User"
+              pointer: true

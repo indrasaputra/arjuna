@@ -10,50 +10,52 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"github.com/indrasaputra/arjuna/service/user/entity"
 )
 
-type Status string
+type UserOutboxStatus string
 
 const (
-	StatusREADY     Status = "READY"
-	StatusPROCESSED Status = "PROCESSED"
-	StatusDELIVERED Status = "DELIVERED"
-	StatusFAILED    Status = "FAILED"
+	UserOutboxStatusREADY     UserOutboxStatus = "READY"
+	UserOutboxStatusPROCESSED UserOutboxStatus = "PROCESSED"
+	UserOutboxStatusDELIVERED UserOutboxStatus = "DELIVERED"
+	UserOutboxStatusFAILED    UserOutboxStatus = "FAILED"
 )
 
-func (e *Status) Scan(src interface{}) error {
+func (e *UserOutboxStatus) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = Status(s)
+		*e = UserOutboxStatus(s)
 	case string:
-		*e = Status(s)
+		*e = UserOutboxStatus(s)
 	default:
-		return fmt.Errorf("unsupported scan type for Status: %T", src)
+		return fmt.Errorf("unsupported scan type for UserOutboxStatus: %T", src)
 	}
 	return nil
 }
 
-type NullStatus struct {
-	Status Status
-	Valid  bool // Valid is true if Status is not NULL
+type NullUserOutboxStatus struct {
+	UserOutboxStatus UserOutboxStatus
+	Valid            bool // Valid is true if UserOutboxStatus is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullStatus) Scan(value interface{}) error {
+func (ns *NullUserOutboxStatus) Scan(value interface{}) error {
 	if value == nil {
-		ns.Status, ns.Valid = "", false
+		ns.UserOutboxStatus, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.Status.Scan(value)
+	return ns.UserOutboxStatus.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullStatus) Value() (driver.Value, error) {
+func (ns NullUserOutboxStatus) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.Status), nil
+	return string(ns.UserOutboxStatus), nil
 }
 
 type User struct {
@@ -69,8 +71,8 @@ type User struct {
 
 type UsersOutbox struct {
 	ID        uuid.UUID
-	Payload   []byte
-	Status    Status
+	Payload   *entity.User
+	Status    UserOutboxStatus
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time

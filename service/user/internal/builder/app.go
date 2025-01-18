@@ -8,11 +8,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	sdkauth "github.com/indrasaputra/arjuna/service/auth/pkg/sdk/auth"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
 	"github.com/indrasaputra/arjuna/service/user/internal/grpc/handler"
+	"github.com/indrasaputra/arjuna/service/user/internal/repository/db"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/redis"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
@@ -23,15 +23,15 @@ import (
 type Dependency struct {
 	Config         *config.Config
 	TemporalClient client.Client
-	DB             uow.Tr
 	RedisClient    goredis.Cmdable
 	TxManager      uow.TxManager
+	Queries        *db.Queries
 }
 
 // BuildUserCommandHandler builds user command handler including all of its dependencies.
 func BuildUserCommandHandler(dep *Dependency) *handler.UserCommand {
-	pu := postgres.NewUser(dep.DB, sdkpg.NewTxGetter())
-	puo := postgres.NewUserOutbox(dep.DB, sdkpg.NewTxGetter())
+	pu := postgres.NewUser(dep.Queries)
+	puo := postgres.NewUserOutbox(dep.Queries)
 	ik := redis.NewIdempotencyKey(dep.RedisClient)
 
 	rg := service.NewUserRegistrar(dep.TxManager, pu, puo, ik)
@@ -40,14 +40,14 @@ func BuildUserCommandHandler(dep *Dependency) *handler.UserCommand {
 
 // BuildUserCommandInternalHandler builds user command handler including all of its dependencies.
 func BuildUserCommandInternalHandler(dep *Dependency) *handler.UserCommandInternal {
-	pg := postgres.NewUser(dep.DB, sdkpg.NewTxGetter())
+	pg := postgres.NewUser(dep.Queries)
 	d := service.NewUserDeleter(pg)
 	return handler.NewUserCommandInternal(d)
 }
 
 // BuildUserQueryHandler builds user query handler including all of its dependencies.
 func BuildUserQueryHandler(dep *Dependency) *handler.UserQuery {
-	pg := postgres.NewUser(dep.DB, sdkpg.NewTxGetter())
+	pg := postgres.NewUser(dep.Queries)
 	g := service.NewUserGetter(pg)
 	return handler.NewUserQuery(g)
 }
@@ -92,4 +92,10 @@ func BuildRedisClient(cfg *config.Redis) (*goredis.Client, error) {
 	}
 
 	return client, nil
+}
+
+// BuildQueries builds sqlc queries.
+func BuildQueries(tr uow.Tr, getter uow.TxGetter) *db.Queries {
+	tx := uow.NewTxDB(tr, getter)
+	return db.New(tx)
 }

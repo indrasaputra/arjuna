@@ -87,13 +87,14 @@ func API(_ *cobra.Command, _ []string) {
 	checkError(err)
 	redisClient, err := builder.BuildRedisClient(&cfg.Redis)
 	checkError(err)
+	queries := builder.BuildQueries(pool, sdkpostgres.NewTxGetter())
 
 	dep := &builder.Dependency{
 		TemporalClient: temporalClient,
 		Config:         cfg,
-		DB:             pool,
 		RedisClient:    redisClient,
 		TxManager:      txm,
+		Queries:        queries,
 	}
 
 	c := &server.Config{
@@ -135,10 +136,11 @@ func Worker(_ *cobra.Command, _ []string) {
 	pool, err := sdkpostgres.NewPgxPool(cfg.Postgres)
 	checkError(err)
 	defer pool.Close()
+	queries := builder.BuildQueries(pool, sdkpostgres.NewTxGetter())
 
 	ac := connauth.NewAuth(authClient)
 	wc := connwallet.NewWallet(walletClient)
-	db := postgres.NewUser(pool, sdkpostgres.NewTxGetter())
+	db := postgres.NewUser(queries)
 
 	act := orcact.NewRegisterUserActivity(ac, wc, db)
 
@@ -173,11 +175,14 @@ func Relayer(_ *cobra.Command, _ []string) {
 	pool, err := sdkpostgres.NewPgxPool(cfg.Postgres)
 	checkError(err)
 	defer pool.Close()
+	txm, err := sdkpostgres.NewTxManager(pool)
+	checkError(err)
+	queries := builder.BuildQueries(pool, sdkpostgres.NewTxGetter())
 
-	p := postgres.NewUserOutbox(pool, sdkpostgres.NewTxGetter())
+	p := postgres.NewUserOutbox(queries)
 	w := orcwork.NewRegisterUserWorkflow(temporalClient)
 
-	svc := service.NewUserRelayRegistrar(p, w)
+	svc := service.NewUserRelayRegistrar(p, w, txm)
 
 	for {
 		app.Logger.Infof(ctx, "running user registration relayer at %v", time.Now())

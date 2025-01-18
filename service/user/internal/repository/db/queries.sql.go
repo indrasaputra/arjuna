@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"github.com/indrasaputra/arjuna/service/user/entity"
 )
 
 const createUser = `-- name: CreateUser :exec
@@ -47,8 +49,8 @@ VALUES ($1, $2, $3, $4, $5, $6, $7)
 
 type CreateUserOutboxParams struct {
 	ID        uuid.UUID
-	Status    Status
-	Payload   []byte
+	Status    UserOutboxStatus
+	Payload   *entity.User
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	CreatedBy uuid.UUID
@@ -69,11 +71,16 @@ func (q *Queries) CreateUserOutbox(ctx context.Context, arg CreateUserOutboxPara
 }
 
 const getAllUserOutboxesForUpdateByStatus = `-- name: GetAllUserOutboxesForUpdateByStatus :many
-SELECT id, payload, status, created_at, updated_at, deleted_at, created_by, updated_by, deleted_by FROM users_outbox WHERE status = $1 FOR UPDATE
+SELECT id, payload, status, created_at, updated_at, deleted_at, created_by, updated_by, deleted_by FROM users_outbox WHERE status = $1 ORDER BY created_at ASC LIMIT $2
 `
 
-func (q *Queries) GetAllUserOutboxesForUpdateByStatus(ctx context.Context, status Status) ([]*UsersOutbox, error) {
-	rows, err := q.db.Query(ctx, getAllUserOutboxesForUpdateByStatus, status)
+type GetAllUserOutboxesForUpdateByStatusParams struct {
+	Status UserOutboxStatus
+	Limit  int32
+}
+
+func (q *Queries) GetAllUserOutboxesForUpdateByStatus(ctx context.Context, arg GetAllUserOutboxesForUpdateByStatusParams) ([]*UsersOutbox, error) {
+	rows, err := q.db.Query(ctx, getAllUserOutboxesForUpdateByStatus, arg.Status, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -165,16 +172,15 @@ func (q *Queries) HardDeleteUserByID(ctx context.Context, id uuid.UUID) error {
 }
 
 const updateUserOutboxID = `-- name: UpdateUserOutboxID :exec
-UPDATE users_outbox SET status = $1, updated_at = NOW(), updated_by = $2 WHERE id = $3
+UPDATE users_outbox SET status = $1, updated_at = NOW() WHERE id = $2
 `
 
 type UpdateUserOutboxIDParams struct {
-	Status    Status
-	UpdatedBy uuid.UUID
-	ID        uuid.UUID
+	Status UserOutboxStatus
+	ID     uuid.UUID
 }
 
 func (q *Queries) UpdateUserOutboxID(ctx context.Context, arg UpdateUserOutboxIDParams) error {
-	_, err := q.db.Exec(ctx, updateUserOutboxID, arg.Status, arg.UpdatedBy, arg.ID)
+	_, err := q.db.Exec(ctx, updateUserOutboxID, arg.Status, arg.ID)
 	return err
 }

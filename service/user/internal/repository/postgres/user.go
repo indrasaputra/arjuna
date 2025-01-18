@@ -18,9 +18,7 @@ type User struct {
 }
 
 // NewUser creates an instance of User.
-func NewUser(tr uow.Tr, g uow.TxGetter) *User {
-	tx := uow.NewTxDB(tr, g)
-	q := db.New(tx)
+func NewUser(q *db.Queries) *User {
 	return &User{queries: q}
 }
 
@@ -82,8 +80,8 @@ func (u *User) GetAll(ctx context.Context, limit uint) ([]*entity.User, error) {
 		return []*entity.User{}, entity.ErrInternal(err.Error())
 	}
 
-	result := make([]*entity.User, 0, len(users))
-	for _, user := range users {
+	result := make([]*entity.User, len(users))
+	for i, user := range users {
 		res := &entity.User{}
 		res.ID = user.ID
 		res.Name = user.Name
@@ -91,7 +89,7 @@ func (u *User) GetAll(ctx context.Context, limit uint) ([]*entity.User, error) {
 		res.UpdatedAt = user.UpdatedAt
 		res.CreatedBy = user.CreatedBy
 		res.UpdatedBy = user.UpdatedBy
-		result = append(result, res)
+		result[i] = res
 	}
 	return result, err
 }

@@ -2,7 +2,6 @@ package postgres_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -14,15 +13,16 @@ import (
 
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
+	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
+	sqlcdb "github.com/indrasaputra/arjuna/service/user/internal/repository/db"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
 )
 
 var (
-	testCtx             = context.Background()
-	errPostgresInternal = errors.New("error")
-	testEnv             = "development"
+	testCtx = context.Background()
+	testEnv = "development"
 )
 
 type UserSuite struct {
@@ -122,7 +122,7 @@ func TestUser_GetByID(t *testing.T) {
 		user := createTestUser()
 		st := createUserSuite(t, ctrl)
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectQuery(query).WithArgs(user.ID).WillReturnError(errPostgresInternal)
+		st.db.ExpectQuery(query).WithArgs(user.ID).WillReturnError(assert.AnError)
 
 		res, err := st.user.GetByID(testCtx, user.ID)
 
@@ -156,7 +156,7 @@ func TestUser_GetAll(t *testing.T) {
 	t.Run("get all returns error", func(t *testing.T) {
 		st := createUserSuite(t, ctrl)
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectQuery(query).WithArgs(limit).WillReturnError(errPostgresInternal)
+		st.db.ExpectQuery(query).WithArgs(limit).WillReturnError(assert.AnError)
 
 		res, err := st.user.GetAll(testCtx, limit)
 
@@ -190,7 +190,7 @@ func TestUser_HardDelete(t *testing.T) {
 		user := createTestUser()
 		st := createUserSuite(t, ctrl)
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectExec(query).WithArgs(user.ID).WillReturnError(errPostgresInternal)
+		st.db.ExpectExec(query).WithArgs(user.ID).WillReturnError(assert.AnError)
 
 		err := st.user.HardDelete(testCtx, user.ID)
 
@@ -218,16 +218,18 @@ func createTestUser() *entity.User {
 }
 
 func createUserSuite(t *testing.T, ctrl *gomock.Controller) *UserSuite {
-	db, err := pgxmock.NewPool()
+	pool, err := pgxmock.NewPool()
 	if err != nil {
 		t.Fatalf("error opening a stub database connection: %v\n", err)
 	}
-	defer db.Close()
+	defer pool.Close()
 	g := mock_uow.NewMockTxGetter(ctrl)
-	user := postgres.NewUser(db, g)
+	tx := uow.NewTxDB(pool, g)
+	q := sqlcdb.New(tx)
+	user := postgres.NewUser(q)
 	return &UserSuite{
 		user:   user,
-		db:     db,
+		db:     pool,
 		getter: g,
 	}
 }

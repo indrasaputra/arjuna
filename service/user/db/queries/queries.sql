@@ -18,7 +18,7 @@ users_outbox (id, status, payload, created_at, updated_at, created_by, updated_b
 VALUES ($1, $2, $3, $4, $5, $6, $7);
 
 -- name: GetAllUserOutboxesForUpdateByStatus :many
-SELECT * FROM users_outbox WHERE status = $1 FOR UPDATE;
+SELECT * FROM users_outbox WHERE status = $1 ORDER BY created_at ASC LIMIT $2;
 
 -- name: UpdateUserOutboxID :exec
-UPDATE users_outbox SET status = $1, updated_at = NOW(), updated_by = $2 WHERE id = $3;
+UPDATE users_outbox SET status = $1, updated_at = NOW() WHERE id = $2;
