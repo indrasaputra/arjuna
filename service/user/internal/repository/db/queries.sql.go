@@ -21,10 +21,10 @@ VALUES ($1, $2, $3, $4, $5, $6)
 `
 
 type CreateUserParams struct {
-	ID        uuid.UUID
-	Name      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	Name      string
+	ID        uuid.UUID
 	CreatedBy uuid.UUID
 	UpdatedBy uuid.UUID
 }
@@ -48,11 +48,11 @@ VALUES ($1, $2, $3, $4, $5, $6, $7)
 `
 
 type CreateUserOutboxParams struct {
-	ID        uuid.UUID
-	Status    UserOutboxStatus
-	Payload   *entity.User
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	Payload   *entity.User
+	Status    UserOutboxStatus
+	ID        uuid.UUID
 	CreatedBy uuid.UUID
 	UpdatedBy uuid.UUID
 }

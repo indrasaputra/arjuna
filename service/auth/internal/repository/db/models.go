@@ -11,14 +11,14 @@ import (
 )
 
 type Account struct {
-	ID        uuid.UUID
-	UserID    uuid.UUID
-	Email     string
-	Password  string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
+	DeletedBy *uuid.UUID
+	Email     string
+	Password  string
+	ID        uuid.UUID
+	UserID    uuid.UUID
 	CreatedBy uuid.UUID
 	UpdatedBy uuid.UUID
-	DeletedBy *uuid.UUID
 }

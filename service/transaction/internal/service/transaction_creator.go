@@ -110,6 +110,6 @@ func generateUniqueID() uuid.UUID {
 func setTransactionAuditableProperties(trx *entity.Transaction) {
 	trx.CreatedAt = time.Now().UTC()
 	trx.UpdatedAt = time.Now().UTC()
-	trx.CreatedBy = trx.SenderID.String()
-	trx.UpdatedBy = trx.SenderID.String()
+	trx.CreatedBy = trx.SenderID
+	trx.UpdatedBy = trx.SenderID
 }

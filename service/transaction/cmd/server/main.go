@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
+	"github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/grpc/server"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
@@ -46,15 +47,17 @@ func API(_ *cobra.Command, _ []string) {
 	_, err = trace.NewProvider(ctx, cfg.Tracer)
 	checkError(err)
 
-	bunDB, err := builder.BuildBunDB(cfg.Postgres)
+	pool, err := postgres.NewPgxPool(cfg.Postgres)
 	checkError(err)
+	defer pool.Close()
+	queries := builder.BuildQueries(pool, postgres.NewTxGetter())
 	redisClient, err := builder.BuildRedisClient(&cfg.Redis)
 	checkError(err)
 
 	dep := &builder.Dependency{
 		Config:      cfg,
-		DB:          bunDB,
 		RedisClient: redisClient,
+		Queries:     queries,
 	}
 
 	c := &server.Config{

@@ -59,24 +59,24 @@ func (ns NullUserOutboxStatus) Value() (driver.Value, error) {
 }
 
 type User struct {
-	ID        uuid.UUID
-	Name      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
+	DeletedBy *uuid.UUID
+	Name      string
+	ID        uuid.UUID
 	CreatedBy uuid.UUID
 	UpdatedBy uuid.UUID
-	DeletedBy *uuid.UUID
 }
 
 type UsersOutbox struct {
-	ID        uuid.UUID
-	Payload   *entity.User
-	Status    UserOutboxStatus
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	Payload   *entity.User
 	DeletedAt *time.Time
+	DeletedBy *uuid.UUID
+	Status    UserOutboxStatus
+	ID        uuid.UUID
 	CreatedBy uuid.UUID
 	UpdatedBy uuid.UUID
-	DeletedBy *uuid.UUID
 }

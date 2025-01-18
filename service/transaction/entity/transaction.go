@@ -9,8 +9,8 @@ import (
 
 // Transaction defines logical data related to transaction.
 type Transaction struct {
+	Amount decimal.Decimal
 	Auditable
-	Amount     decimal.Decimal
 	ID         uuid.UUID
 	SenderID   uuid.UUID
 	ReceiverID uuid.UUID
@@ -21,7 +21,7 @@ type Auditable struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
-	CreatedBy string
-	UpdatedBy string
-	DeletedBy string
+	DeletedBy *uuid.UUID
+	CreatedBy uuid.UUID
+	UpdatedBy uuid.UUID
 }
