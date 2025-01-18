@@ -1,0 +1,51 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    schema: "db/migrations"
+    queries: "db/queries"
+    gen:
+      go:
+        out: "internal/repository/db"
+        sql_package: "pgx/v5"
+        emit_pointers_for_null_types: true
+        emit_result_struct_pointers: true
+        overrides:
+          # Use google UUID instead of pgtype.UUID
+          # requires an adapter: https://github.com/vgarvardt/pgx-google-uuid
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+          - db_type: "uuid"
+            nullable: true
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+              pointer: true
+          # Use decimal.Decimal instead of pgtype.Numeric
+          # requires an adapter: https://github.com/jackc/pgx-shopspring-decimal
+          - db_type: "pg_catalog.numeric"
+            go_type:
+              import: "github.com/shopspring/decimal"
+              type: "Decimal"
+          - db_type: "pg_catalog.numeric"
+            nullable: true
+            go_type:
+              import: "github.com/shopspring/decimal"
+              type: "Decimal"
+              pointer: true
+          - db_type: "pg_catalog.timestamp"
+            go_type:
+              import: "time"
+              type: "Time"
+          - db_type: "pg_catalog.timestamp"
+            nullable: true
+            go_type:
+              import: "time"
+              type: "Time"
+              pointer: true
+          - column: "users_outbox.payload"
+            go_type:
+              import: "github.com/indrasaputra/arjuna/service/user/entity"
+              type: "User"
+              pointer: true

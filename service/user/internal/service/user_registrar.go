@@ -157,8 +157,8 @@ func generateUniqueID() uuid.UUID {
 func setUserAuditableProperties(user *entity.User) {
 	user.CreatedAt = time.Now().UTC()
 	user.UpdatedAt = time.Now().UTC()
-	user.CreatedBy = user.ID.String()
-	user.UpdatedBy = user.ID.String()
+	user.CreatedBy = user.ID
+	user.UpdatedBy = user.ID
 }
 
 func createUserOutbox(user *entity.User) *entity.UserOutbox {

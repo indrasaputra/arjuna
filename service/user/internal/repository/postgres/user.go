@@ -2,30 +2,24 @@ package postgres
 
 import (
 	"context"
-	"strings"
+	"errors"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
-)
-
-const (
-	// errCodeUniqueViolation is derived from https://www.postgresql.org/docs/11/errcodes-appendix.html
-	errCodeUniqueViolation = "23505"
+	"github.com/indrasaputra/arjuna/service/user/internal/repository/db"
 )
 
 // User is responsible to connect user entity with users table in PostgreSQL.
 type User struct {
-	db     uow.Tr
-	getter uow.TxGetter
+	queries *db.Queries
 }
 
 // NewUser creates an instance of User.
-func NewUser(db uow.Tr, g uow.TxGetter) *User {
-	return &User{db: db, getter: g}
+func NewUser(q *db.Queries) *User {
+	return &User{queries: q}
 }
 
 // Insert inserts the user into users table.
@@ -34,20 +28,17 @@ func (u *User) Insert(ctx context.Context, user *entity.User) error {
 		return entity.ErrEmptyUser()
 	}
 
-	tx := u.getter.DefaultTrOrDB(ctx, u.db)
-	query := "INSERT INTO " +
-		"users (id, name, created_at, updated_at, created_by, updated_by) " +
-		"VALUES ($1, $2, $3, $4, $5, $6)"
+	param := db.CreateUserParams{
+		ID:        user.ID,
+		Name:      user.Name,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+		CreatedBy: user.CreatedBy,
+		UpdatedBy: user.UpdatedBy,
+	}
+	err := u.queries.CreateUser(ctx, param)
 
-	_, err := tx.Exec(ctx, query,
-		user.ID,
-		user.Name,
-		user.CreatedAt,
-		user.UpdatedAt,
-		user.CreatedBy,
-		user.UpdatedBy,
-	)
-	if isUniqueViolationErr(err) {
+	if uow.IsUniqueViolationError(err) {
 		return entity.ErrAlreadyExists()
 	}
 	if err != nil {
@@ -60,63 +51,55 @@ func (u *User) Insert(ctx context.Context, user *entity.User) error {
 // GetByID gets a user from database.
 // It returns entity.ErrNotFound if user can't be found.
 func (u *User) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
-	tx := u.getter.DefaultTrOrDB(ctx, u.db)
-
-	query := "SELECT id, name, created_at, updated_at, created_by, updated_by FROM users WHERE id = $1 LIMIT 1"
-	var res entity.User
-	row := tx.QueryRow(ctx, query, id)
-	err := row.Scan(&res.ID, &res.Name, &res.CreatedAt, &res.UpdatedAt, &res.CreatedBy, &res.UpdatedBy)
-	if err == pgx.ErrNoRows {
+	user, err := u.queries.GetUserByID(ctx, id)
+	if errors.Is(err, uow.ErrNotFound) {
 		return nil, entity.ErrNotFound()
 	}
 	if err != nil {
 		app.Logger.Errorf(ctx, "[PostgresUser-GetByID] fail get user: %v", err)
 		return nil, entity.ErrInternal(err.Error())
 	}
-	return &res, nil
+
+	return &entity.User{
+		ID:   user.ID,
+		Name: user.Name,
+		Auditable: entity.Auditable{
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+			CreatedBy: user.CreatedBy,
+			UpdatedBy: user.UpdatedBy,
+		},
+	}, nil
 }
 
 // GetAll gets all users in users table.
 func (u *User) GetAll(ctx context.Context, limit uint) ([]*entity.User, error) {
-	tx := u.getter.DefaultTrOrDB(ctx, u.db)
-
-	query := "SELECT id, name, created_at, updated_at, created_by, updated_by FROM users LIMIT $1"
-	res := []*entity.User{}
-	rows, err := tx.Query(ctx, query, limit)
+	users, err := u.queries.GetAllUsers(ctx, int32(limit))
 	if err != nil {
 		app.Logger.Errorf(ctx, "[PostgresUser-GetAll] fail get all users: %v", err)
 		return []*entity.User{}, entity.ErrInternal(err.Error())
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var tmp entity.User
-		if err := rows.Scan(&tmp.ID, &tmp.Name, &tmp.CreatedAt, &tmp.UpdatedAt, &tmp.CreatedBy, &tmp.UpdatedBy); err != nil {
-			app.Logger.Errorf(ctx, "[PostgresUser-GetAll] scan rows error: %v", err)
-			return []*entity.User{}, entity.ErrInternal(err.Error())
-		}
-		res = append(res, &tmp)
+	result := make([]*entity.User, len(users))
+	for i, user := range users {
+		res := &entity.User{}
+		res.ID = user.ID
+		res.Name = user.Name
+		res.CreatedAt = user.CreatedAt
+		res.UpdatedAt = user.UpdatedAt
+		res.CreatedBy = user.CreatedBy
+		res.UpdatedBy = user.UpdatedBy
+		result[i] = res
 	}
-
-	return res, nil
+	return result, err
 }
 
 // HardDelete deletes a user from database.
 // If the user doesn't exist, it doesn't returns error.
 func (u *User) HardDelete(ctx context.Context, id uuid.UUID) error {
-	tx := u.getter.DefaultTrOrDB(ctx, u.db)
-	query := "DELETE FROM users WHERE id = $1"
-	_, err := tx.Exec(ctx, query, id)
-	if err != nil {
+	if err := u.queries.HardDeleteUserByID(ctx, id); err != nil {
 		app.Logger.Errorf(ctx, "[PostgresUser-doHardDelete] fail delete user: %v", err)
 		return entity.ErrInternal(err.Error())
 	}
 	return nil
-}
-
-func isUniqueViolationErr(err error) bool {
-	if err == nil {
-		return false
-	}
-	return strings.Contains(err.Error(), errCodeUniqueViolation)
 }

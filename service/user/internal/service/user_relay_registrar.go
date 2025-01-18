@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
 )
@@ -43,13 +44,15 @@ type RelayRegisterUserOutboxRepository interface {
 type UserRelayRegistrar struct {
 	userOutboxRepo RelayRegisterUserOutboxRepository
 	orchestrator   RelayRegisterUserOrchestration
+	txManager      uow.TxManager
 }
 
 // NewUserRelayRegistrar creates an instance of UserRelayRegistrar.
-func NewUserRelayRegistrar(r RelayRegisterUserOutboxRepository, o RelayRegisterUserOrchestration) *UserRelayRegistrar {
+func NewUserRelayRegistrar(r RelayRegisterUserOutboxRepository, o RelayRegisterUserOrchestration, t uow.TxManager) *UserRelayRegistrar {
 	return &UserRelayRegistrar{
 		userOutboxRepo: r,
 		orchestrator:   o,
+		txManager:      t,
 	}
 }
 
@@ -57,22 +60,25 @@ func NewUserRelayRegistrar(r RelayRegisterUserOutboxRepository, o RelayRegisterU
 // It returns the ID of the newly created user.
 // It checks the email for duplication.
 func (ur *UserRelayRegistrar) Register(ctx context.Context) error {
-	records, err := ur.userOutboxRepo.GetAllReady(ctx, limitGetAllReady)
-	if err != nil {
-		app.Logger.Errorf(ctx, "[UserRelayRegistrar-Register] fail get all ready")
-		return err
-	}
+	err := ur.txManager.Do(ctx, func(ctx context.Context) error {
+		records, err := ur.userOutboxRepo.GetAllReady(ctx, limitGetAllReady)
+		if err != nil {
+			app.Logger.Errorf(ctx, "[UserRelayRegistrar-Register] fail get all ready")
+			return err
+		}
 
-	for _, rc := range records {
-		if err := ur.setRecordAsProcessed(ctx, rc); err != nil {
-			app.Logger.Errorf(ctx, "fail processing record: %v", rc)
-			continue
+		for _, rc := range records {
+			if err := ur.setRecordAsProcessed(ctx, rc); err != nil {
+				app.Logger.Errorf(ctx, "fail processing record: %v", rc)
+				continue
+			}
+			if err := ur.enqueueRecordToOrchestrator(ctx, rc); err != nil {
+				app.Logger.Errorf(ctx, "fail enqueue record: %v with error: %v", rc, err)
+			}
 		}
-		if err := ur.enqueueRecordToOrchestrator(ctx, rc); err != nil {
-			app.Logger.Errorf(ctx, "fail enqueue record: %v with error: %v", rc, err)
-		}
-	}
-	return nil
+		return nil
+	})
+	return err
 }
 
 func (ur *UserRelayRegistrar) enqueueRecordToOrchestrator(ctx context.Context, record *entity.UserOutbox) error {

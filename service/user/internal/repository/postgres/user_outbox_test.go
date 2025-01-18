@@ -4,20 +4,22 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
+	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
+	"github.com/indrasaputra/arjuna/service/user/internal/repository/db"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
 )
 
 const (
-	queryUpdateRecordStatus = `UPDATE users_outbox SET status = \$1 WHERE id = \$2`
+	queryUpdateRecordStatus = `UPDATE users_outbox SET status = \$1, updated_at = NOW\(\) WHERE id = \$2`
 )
 
 type UserOutboxSuite struct {
@@ -69,7 +71,7 @@ func TestUserOutbox_Insert(t *testing.T) {
 		st := createUserOutboxSuite(t, ctrl)
 		out := createTestUserOutbox()
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectExec(query).WithArgs(out.ID, out.Status, out.Payload, out.CreatedAt, out.UpdatedAt, out.CreatedBy, out.UpdatedBy).WillReturnError(sdkpg.ErrAlreadyExist)
+		st.db.ExpectExec(query).WithArgs(out.ID, db.UserOutboxStatus(out.Status), out.Payload, out.CreatedAt, out.UpdatedAt, out.CreatedBy, out.UpdatedBy).WillReturnError(&pgconn.PgError{Code: "23505"})
 
 		err := st.outbox.Insert(testCtx, out)
 
@@ -81,7 +83,7 @@ func TestUserOutbox_Insert(t *testing.T) {
 		st := createUserOutboxSuite(t, ctrl)
 		out := createTestUserOutbox()
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectExec(query).WithArgs(out.ID, out.Status, out.Payload, out.CreatedAt, out.UpdatedAt, out.CreatedBy, out.UpdatedBy).WillReturnError(errPostgresInternal)
+		st.db.ExpectExec(query).WithArgs(out.ID, db.UserOutboxStatus(out.Status), out.Payload, out.CreatedAt, out.UpdatedAt, out.CreatedBy, out.UpdatedBy).WillReturnError(assert.AnError)
 
 		err := st.outbox.Insert(testCtx, out)
 
@@ -92,7 +94,7 @@ func TestUserOutbox_Insert(t *testing.T) {
 		st := createUserOutboxSuite(t, ctrl)
 		out := createTestUserOutbox()
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectExec(query).WithArgs(out.ID, out.Status, out.Payload, out.CreatedAt, out.UpdatedAt, out.CreatedBy, out.UpdatedBy).WillReturnResult(pgxmock.NewResult("INSERT", 1))
+		st.db.ExpectExec(query).WithArgs(out.ID, db.UserOutboxStatus(out.Status), out.Payload, out.CreatedAt, out.UpdatedAt, out.CreatedBy, out.UpdatedBy).WillReturnResult(pgxmock.NewResult("INSERT", 1))
 
 		err := st.outbox.Insert(testCtx, out)
 
@@ -104,13 +106,13 @@ func TestUserOutbox_GetAllReady(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	app.Logger = sdklog.NewLogger(testEnv)
-	query := `SELECT id, status, payload FROM users_outbox WHERE status = \$1 ORDER BY created_at ASC LIMIT \$2 FOR UPDATE`
+	query := `SELECT id, payload, status, created_at, updated_at, deleted_at, created_by, updated_by, deleted_by FROM users_outbox WHERE status = \$1 ORDER BY created_at ASC LIMIT \$2`
 	limit := uint(10)
 
 	t.Run("get all returns error", func(t *testing.T) {
 		st := createUserOutboxSuite(t, ctrl)
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectQuery(query).WithArgs(entity.UserOutboxStatusReady, limit).WillReturnError(errPostgresInternal)
+		st.db.ExpectQuery(query).WithArgs(db.UserOutboxStatusREADY, int32(limit)).WillReturnError(assert.AnError)
 
 		res, err := st.outbox.GetAllReady(testCtx, limit)
 
@@ -119,11 +121,12 @@ func TestUserOutbox_GetAllReady(t *testing.T) {
 	})
 
 	t.Run("success get all", func(t *testing.T) {
+		user := createTestUser()
 		st := createUserOutboxSuite(t, ctrl)
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectQuery(query).WithArgs(entity.UserOutboxStatusReady, limit).WillReturnRows(pgxmock.
-			NewRows([]string{"id", "status", "payload"}).
-			AddRow(uuid.Must(uuid.NewV7()), entity.UserOutboxStatusReady, createTestUser()))
+		st.db.ExpectQuery(query).WithArgs(db.UserOutboxStatusREADY, int32(limit)).WillReturnRows(pgxmock.
+			NewRows([]string{"id", "payload", "status", "created_at", "updated_at", "deleted_at", "created_by", "updated_by", "deleted_by"}).
+			AddRow(uuid.Must(uuid.NewV7()), user, db.UserOutboxStatusREADY, user.CreatedAt, user.UpdatedAt, user.DeletedAt, user.CreatedBy, user.UpdatedBy, user.DeletedBy))
 
 		res, err := st.outbox.GetAllReady(testCtx, limit)
 
@@ -141,7 +144,7 @@ func TestUserOutbox_SetProcessed(t *testing.T) {
 		out := createTestUserOutbox()
 		st := createUserOutboxSuite(t, ctrl)
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectExec(queryUpdateRecordStatus).WithArgs(entity.UserOutboxStatusProcessed, out.ID).WillReturnError(errPostgresInternal)
+		st.db.ExpectExec(queryUpdateRecordStatus).WithArgs(db.UserOutboxStatusPROCESSED, out.ID).WillReturnError(assert.AnError)
 
 		err := st.outbox.SetProcessed(testCtx, out.ID)
 
@@ -152,7 +155,7 @@ func TestUserOutbox_SetProcessed(t *testing.T) {
 		out := createTestUser()
 		st := createUserOutboxSuite(t, ctrl)
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectExec(queryUpdateRecordStatus).WithArgs(entity.UserOutboxStatusProcessed, out.ID).WillReturnResult(pgxmock.NewResult("UPDATE", 1))
+		st.db.ExpectExec(queryUpdateRecordStatus).WithArgs(db.UserOutboxStatusPROCESSED, out.ID).WillReturnResult(pgxmock.NewResult("UPDATE", 1))
 
 		err := st.outbox.SetProcessed(testCtx, out.ID)
 
@@ -169,7 +172,7 @@ func TestUserOutbox_SetDelivered(t *testing.T) {
 		out := createTestUserOutbox()
 		st := createUserOutboxSuite(t, ctrl)
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectExec(queryUpdateRecordStatus).WithArgs(entity.UserOutboxStatusDelivered, out.ID).WillReturnError(errPostgresInternal)
+		st.db.ExpectExec(queryUpdateRecordStatus).WithArgs(db.UserOutboxStatusDELIVERED, out.ID).WillReturnError(assert.AnError)
 
 		err := st.outbox.SetDelivered(testCtx, out.ID)
 
@@ -180,7 +183,7 @@ func TestUserOutbox_SetDelivered(t *testing.T) {
 		out := createTestUser()
 		st := createUserOutboxSuite(t, ctrl)
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectExec(queryUpdateRecordStatus).WithArgs(entity.UserOutboxStatusDelivered, out.ID).WillReturnResult(pgxmock.NewResult("UPDATE", 1))
+		st.db.ExpectExec(queryUpdateRecordStatus).WithArgs(db.UserOutboxStatusDELIVERED, out.ID).WillReturnResult(pgxmock.NewResult("UPDATE", 1))
 
 		err := st.outbox.SetDelivered(testCtx, out.ID)
 
@@ -197,7 +200,7 @@ func TestUserOutbox_SetFailed(t *testing.T) {
 		out := createTestUserOutbox()
 		st := createUserOutboxSuite(t, ctrl)
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectExec(queryUpdateRecordStatus).WithArgs(entity.UserOutboxStatusFailed, out.ID).WillReturnError(errPostgresInternal)
+		st.db.ExpectExec(queryUpdateRecordStatus).WithArgs(db.UserOutboxStatusFAILED, out.ID).WillReturnError(assert.AnError)
 
 		err := st.outbox.SetFailed(testCtx, out.ID)
 
@@ -208,7 +211,7 @@ func TestUserOutbox_SetFailed(t *testing.T) {
 		out := createTestUser()
 		st := createUserOutboxSuite(t, ctrl)
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectExec(queryUpdateRecordStatus).WithArgs(entity.UserOutboxStatusFailed, out.ID).WillReturnResult(pgxmock.NewResult("UPDATE", 1))
+		st.db.ExpectExec(queryUpdateRecordStatus).WithArgs(db.UserOutboxStatusFAILED, out.ID).WillReturnResult(pgxmock.NewResult("UPDATE", 1))
 
 		err := st.outbox.SetFailed(testCtx, out.ID)
 
@@ -226,7 +229,7 @@ func TestUserOutbox_SetRecordStatus(t *testing.T) {
 		status := entity.UserOutboxStatusProcessed
 		st := createUserOutboxSuite(t, ctrl)
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectExec(queryUpdateRecordStatus).WithArgs(status, out.ID).WillReturnError(errPostgresInternal)
+		st.db.ExpectExec(queryUpdateRecordStatus).WithArgs(db.UserOutboxStatus(status), out.ID).WillReturnError(assert.AnError)
 
 		err := st.outbox.SetRecordStatus(testCtx, out.ID, status)
 
@@ -238,7 +241,7 @@ func TestUserOutbox_SetRecordStatus(t *testing.T) {
 		status := entity.UserOutboxStatusProcessed
 		st := createUserOutboxSuite(t, ctrl)
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectExec(queryUpdateRecordStatus).WithArgs(status, out.ID).WillReturnResult(pgxmock.NewResult("UPDATE", 1))
+		st.db.ExpectExec(queryUpdateRecordStatus).WithArgs(db.UserOutboxStatus(status), out.ID).WillReturnResult(pgxmock.NewResult("UPDATE", 1))
 
 		err := st.outbox.SetRecordStatus(testCtx, out.ID, status)
 
@@ -256,16 +259,18 @@ func createTestUserOutbox() *entity.UserOutbox {
 }
 
 func createUserOutboxSuite(t *testing.T, ctrl *gomock.Controller) *UserOutboxSuite {
-	db, err := pgxmock.NewPool()
+	pool, err := pgxmock.NewPool()
 	if err != nil {
 		t.Fatalf("error opening a stub database connection: %v\n", err)
 	}
-	defer db.Close()
+	defer pool.Close()
 	g := mock_uow.NewMockTxGetter(ctrl)
-	o := postgres.NewUserOutbox(db, g)
+	tx := uow.NewTxDB(pool, g)
+	q := db.New(tx)
+	o := postgres.NewUserOutbox(q)
 	return &UserOutboxSuite{
 		outbox: o,
-		db:     db,
+		db:     pool,
 		getter: g,
 	}
 }

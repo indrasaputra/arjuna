@@ -28,7 +28,7 @@ lint: lint.cleancache
 
 .PHONY: pretty
 pretty: ## Prettify golang and proto files. Basically, it runs tidy, format, and lint command.
-pretty: tidy gen.mock format lint
+pretty: tidy gen.db gen.mock format lint
 
 .PHONY: check.import
 check.import: ## Check if import blocks are separated accordingly.
@@ -50,6 +50,10 @@ gen.proto.docker: ## Generate proto and prettify files using docker.
 .PHONY: gen.mock
 gen.mock: ## Generate mock from all golang interfaces.
 	tool/script/generate-mock.sh
+
+.PHONY: gen.db
+gen.db: ## Generate db using sqlc.
+	tool/script/generate-db.sh
 
 .PHONY: gen.req
 gen.req: ## Generate requirement document.

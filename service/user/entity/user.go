@@ -8,11 +8,11 @@ import (
 
 // User defines the logical data of a user.
 type User struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 	Auditable
-	Name     string    `json:"name"`
-	Email    string    `json:"email"`
-	Password string    `json:"password"`
-	ID       uuid.UUID `json:"id"`
+	ID uuid.UUID `json:"id"`
 }
 
 // UserOutboxStatus enumerates user outbox status.
@@ -32,9 +32,9 @@ var (
 // UserOutbox defines logical data of user outbox.
 type UserOutbox struct {
 	Payload *User
+	Status  UserOutboxStatus
 	Auditable
-	Status UserOutboxStatus
-	ID     uuid.UUID
+	ID uuid.UUID
 }
 
 // RegisterUserInput holds input data for register user workflow.
@@ -51,7 +51,7 @@ type Auditable struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
-	CreatedBy string
-	UpdatedBy string
-	DeletedBy string
+	DeletedBy *uuid.UUID
+	CreatedBy uuid.UUID
+	UpdatedBy uuid.UUID
 }

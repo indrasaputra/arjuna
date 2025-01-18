@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/google/uuid"
@@ -8,6 +9,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
+	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
@@ -22,6 +24,7 @@ type UserRelayRegistrarSuite struct {
 	relayer        *service.UserRelayRegistrar
 	userOutboxRepo *mock_service.MockRelayRegisterUserOutboxRepository
 	orchestration  *mock_service.MockRelayRegisterUserOrchestration
+	txManager      *mock_uow.MockTxManager
 }
 
 func TestNewUserRelayRegistrar(t *testing.T) {
@@ -43,7 +46,12 @@ func TestUserRelayRegistrar_Register(t *testing.T) {
 		st := createUserRelayRegistrarSuite(ctrl)
 		errReturn := entity.ErrInternal("")
 
-		st.userOutboxRepo.EXPECT().GetAllReady(testCtx, limitGetAllReady).Return(nil, errReturn)
+		st.userOutboxRepo.EXPECT().GetAllReady(testCtxTx, limitGetAllReady).Return(nil, errReturn)
+		st.txManager.EXPECT().Do(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(_ context.Context, fn func(context.Context) error) error {
+				assert.Error(t, fn(testCtxTx))
+				return errReturn
+			})
 
 		err := st.relayer.Register(testCtx)
 
@@ -56,22 +64,13 @@ func TestUserRelayRegistrar_Register(t *testing.T) {
 		records := []*entity.UserOutbox{rc}
 		errReturn := entity.ErrInternal("")
 
-		st.userOutboxRepo.EXPECT().GetAllReady(testCtx, limitGetAllReady).Return(records, nil)
-		st.userOutboxRepo.EXPECT().SetProcessed(testCtx, rc.ID).Return(errReturn)
-
-		err := st.relayer.Register(testCtx)
-
-		assert.NoError(t, err)
-	})
-
-	t.Run("set record processed returns error", func(t *testing.T) {
-		st := createUserRelayRegistrarSuite(ctrl)
-		rc := createTestUserOutbox()
-		records := []*entity.UserOutbox{rc}
-		errReturn := entity.ErrInternal("")
-
-		st.userOutboxRepo.EXPECT().GetAllReady(testCtx, limitGetAllReady).Return(records, nil)
-		st.userOutboxRepo.EXPECT().SetProcessed(testCtx, rc.ID).Return(errReturn)
+		st.userOutboxRepo.EXPECT().GetAllReady(testCtxTx, limitGetAllReady).Return(records, nil)
+		st.userOutboxRepo.EXPECT().SetProcessed(testCtxTx, rc.ID).Return(errReturn)
+		st.txManager.EXPECT().Do(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(_ context.Context, fn func(context.Context) error) error {
+				assert.NoError(t, fn(testCtxTx))
+				return nil
+			})
 
 		err := st.relayer.Register(testCtx)
 
@@ -84,10 +83,15 @@ func TestUserRelayRegistrar_Register(t *testing.T) {
 		records := []*entity.UserOutbox{rc}
 		errReturn := entity.ErrInternal("")
 
-		st.userOutboxRepo.EXPECT().GetAllReady(testCtx, limitGetAllReady).Return(records, nil)
-		st.userOutboxRepo.EXPECT().SetProcessed(testCtx, rc.ID).Return(nil)
-		st.orchestration.EXPECT().RegisterUser(testCtx, gomock.Any()).Return(nil, errReturn)
-		st.userOutboxRepo.EXPECT().SetFailed(testCtx, rc.ID).Return(nil)
+		st.userOutboxRepo.EXPECT().GetAllReady(testCtxTx, limitGetAllReady).Return(records, nil)
+		st.userOutboxRepo.EXPECT().SetProcessed(testCtxTx, rc.ID).Return(nil)
+		st.orchestration.EXPECT().RegisterUser(testCtxTx, gomock.Any()).Return(nil, errReturn)
+		st.userOutboxRepo.EXPECT().SetFailed(testCtxTx, rc.ID).Return(nil)
+		st.txManager.EXPECT().Do(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(_ context.Context, fn func(context.Context) error) error {
+				assert.NoError(t, fn(testCtxTx))
+				return nil
+			})
 
 		err := st.relayer.Register(testCtx)
 
@@ -100,10 +104,15 @@ func TestUserRelayRegistrar_Register(t *testing.T) {
 		records := []*entity.UserOutbox{rc}
 		errReturn := entity.ErrInternal("")
 
-		st.userOutboxRepo.EXPECT().GetAllReady(testCtx, limitGetAllReady).Return(records, nil)
-		st.userOutboxRepo.EXPECT().SetProcessed(testCtx, rc.ID).Return(nil)
-		st.orchestration.EXPECT().RegisterUser(testCtx, gomock.Any()).Return(nil, errReturn)
-		st.userOutboxRepo.EXPECT().SetFailed(testCtx, rc.ID).Return(errReturn)
+		st.userOutboxRepo.EXPECT().GetAllReady(testCtxTx, limitGetAllReady).Return(records, nil)
+		st.userOutboxRepo.EXPECT().SetProcessed(testCtxTx, rc.ID).Return(nil)
+		st.orchestration.EXPECT().RegisterUser(testCtxTx, gomock.Any()).Return(nil, errReturn)
+		st.userOutboxRepo.EXPECT().SetFailed(testCtxTx, rc.ID).Return(errReturn)
+		st.txManager.EXPECT().Do(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(_ context.Context, fn func(context.Context) error) error {
+				assert.NoError(t, fn(testCtxTx))
+				return nil
+			})
 
 		err := st.relayer.Register(testCtx)
 
@@ -116,10 +125,15 @@ func TestUserRelayRegistrar_Register(t *testing.T) {
 		records := []*entity.UserOutbox{rc}
 		errReturn := entity.ErrInternal("")
 
-		st.userOutboxRepo.EXPECT().GetAllReady(testCtx, limitGetAllReady).Return(records, nil)
-		st.userOutboxRepo.EXPECT().SetProcessed(testCtx, rc.ID).Return(nil)
-		st.orchestration.EXPECT().RegisterUser(testCtx, gomock.Any()).Return(nil, nil)
-		st.userOutboxRepo.EXPECT().SetDelivered(testCtx, rc.ID).Return(errReturn)
+		st.userOutboxRepo.EXPECT().GetAllReady(testCtxTx, limitGetAllReady).Return(records, nil)
+		st.userOutboxRepo.EXPECT().SetProcessed(testCtxTx, rc.ID).Return(nil)
+		st.orchestration.EXPECT().RegisterUser(testCtxTx, gomock.Any()).Return(nil, nil)
+		st.userOutboxRepo.EXPECT().SetDelivered(testCtxTx, rc.ID).Return(errReturn)
+		st.txManager.EXPECT().Do(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(_ context.Context, fn func(context.Context) error) error {
+				assert.NoError(t, fn(testCtxTx))
+				return nil
+			})
 
 		err := st.relayer.Register(testCtx)
 
@@ -131,10 +145,15 @@ func TestUserRelayRegistrar_Register(t *testing.T) {
 		rc := createTestUserOutbox()
 		records := []*entity.UserOutbox{rc}
 
-		st.userOutboxRepo.EXPECT().GetAllReady(testCtx, limitGetAllReady).Return(records, nil)
-		st.userOutboxRepo.EXPECT().SetProcessed(testCtx, rc.ID).Return(nil)
-		st.orchestration.EXPECT().RegisterUser(testCtx, gomock.Any()).Return(nil, nil)
-		st.userOutboxRepo.EXPECT().SetDelivered(testCtx, rc.ID).Return(nil)
+		st.userOutboxRepo.EXPECT().GetAllReady(testCtxTx, limitGetAllReady).Return(records, nil)
+		st.userOutboxRepo.EXPECT().SetProcessed(testCtxTx, rc.ID).Return(nil)
+		st.orchestration.EXPECT().RegisterUser(testCtxTx, gomock.Any()).Return(nil, nil)
+		st.userOutboxRepo.EXPECT().SetDelivered(testCtxTx, rc.ID).Return(nil)
+		st.txManager.EXPECT().Do(gomock.Any(), gomock.Any()).
+			DoAndReturn(func(_ context.Context, fn func(context.Context) error) error {
+				assert.NoError(t, fn(testCtxTx))
+				return nil
+			})
 
 		err := st.relayer.Register(testCtx)
 
@@ -143,13 +162,15 @@ func TestUserRelayRegistrar_Register(t *testing.T) {
 }
 
 func createUserRelayRegistrarSuite(ctrl *gomock.Controller) *UserRelayRegistrarSuite {
+	m := mock_uow.NewMockTxManager(ctrl)
 	u := mock_service.NewMockRelayRegisterUserOutboxRepository(ctrl)
 	o := mock_service.NewMockRelayRegisterUserOrchestration(ctrl)
-	r := service.NewUserRelayRegistrar(u, o)
+	r := service.NewUserRelayRegistrar(u, o, m)
 	return &UserRelayRegistrarSuite{
 		relayer:        r,
 		userOutboxRepo: u,
 		orchestration:  o,
+		txManager:      m,
 	}
 }
 

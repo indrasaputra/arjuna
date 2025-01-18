@@ -1,19 +1,21 @@
 BEGIN;
 
-CREATE TYPE status AS ENUM ('READY', 'PROCESSED', 'DELIVERED', 'FAILED');
+CREATE TYPE user_outbox_status AS ENUM ('READY', 'PROCESSED', 'DELIVERED', 'FAILED');
 
 CREATE TABLE IF NOT EXISTS users_outbox (
-  id                VARCHAR(50)     PRIMARY KEY,
-  payload           JSONB           NOT NULL,
-  status            status          NOT NULL    DEFAULT 'READY',
-  created_at        TIMESTAMP,
-  updated_at        TIMESTAMP,
-  deleted_at        TIMESTAMP,
-  created_by        VARCHAR(50),
-  updated_by        VARCHAR(50),
-  deleted_by        VARCHAR(50)
+    id UUID PRIMARY KEY,
+    payload JSONB NOT NULL,
+    status USER_OUTBOX_STATUS NOT NULL DEFAULT 'READY',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP,
+    created_by UUID NOT NULL,
+    updated_by UUID NOT NULL,
+    deleted_by UUID
 );
 
-CREATE INDEX IF NOT EXISTS index_on_users_outbox_on_status_and_created_at ON users_outbox USING btree (status, created_at);
+CREATE INDEX IF NOT EXISTS index_on_users_outbox_on_status_and_created_at ON users_outbox USING btree (
+    status, created_at
+);
 
 COMMIT;

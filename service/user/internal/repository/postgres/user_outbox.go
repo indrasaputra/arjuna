@@ -5,21 +5,20 @@ import (
 
 	"github.com/google/uuid"
 
-	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
+	"github.com/indrasaputra/arjuna/service/user/internal/repository/db"
 )
 
 // UserOutbox is responsible to connect user_outbox entity with users_outbox table in PostgreSQL.
 type UserOutbox struct {
-	db     uow.Tr
-	getter uow.TxGetter
+	queries *db.Queries
 }
 
 // NewUserOutbox creates an instance of UserOutbox.
-func NewUserOutbox(db uow.Tr, g uow.TxGetter) *UserOutbox {
-	return &UserOutbox{db: db, getter: g}
+func NewUserOutbox(q *db.Queries) *UserOutbox {
+	return &UserOutbox{queries: q}
 }
 
 // Insert inserts the payload into users_outbox table.
@@ -28,22 +27,17 @@ func (uo *UserOutbox) Insert(ctx context.Context, payload *entity.UserOutbox) er
 		return entity.ErrEmptyUser()
 	}
 
-	tx := uo.getter.DefaultTrOrDB(ctx, uo.db)
-	query := "INSERT INTO " +
-		"users_outbox (id, status, payload, created_at, updated_at, created_by, updated_by) " +
-		"VALUES ($1, $2, $3, $4, $5, $6, $7)"
-
-	_, err := tx.Exec(ctx, query,
-		payload.ID,
-		payload.Status,
-		payload.Payload,
-		payload.CreatedAt,
-		payload.UpdatedAt,
-		payload.CreatedBy,
-		payload.UpdatedBy,
-	)
-
-	if err == sdkpg.ErrAlreadyExist {
+	param := db.CreateUserOutboxParams{
+		ID:        payload.ID,
+		Status:    db.UserOutboxStatus(payload.Status),
+		Payload:   payload.Payload,
+		CreatedAt: payload.CreatedAt,
+		UpdatedAt: payload.UpdatedAt,
+		CreatedBy: payload.CreatedBy,
+		UpdatedBy: payload.UpdatedBy,
+	}
+	err := uo.queries.CreateUserOutbox(ctx, param)
+	if uow.IsUniqueViolationError(err) {
 		return entity.ErrAlreadyExists()
 	}
 	if err != nil {
@@ -56,27 +50,26 @@ func (uo *UserOutbox) Insert(ctx context.Context, payload *entity.UserOutbox) er
 // GetAllReady gets all ready records by status in users_outbox table.
 // This process uses SELECT FOR UPDATE so be mindful to update the record after using this method.
 func (uo *UserOutbox) GetAllReady(ctx context.Context, limit uint) ([]*entity.UserOutbox, error) {
-	tx := uo.getter.DefaultTrOrDB(ctx, uo.db)
-
-	query := "SELECT id, status, payload FROM users_outbox WHERE status = $1 ORDER BY created_at ASC LIMIT $2 FOR UPDATE"
-	res := []*entity.UserOutbox{}
-	rows, err := tx.Query(ctx, query, entity.UserOutboxStatusReady, limit)
+	param := db.GetAllUserOutboxesForUpdateByStatusParams{
+		Status: db.UserOutboxStatus(entity.UserOutboxStatusReady),
+		Limit:  int32(limit),
+	}
+	outboxes, err := uo.queries.GetAllUserOutboxesForUpdateByStatus(ctx, param)
 	if err != nil {
 		app.Logger.Errorf(ctx, "[PostgresUserOutbox-GetAllReady] fail get all user's outbox: %v", err)
 		return []*entity.UserOutbox{}, entity.ErrInternal(err.Error())
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var tmp entity.UserOutbox
-		if err := rows.Scan(&tmp.ID, &tmp.Status, &tmp.Payload); err != nil {
-			app.Logger.Errorf(ctx, "[PostgresUserOutbox-GetAll] scan rows error: %v", err)
-			return []*entity.UserOutbox{}, entity.ErrInternal(err.Error())
+	result := make([]*entity.UserOutbox, len(outboxes))
+	for i, outbox := range outboxes {
+		res := &entity.UserOutbox{
+			ID:      outbox.ID,
+			Status:  entity.UserOutboxStatus(outbox.Status),
+			Payload: outbox.Payload,
 		}
-		res = append(res, &tmp)
+		result[i] = res
 	}
-
-	return res, nil
+	return result, nil
 }
 
 // SetProcessed sets record's status to processed in users_outbox table.
@@ -96,9 +89,12 @@ func (uo *UserOutbox) SetFailed(ctx context.Context, id uuid.UUID) error {
 
 // SetRecordStatus sets record's status in users_outbox table.
 func (uo *UserOutbox) SetRecordStatus(ctx context.Context, id uuid.UUID, status entity.UserOutboxStatus) error {
-	tx := uo.getter.DefaultTrOrDB(ctx, uo.db)
-	query := "UPDATE users_outbox SET status = $1 WHERE id = $2"
-	_, err := tx.Exec(ctx, query, status, id)
+	param := db.UpdateUserOutboxIDParams{
+		ID:     id,
+		Status: db.UserOutboxStatus(status),
+	}
+
+	err := uo.queries.UpdateUserOutboxID(ctx, param)
 	if err != nil {
 		app.Logger.Errorf(ctx, "[PostgresUserOutbox-SetRecordStatus] fail set record's status to %v: %v", status, err)
 		return entity.ErrInternal(err.Error())

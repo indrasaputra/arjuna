@@ -11,6 +11,7 @@ import (
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 	pgxdecimal "github.com/jackc/pgx-shopspring-decimal"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/uptrace/bun"
@@ -171,4 +172,36 @@ func isUniqueViolationErr(err error) bool {
 		return false
 	}
 	return strings.Contains(err.Error(), errCodeUniqueViolation)
+}
+
+// TxDB implements DB with transaction.
+type TxDB struct {
+	db       *pgxpool.Pool
+	txGetter *trmpgx.CtxGetter
+}
+
+// NewTxDB creates an instance of TxDB.
+func NewTxDB(pool *pgxpool.Pool, txGetter *trmpgx.CtxGetter) *TxDB {
+	return &TxDB{
+		db:       pool,
+		txGetter: txGetter,
+	}
+}
+
+// Exec executes the given query using transaction.
+func (d *TxDB) Exec(ctx context.Context, sql string, args ...interface{}) (pgconn.CommandTag, error) {
+	tx := d.txGetter.DefaultTrOrDB(ctx, d.db)
+	return tx.Exec(ctx, sql, args...)
+}
+
+// Query executes the given query using transaction.
+func (d *TxDB) Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error) {
+	tx := d.txGetter.DefaultTrOrDB(ctx, d.db)
+	return tx.Query(ctx, sql, args...)
+}
+
+// QueryRow executes the given query using transaction.
+func (d *TxDB) QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row {
+	tx := d.txGetter.DefaultTrOrDB(ctx, d.db)
+	return tx.QueryRow(ctx, sql, args...)
 }
