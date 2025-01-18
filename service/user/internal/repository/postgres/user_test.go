@@ -103,7 +103,7 @@ func TestUser_GetByID(t *testing.T) {
 	defer ctrl.Finish()
 	app.Logger = sdklog.NewLogger(testEnv)
 
-	query := `SELECT id, name, created_at, updated_at, created_by, updated_by FROM users WHERE id = \$1 LIMIT 1`
+	query := `SELECT id, name, created_at, updated_at, deleted_at, created_by, updated_by, deleted_by FROM users WHERE id = \$1 LIMIT 1`
 
 	t.Run("select by id returns empty row", func(t *testing.T) {
 		user := createTestUser()
@@ -135,8 +135,8 @@ func TestUser_GetByID(t *testing.T) {
 		st := createUserSuite(t, ctrl)
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
 		st.db.ExpectQuery(query).WithArgs(user.ID).WillReturnRows(pgxmock.
-			NewRows([]string{"id", "name", "created_at", "updated_at", "created_by", "updated_by"}).
-			AddRow(user.ID, user.Name, user.CreatedAt, user.UpdatedAt, user.CreatedBy, user.UpdatedBy))
+			NewRows([]string{"id", "name", "created_at", "updated_at", "deleted_at", "created_by", "updated_by", "deleted_by"}).
+			AddRow(user.ID, user.Name, user.CreatedAt, user.UpdatedAt, user.DeletedAt, user.CreatedBy, user.UpdatedBy, user.DeletedBy))
 
 		res, err := st.user.GetByID(testCtx, user.ID)
 

@@ -2,9 +2,9 @@ package postgres
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
@@ -14,8 +14,6 @@ import (
 
 // User is responsible to connect user entity with users table in PostgreSQL.
 type User struct {
-	db      uow.Tr
-	getter  uow.TxGetter
 	queries *db.Queries
 }
 
@@ -23,7 +21,7 @@ type User struct {
 func NewUser(tr uow.Tr, g uow.TxGetter) *User {
 	tx := uow.NewTxDB(tr, g)
 	q := db.New(tx)
-	return &User{db: tr, getter: g, queries: q}
+	return &User{queries: q}
 }
 
 // Insert inserts the user into users table.
@@ -55,20 +53,25 @@ func (u *User) Insert(ctx context.Context, user *entity.User) error {
 // GetByID gets a user from database.
 // It returns entity.ErrNotFound if user can't be found.
 func (u *User) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
-	tx := u.getter.DefaultTrOrDB(ctx, u.db)
-
-	query := "SELECT id, name, created_at, updated_at, created_by, updated_by FROM users WHERE id = $1 LIMIT 1"
-	var res entity.User
-	row := tx.QueryRow(ctx, query, id)
-	err := row.Scan(&res.ID, &res.Name, &res.CreatedAt, &res.UpdatedAt, &res.CreatedBy, &res.UpdatedBy)
-	if err == pgx.ErrNoRows {
+	user, err := u.queries.GetUserByID(ctx, id)
+	if errors.Is(err, uow.ErrNotFound) {
 		return nil, entity.ErrNotFound()
 	}
 	if err != nil {
 		app.Logger.Errorf(ctx, "[PostgresUser-GetByID] fail get user: %v", err)
 		return nil, entity.ErrInternal(err.Error())
 	}
-	return &res, nil
+
+	return &entity.User{
+		ID:   user.ID,
+		Name: user.Name,
+		Auditable: entity.Auditable{
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+			CreatedBy: user.CreatedBy,
+			UpdatedBy: user.UpdatedBy,
+		},
+	}, nil
 }
 
 // GetAll gets all users in users table.
@@ -96,10 +99,7 @@ func (u *User) GetAll(ctx context.Context, limit uint) ([]*entity.User, error) {
 // HardDelete deletes a user from database.
 // If the user doesn't exist, it doesn't returns error.
 func (u *User) HardDelete(ctx context.Context, id uuid.UUID) error {
-	tx := u.getter.DefaultTrOrDB(ctx, u.db)
-	query := "DELETE FROM users WHERE id = $1"
-	_, err := tx.Exec(ctx, query, id)
-	if err != nil {
+	if err := u.queries.HardDeleteUserByID(ctx, id); err != nil {
 		app.Logger.Errorf(ctx, "[PostgresUser-doHardDelete] fail delete user: %v", err)
 		return entity.ErrInternal(err.Error())
 	}
