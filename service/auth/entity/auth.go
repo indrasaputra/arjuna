@@ -17,11 +17,11 @@ type Token struct {
 
 // Account represents account.
 type Account struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 	Auditable
-	Email    string    `json:"email"`
-	Password string    `json:"password"`
-	ID       uuid.UUID `json:"id"`
-	UserID   uuid.UUID `json:"user_id"`
+	ID     uuid.UUID `json:"id"`
+	UserID uuid.UUID `json:"user_id"`
 }
 
 // Claims represents token claims.
@@ -37,7 +37,7 @@ type Auditable struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
-	CreatedBy string
-	UpdatedBy string
-	DeletedBy string
+	DeletedBy *uuid.UUID
+	CreatedBy uuid.UUID
+	UpdatedBy uuid.UUID
 }
