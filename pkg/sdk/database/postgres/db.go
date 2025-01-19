@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
@@ -20,10 +19,8 @@ var (
 )
 
 var (
-	// ErrAlreadyExist is returned when the new record violates unique key restriction.
-	ErrAlreadyExist = errors.New("record already exist")
-	// ErrNullDB is returned when nil is sent to mandatory db parameter.
-	ErrNullDB = errors.New("db instance is null")
+	// ErrNotFound is a sentinel error for not found error.
+	ErrNotFound = pgx.ErrNoRows
 )
 
 // IsUniqueViolationError checks if the error is a unique violation error.
