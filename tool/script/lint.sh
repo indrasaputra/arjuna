@@ -4,6 +4,7 @@ set -eo pipefail
 
 # ignore LT05 because it will be handled by sqlc, AM04 because it's not a problem
 sqlfluff fix -d postgres -e LT05,AM04
+buf format -w
 buf lint
 protolint lint -fix .
 

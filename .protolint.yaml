@@ -6,13 +6,15 @@ lint:
 
   rules_option:
     max_line_length:
-      max_chars: 100
+      max_chars: 150
       tab_chars: 2
-
+    indent:
+      not_insert_newline: true
+    service_names_end_with:
+      text: Service
     message_names_exclude_prepositions:
       excludes:
         - By
-
     field_names_exclude_prepositions:
       excludes:
         - at

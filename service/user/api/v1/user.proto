@@ -9,33 +9,32 @@ import "google/protobuf/timestamp.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/indrasaputra/arjuna/user/api/v1;apiv1";
-
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
-  info : {
-    title : "User API",
-    version : "1.0.0",
-    contact : {
-      name : "Indra Saputra",
-      url : "https://github.com/indrasaputra",
-    },
-    license : {
-      name : "BSD 3-Clause License",
-      url : "https://github.com/indrasaputra/arjuna/blob/main/LICENSE",
-    },
-  },
-  host : "localhost:8000",
-  schemes : HTTP,
-  consumes : "application/json",
-  produces : "application/json",
+  info: {
+    title: "User API"
+    version: "1.0.0"
+    contact: {
+      name: "Indra Saputra"
+      url: "https://github.com/indrasaputra"
+    }
+    license: {
+      name: "BSD 3-Clause License"
+      url: "https://github.com/indrasaputra/arjuna/blob/main/LICENSE"
+    }
+  }
+  host: "localhost:8000"
+  schemes: HTTP
+  consumes: "application/json"
+  produces: "application/json"
 };
 
 // UserCommandService provides state-change service for user.
 service UserCommandService {
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
-    description : "This service provides basic command or state-changing use cases to work with "
-                  "user."
-                  "A user is represented by an email as its unique identifier."
-  };
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {description:
+      "This service provides basic command or state-changing use cases to work with "
+      "user."
+      "A user is represented by an email as its unique identifier."
+};
 
   // Register a new user.
   //
@@ -43,56 +42,69 @@ service UserCommandService {
   // The X-Idempotency-Key header must be present.
   rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {
     option (google.api.http) = {
-      post : "/v1/users/register",
-      body : "user"
+      post: "/v1/users/register"
+      body: "user"
     };
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id : "RegisterUser",
-      tags : "User",
-      parameters : {headers : [ {name : "X-Idempotency-Key" type : STRING required : true} ]},
+      operation_id: "RegisterUser"
+      tags: "User"
+      parameters: {
+        headers: [
+          {
+            name: "X-Idempotency-Key"
+            type: STRING
+            required: true
+          }
+        ]
+      }
     };
-  };
+  }
 }
 
 // UserCommandInternalService provides state-change service for user. It should be internal use
 // only.
 service UserCommandInternalService {
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
-    description : "It is the same as UserCommand but should be used internally and not exposed to "
-                  "public."
-  };
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {description:
+      "It is the same as UserCommand but should be used internally and not exposed to "
+      "public."
+};
 
   // Delete a user.
   //
   // This endpoint deletes a new user.
   // It is expected to be hidden or internal use only.
-  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {
-  };
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {}
 }
 
 // UserQueryService provides query service for user.
 service UserQueryService {
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
-    description : "This service provides basic query or data-retrieving use cases to work with "
-                  "user."
-  };
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {description:
+      "This service provides basic query or data-retrieving use cases to work with "
+      "user."
+};
 
   // Get all users.
   //
   // This endpoint gets all available users in the system.
   // Currently, it only retrieves 10 users at most.
   rpc GetAllUsers(GetAllUsersRequest) returns (GetAllUsersResponse) {
-    option (google.api.http) = {
-      get : "/v1/users",
-    };
+    option (google.api.http) = {get: "/v1/users"};
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id : "GetAllUsers",
-      tags : "User"
-      parameters : {headers : [ {name : "Authorization" type : STRING required : true} ]},
+      operation_id: "GetAllUsers"
+      tags: "User"
+      parameters: {
+        headers: [
+          {
+            name: "Authorization"
+            type: STRING
+            required: true
+          }
+        ]
+      }
     };
-  };
+  }
 }
 
 // RegisterUserRequest represents request for register user.
@@ -114,8 +126,7 @@ message DeleteUserRequest {
 }
 
 // DeleteUserResponse represents response from delete user.
-message DeleteUserResponse {
-}
+message DeleteUserResponse {}
 
 // GetAllUsersRequest represents request for get all users.
 message GetAllUsersRequest {
@@ -134,43 +145,45 @@ message User {
   // id represents a user's id.
   string id = 1 [
     (google.api.field_behavior) = OUTPUT_ONLY,
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      example : "\"01917a0c-cdfe-7e4f-9692-635eb6a6f358\""
-    }
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {example: "\"01917a0c-cdfe-7e4f-9692-635eb6a6f358\""}
   ];
 
   // email represents a user's email.
-  string email = 2 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    required : "email",
-    description : "user's email",
-    pattern : "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
-    example : "\"first@user.com\"",
-  } ];
+  string email = 2 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    required: "email"
+    description: "user's email"
+    pattern: "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
+    example: "\"first@user.com\""
+  }];
 
   // password represents the user's password.
   string password = 3 [
     (google.api.field_behavior) = INPUT_ONLY,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      description : "user's password",
-      format : "string",
-      example : "\"WEAKpassword123?\"",
+      description: "user's password"
+      format: "string"
+      example: "\"WEAKpassword123?\""
     }
   ];
 
   // name represents a user's name.
-  string name = 4 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description : "user's name",
-    min_length : 1,
-    max_length : 255,
-    example : "\"First User\"",
-  } ];
+  string name = 4 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "user's name"
+    min_length: 1
+    max_length: 255
+    example: "\"First User\""
+  }];
 
   // created_at represents when the user was registered.
-  google.protobuf.Timestamp created_at = 5
-      [ (google.api.field_behavior) = OUTPUT_ONLY, json_name = "created_at" ];
+  google.protobuf.Timestamp created_at = 5 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    json_name = "created_at"
+  ];
   // updated_at represents when the user was last updated.
-  google.protobuf.Timestamp updated_at = 6
-      [ (google.api.field_behavior) = OUTPUT_ONLY, json_name = "updated_at" ];
+  google.protobuf.Timestamp updated_at = 6 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    json_name = "updated_at"
+  ];
 }
 
 // UserOutboxStatus enumerates user outbox status code.
@@ -197,9 +210,7 @@ message UserOutbox {
   // id represents a users_outbox's id.
   string id = 1 [
     (google.api.field_behavior) = OUTPUT_ONLY,
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      example : "\"01917a0c-cdfe-7cf5-afc1-620959bf240e\""
-    }
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {example: "\"01917a0c-cdfe-7cf5-afc1-620959bf240e\""}
   ];
 
   // status represents specific status.
@@ -209,11 +220,15 @@ message UserOutbox {
   User payload = 3;
 
   // created_at represents when the user was registered.
-  google.protobuf.Timestamp created_at = 5
-      [ (google.api.field_behavior) = OUTPUT_ONLY, json_name = "created_at" ];
+  google.protobuf.Timestamp created_at = 5 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    json_name = "created_at"
+  ];
   // updated_at represents when the user was last updated.
-  google.protobuf.Timestamp updated_at = 6
-      [ (google.api.field_behavior) = OUTPUT_ONLY, json_name = "updated_at" ];
+  google.protobuf.Timestamp updated_at = 6 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    json_name = "updated_at"
+  ];
 }
 
 // UserError represents message for any error happening in user.

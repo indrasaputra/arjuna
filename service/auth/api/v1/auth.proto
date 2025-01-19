@@ -8,31 +8,28 @@ import "google/api/field_behavior.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/indrasaputra/arjuna/service/auth/api/v1;apiv1";
-
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
-  info : {
-    title : "Auth API",
-    version : "1.0.0",
-    contact : {
-      name : "Indra Saputra",
-      url : "https://github.com/indrasaputra",
-    },
-    license : {
-      name : "BSD 3-Clause License",
-      url : "https://github.com/indrasaputra/arjuna/blob/main/LICENSE",
-    },
-  },
-  host : "localhost:8000",
-  schemes : HTTP,
-  consumes : "application/json",
-  produces : "application/json",
+  info: {
+    title: "Auth API"
+    version: "1.0.0"
+    contact: {
+      name: "Indra Saputra"
+      url: "https://github.com/indrasaputra"
+    }
+    license: {
+      name: "BSD 3-Clause License"
+      url: "https://github.com/indrasaputra/arjuna/blob/main/LICENSE"
+    }
+  }
+  host: "localhost:8000"
+  schemes: HTTP
+  consumes: "application/json"
+  produces: "application/json"
 };
 
 // AuthService provides all use cases to work with auth.
 service AuthService {
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
-    description : "This service provides all use cases to work with auth."
-  };
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {description: "This service provides all use cases to work with auth."};
 
   // Login.
   //
@@ -40,27 +37,26 @@ service AuthService {
   // As of now, refresh token is not implemented and it only returns access token.
   rpc Login(LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
-      post : "/v1/auth/login",
-      body : "credential"
+      post: "/v1/auth/login"
+      body: "credential"
     };
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id : "Login",
-      tags : "Auth"
+      operation_id: "Login"
+      tags: "Auth"
     };
-  };
+  }
 
   // RegisterAccount.
   //
   // This endpoint register an account.
-  rpc RegisterAccount(RegisterAccountRequest) returns (RegisterAccountResponse) {
-  };
+  rpc RegisterAccount(RegisterAccountRequest) returns (RegisterAccountResponse) {}
 }
 
 // LoginRequest represents request for login.
 message LoginRequest {
   // credential represents credential for login.
-  Credential credential = 1;
+  Credential credential = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 // LoginResponse represents response from login.
@@ -76,70 +72,90 @@ message RegisterAccountRequest {
 }
 
 // RegisterAccountResponse represents response for account registration.
-message RegisterAccountResponse {
-}
+message RegisterAccountResponse {}
 
 // Account represents account.
 message Account {
   // id represents unique id.
   string id = 1 [
     (google.api.field_behavior) = OUTPUT_ONLY,
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      example : "\"01917a0c-475e-7d4a-9ec1-a56d14d78569\""
-    }
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {example: "\"01917a0c-475e-7d4a-9ec1-a56d14d78569\""}
   ];
 
   // user_id represents user's id.
   string user_id = 2 [
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      description : "User's id",
-      format : "string",
-      example : "\"01917a0c-cdfe-7696-9259-1c9821c8fd73\""
+      description: "User's id"
+      format: "string"
+      example: "\"01917a0c-cdfe-7696-9259-1c9821c8fd73\""
     },
     json_name = "user_id"
   ];
 
   // email represents user's email.
-  string email = 3 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description : "User's email",
-    pattern : "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
-    example : "\"email@domain.com\""
-  } ];
+  string email = 3 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "User's email"
+    pattern: "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
+    example: "\"email@domain.com\""
+  }];
 
   // password represents user's password
-  string password = 4
-      [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) =
-            {description : "User's password", format : "string", example : "\"weakPassword\""} ];
+  string password = 4 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "User's password"
+    format: "string"
+    example: "\"weakPassword\""
+  }];
 }
 
 // Credential represents login credential.
 message Credential {
   // email represents account's email.
-  string email = 1 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description : "User's email",
-    pattern : "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
-    example : "\"email@domain.com\""
-  } ];
+  string email = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User's email"
+      pattern: "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
+      example: "\"email@domain.com\""
+    }
+  ];
 
   // password represents account's password.
-  string password = 2
-      [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) =
-            {description : "User's password", format : "string", example : "\"weakPassword\""} ];
+  string password = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User's password"
+      format: "string"
+      example: "\"weakPassword\""
+    }
+  ];
 }
 
 // Token represents token.
 message Token {
   // access_token represents an access token.
-  string access_token = 1 [ (google.api.field_behavior) = OUTPUT_ONLY, json_name = "access_token" ];
+  string access_token = 1 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_behavior) = REQUIRED,
+    json_name = "access_token"
+  ];
   // access_token_expires_in represents how many seconds left before access token expired.
-  uint32 access_token_expires_in = 2
-      [ (google.api.field_behavior) = OUTPUT_ONLY, json_name = "access_token_expires_in" ];
+  uint32 access_token_expires_in = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_behavior) = REQUIRED,
+    json_name = "access_token_expires_in"
+  ];
   // refresh_token represents an refresh token.
-  string refresh_token = 3
-      [ (google.api.field_behavior) = OUTPUT_ONLY, json_name = "refresh_token" ];
+  string refresh_token = 3 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_behavior) = REQUIRED,
+    json_name = "refresh_token"
+  ];
   // refresh_token_expires_in represents how many seconds left before refresh token expired.
-  uint32 refresh_token_expires_in = 4
-      [ (google.api.field_behavior) = OUTPUT_ONLY, json_name = "refresh_token_expires_in" ];
+  uint32 refresh_token_expires_in = 4 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_behavior) = REQUIRED,
+    json_name = "refresh_token_expires_in"
+  ];
 }
 
 // AuthError represents message for any error happening in auth service.

@@ -52,6 +52,8 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/v1Credential'
+            required:
+              - credential
       tags:
         - Auth
   /v1/transactions:
@@ -274,6 +276,9 @@ definitions:
         example: weakPassword
         description: User's password
     description: Credential represents login credential.
+    required:
+      - email
+      - password
   v1DeleteUserResponse:
     type: object
     description: DeleteUserResponse represents response from delete user.

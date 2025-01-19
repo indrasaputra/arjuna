@@ -4,7 +4,8 @@ modules:
     name: buf.build/indrasaputra/arjuna-auth
     lint:
       use:
-        - DEFAULT
+        - STANDARD
+        - BASIC
       except:
         - FIELD_NOT_REQUIRED
         - PACKAGE_NO_IMPORT_CYCLE
@@ -19,7 +20,8 @@ modules:
     name: buf.build/indrasaputra/arjuna-user
     lint:
       use:
-        - DEFAULT
+        - STANDARD
+        - BASIC
       except:
         - FIELD_NOT_REQUIRED
         - PACKAGE_NO_IMPORT_CYCLE
@@ -34,7 +36,8 @@ modules:
     name: buf.build/indrasaputra/arjuna-transaction
     lint:
       use:
-        - DEFAULT
+        - STANDARD
+        - BASIC
       except:
         - FIELD_NOT_REQUIRED
         - PACKAGE_NO_IMPORT_CYCLE
@@ -49,7 +52,8 @@ modules:
     name: buf.build/indrasaputra/arjuna-wallet
     lint:
       use:
-        - DEFAULT
+        - STANDARD
+        - BASIC
       except:
         - FIELD_NOT_REQUIRED
         - PACKAGE_NO_IMPORT_CYCLE
