@@ -9,9 +9,7 @@ import (
 	"go.uber.org/mock/gomock"
 	"golang.org/x/crypto/bcrypt"
 
-	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/service/auth/entity"
-	"github.com/indrasaputra/arjuna/service/auth/internal/app"
 	"github.com/indrasaputra/arjuna/service/auth/internal/service"
 	mock_service "github.com/indrasaputra/arjuna/service/auth/test/mock/service"
 )
@@ -20,7 +18,6 @@ var (
 	testCtx        = context.Background()
 	testEmail      = "email@email.com"
 	testPassword   = "password"
-	testEnv        = "development"
 	testSigningKey = "key"
 	testExpiry     = 5
 )
@@ -43,7 +40,6 @@ func TestNewAuth(t *testing.T) {
 func TestAuth_Register(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("empty account is prohibited", func(t *testing.T) {
 		st := createAuthSuite(ctrl)
@@ -130,7 +126,6 @@ func TestAuth_Register(t *testing.T) {
 func TestAuth_Login(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("param is invalid", func(t *testing.T) {
 		type testSuite struct {

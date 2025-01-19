@@ -2,13 +2,13 @@ package handler
 
 import (
 	"context"
+	"log/slog"
 	"strings"
 
 	"github.com/google/uuid"
 
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/auth/entity"
-	"github.com/indrasaputra/arjuna/service/auth/internal/app"
 	"github.com/indrasaputra/arjuna/service/auth/internal/service"
 )
 
@@ -26,7 +26,7 @@ func NewAuth(auth service.Authentication) *Auth {
 // Login handles HTTP/2 gRPC request similar to POST in HTTP/1.1.
 func (a *Auth) Login(ctx context.Context, request *apiv1.LoginRequest) (*apiv1.LoginResponse, error) {
 	if err := validateLoginRequest(request); err != nil {
-		app.Logger.Errorf(ctx, "[AuthHandler-Login] request invalid: %v", err)
+		slog.ErrorContext(ctx, "[AuthHandler-Login] request invalid", "error", err)
 		return nil, err
 	}
 
@@ -35,7 +35,7 @@ func (a *Auth) Login(ctx context.Context, request *apiv1.LoginRequest) (*apiv1.L
 
 	token, err := a.auth.Login(ctx, email, password)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[AuthHandler-Login] login fail: %v", err)
+		slog.ErrorContext(ctx, "[AuthHandler-Login] login fail", "error", err)
 		return nil, err
 	}
 	return &apiv1.LoginResponse{Data: createTokenProto(token)}, nil
@@ -44,13 +44,13 @@ func (a *Auth) Login(ctx context.Context, request *apiv1.LoginRequest) (*apiv1.L
 // RegisterAccount handles HTTP/2 gRPC request similar to POST in HTTP/1.1.
 func (a *Auth) RegisterAccount(ctx context.Context, request *apiv1.RegisterAccountRequest) (*apiv1.RegisterAccountResponse, error) {
 	if err := validateRegisterAccountRequest(request); err != nil {
-		app.Logger.Errorf(ctx, "[AuthHandler-Register] request invalid: %v", err)
+		slog.ErrorContext(ctx, "[AuthHandler-Register] request invalid", "error", err)
 		return nil, err
 	}
 
 	err := a.auth.Register(ctx, createAccountFromRegisterAccountRequest(request))
 	if err != nil {
-		app.Logger.Errorf(ctx, "[AuthHandler-Register] login fail: %v", err)
+		slog.ErrorContext(ctx, "[AuthHandler-Register] register fail", "error", err)
 		return nil, err
 	}
 	return &apiv1.RegisterAccountResponse{}, nil

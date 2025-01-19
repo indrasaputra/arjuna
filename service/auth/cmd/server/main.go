@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,7 +24,6 @@ import (
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/auth/entity"
-	"github.com/indrasaputra/arjuna/service/auth/internal/app"
 	"github.com/indrasaputra/arjuna/service/auth/internal/builder"
 	"github.com/indrasaputra/arjuna/service/auth/internal/config"
 	"github.com/indrasaputra/arjuna/service/auth/internal/grpc/handler"
@@ -58,7 +58,8 @@ func API(_ *cobra.Command, _ []string) {
 	_, err = trace.NewProvider(ctx, cfg.Tracer)
 	checkError(err)
 
-	app.Logger = sdklog.NewLogger(cfg.AppEnv)
+	logger := sdklog.NewSlogLogger(cfg.ServiceName)
+	slog.SetDefault(logger)
 
 	pool, err := postgres.NewPgxPool(cfg.Postgres)
 	checkError(err)

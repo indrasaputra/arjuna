@@ -7,10 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/auth/entity"
-	"github.com/indrasaputra/arjuna/service/auth/internal/app"
 	"github.com/indrasaputra/arjuna/service/auth/internal/grpc/handler"
 	mock_service "github.com/indrasaputra/arjuna/service/auth/test/mock/service"
 )
@@ -41,7 +39,6 @@ func TestNewAuth(t *testing.T) {
 func TestAuth_Login(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("request is invalid", func(t *testing.T) {
 		type testSuite struct {
@@ -92,7 +89,6 @@ func TestAuth_Login(t *testing.T) {
 func TestAuth_RegisterAccount(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("request is invalid", func(t *testing.T) {
 		type testSuite struct {
