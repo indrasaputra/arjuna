@@ -2,10 +2,10 @@ package postgres
 
 import (
 	"context"
+	"log/slog"
 
 	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/service/transaction/entity"
-	"github.com/indrasaputra/arjuna/service/transaction/internal/app"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/repository/db"
 )
 
@@ -40,7 +40,7 @@ func (t *Transaction) Insert(ctx context.Context, trx *entity.Transaction) error
 		return entity.ErrAlreadyExists()
 	}
 	if err != nil {
-		app.Logger.Errorf(ctx, "[PostgresTransaction-Insert] fail insert transaction with tx: %v", err)
+		slog.ErrorContext(ctx, "[PostgresTransaction-Insert] fail insert transaction with tx", "error", err)
 		return entity.ErrInternal(err.Error())
 	}
 	return nil
@@ -49,7 +49,7 @@ func (t *Transaction) Insert(ctx context.Context, trx *entity.Transaction) error
 // DeleteAll deletes all transactions.
 func (t *Transaction) DeleteAll(ctx context.Context) error {
 	if err := t.queries.HardDeleteAllTransactions(ctx); err != nil {
-		app.Logger.Errorf(ctx, "[PostgresTransaction-DeleteAll] fail delete all transactions: %v", err)
+		slog.ErrorContext(ctx, "[PostgresTransaction-DeleteAll] fail delete all transactions", "error", err)
 		return entity.ErrInternal(err.Error())
 	}
 	return nil

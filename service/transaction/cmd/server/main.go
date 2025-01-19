@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"log"
+	"log/slog"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -16,7 +17,6 @@ import (
 	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
-	"github.com/indrasaputra/arjuna/service/transaction/internal/app"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/builder"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/config"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/grpc/handler"
@@ -43,7 +43,8 @@ func API(_ *cobra.Command, _ []string) {
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
 
-	app.Logger = sdklog.NewLogger(cfg.AppEnv)
+	logger := sdklog.NewSlogLogger(cfg.ServiceName)
+	slog.SetDefault(logger)
 
 	_, err = trace.NewProvider(ctx, cfg.Tracer)
 	checkError(err)

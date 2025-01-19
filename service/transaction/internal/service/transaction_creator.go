@@ -2,13 +2,13 @@ package service
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"github.com/indrasaputra/arjuna/service/transaction/entity"
-	"github.com/indrasaputra/arjuna/service/transaction/internal/app"
 )
 
 // CreateTransaction defines interface to create transaction.
@@ -45,13 +45,13 @@ func NewTransactionCreator(t CreateTransactionRepository, k IdempotencyKeyReposi
 // It needs idempotency key.
 func (tc *TransactionCreator) Create(ctx context.Context, transaction *entity.Transaction, key string) (uuid.UUID, error) {
 	if err := tc.validateIdempotencyKey(ctx, key); err != nil {
-		app.Logger.Errorf(ctx, "[TransactionCreator-Create] fail check idempotency key: %s - %v", key, err)
+		slog.ErrorContext(ctx, "[TransactionCreator-Create] fail check idempotency key", "idempotency_key", key, "error", err)
 		return uuid.Nil, err
 	}
 
 	sanitizeTransaction(transaction)
 	if err := validateTransaction(transaction); err != nil {
-		app.Logger.Errorf(ctx, "[TransactionCreator-Create] transaction is invalid: %v", err)
+		slog.ErrorContext(ctx, "[TransactionCreator-Create] transaction is invalid", "error", err)
 		return uuid.Nil, err
 	}
 
@@ -60,7 +60,7 @@ func (tc *TransactionCreator) Create(ctx context.Context, transaction *entity.Tr
 
 	err := tc.trxRepo.Insert(ctx, transaction)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[TransactionCreator-Create] fail save to repository: %v", err)
+		slog.ErrorContext(ctx, "[TransactionCreator-Create] fail save to repository", "error", err)
 		return uuid.Nil, err
 	}
 	return transaction.ID, nil

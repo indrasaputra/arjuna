@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
@@ -9,7 +10,6 @@ import (
 
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/transaction/entity"
-	"github.com/indrasaputra/arjuna/service/transaction/internal/app"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/service"
 )
 
@@ -40,14 +40,14 @@ func (tc *TransactionCommand) CreateTransaction(ctx context.Context, request *ap
 	}
 
 	if request == nil || request.GetTransaction() == nil {
-		app.Logger.Errorf(ctx, "[TransactionCommand-CreateTransaction] empty or nil transaction")
+		slog.ErrorContext(ctx, "[TransactionCommand-CreateTransaction] empty or nil transaction")
 		return nil, entity.ErrEmptyTransaction()
 	}
 
 	amount, _ := decimal.NewFromString(request.GetTransaction().GetAmount())
 	id, err := tc.creator.Create(ctx, createTransactionFromCreateTransactionRequest(request, amount), key[0])
 	if err != nil {
-		app.Logger.Errorf(ctx, "[TransactionCommand-CreateTransaction] fail register transaction: %v", err)
+		slog.ErrorContext(ctx, "[TransactionCommand-CreateTransaction] fail register transaction", "error", err)
 		return nil, err
 	}
 	return &apiv1.CreateTransactionResponse{Data: &apiv1.Transaction{Id: id.String()}}, nil

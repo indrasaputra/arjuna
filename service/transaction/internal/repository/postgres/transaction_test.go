@@ -11,17 +11,14 @@ import (
 	"go.uber.org/mock/gomock"
 
 	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
-	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/transaction/entity"
-	"github.com/indrasaputra/arjuna/service/transaction/internal/app"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/repository/db"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/repository/postgres"
 )
 
 var (
 	testCtx = context.Background()
-	testEnv = "development"
 )
 
 type TransactionSuite struct {
@@ -43,7 +40,6 @@ func TestNewTransaction(t *testing.T) {
 func TestTransaction_Insert(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 	query := `INSERT INTO transactions \(id, sender_id, receiver_id, amount, created_at, updated_at, created_by, updated_by\)
 				VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8\)`
 
@@ -100,7 +96,6 @@ func TestTransaction_Insert(t *testing.T) {
 func TestTransaction_DeleteAll(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 	query := `DELETE FROM transactions`
 
 	t.Run("delete all returns error", func(t *testing.T) {
