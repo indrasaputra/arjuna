@@ -27,7 +27,7 @@ jobs:
       - name: Format and lint using buf
         run: |
           buf format -w
-          buf lint
+          make check.proto
       - name: Lint proto files
         uses: plexsystems/protolint-action@v0.7.0
         with:
