@@ -16,4 +16,5 @@ plugins:
     opt:
       - allow_merge=true
       - merge_file_name=arjuna
+      - output_format=yaml
     strategy: all
