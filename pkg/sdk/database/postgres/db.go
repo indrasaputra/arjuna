@@ -2,10 +2,8 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
@@ -13,17 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jackc/pgx/v5/stdlib"
-	"github.com/uptrace/bun"
-	"github.com/uptrace/bun/dialect/pgdialect"
 	pgxuuid "github.com/vgarvardt/pgx-google-uuid/v5"
-
-	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
-)
-
-const (
-	// errCodeUniqueViolation is derived from https://www.postgresql.org/docs/11/errcodes-appendix.html
-	errCodeUniqueViolation = "23505"
 )
 
 var (
@@ -80,100 +68,6 @@ func NewPgxPool(cfg Config) (*pgxpool.Pool, error) {
 	}
 
 	return pgxpool.NewWithConfig(context.Background(), connCfg)
-}
-
-// NewDBWithPgx creates a bun.DB using pgx as driver.
-func NewDBWithPgx(cfg Config) (*bun.DB, error) {
-	pool, err := NewPgxPool(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	s := stdlib.OpenDBFromPool(pool)
-	return bun.NewDB(s, pgdialect.New()), nil
-}
-
-// BunDB wraps uptrace/bun to comply with internal use.
-type BunDB struct {
-	db bun.IDB
-}
-
-// NewBunDB creates an instance of Bun.
-func NewBunDB(db bun.IDB) (*BunDB, error) {
-	if db == nil {
-		return nil, ErrNullDB
-	}
-	return &BunDB{db: db}, nil
-}
-
-// Begin begins the transaction.
-func (b *BunDB) Begin(ctx context.Context) (uow.Tx, error) {
-	tx, err := b.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelDefault})
-	if err != nil {
-		return nil, fmt.Errorf("[BunDB] begin error: %v", err)
-	}
-	return &BunTx{tx: tx}, nil
-}
-
-// Exec executes the given query.
-func (b *BunDB) Exec(ctx context.Context, query string, args ...interface{}) (int64, error) {
-	res, err := b.db.ExecContext(ctx, query, args...)
-	if isUniqueViolationErr(err) {
-		return 0, ErrAlreadyExist
-	}
-	if err != nil {
-		return 0, fmt.Errorf("[BunDB] exec error: %v", err)
-	}
-	return res.RowsAffected()
-}
-
-// Query queries the given query.
-func (b *BunDB) Query(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
-	return b.db.NewRaw(query, args...).Scan(ctx, dest)
-}
-
-// BunTx wraps uptrace/bun tx to comply with internal use.
-type BunTx struct {
-	tx bun.Tx
-}
-
-// Begin begins the transaction
-func (t *BunTx) Begin(_ context.Context) (uow.Tx, error) {
-	return t, nil
-}
-
-// Commit commits the transaction.
-func (t *BunTx) Commit(_ context.Context) error {
-	return t.tx.Commit()
-}
-
-// Rollback rolls back the transaction.
-func (t *BunTx) Rollback(_ context.Context) error {
-	return t.tx.Rollback()
-}
-
-// Exec executes the given query.
-func (t *BunTx) Exec(ctx context.Context, query string, args ...interface{}) (int64, error) {
-	res, err := t.tx.ExecContext(ctx, query, args...)
-	if isUniqueViolationErr(err) {
-		return 0, ErrAlreadyExist
-	}
-	if err != nil {
-		return 0, fmt.Errorf("[BunTx] exec error: %v", err)
-	}
-	return res.RowsAffected()
-}
-
-// Query queries the given query.
-func (t *BunTx) Query(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
-	return t.tx.NewRaw(query, args...).Scan(ctx, dest)
-}
-
-func isUniqueViolationErr(err error) bool {
-	if err == nil {
-		return false
-	}
-	return strings.Contains(err.Error(), errCodeUniqueViolation)
 }
 
 // TxDB implements DB with transaction.
