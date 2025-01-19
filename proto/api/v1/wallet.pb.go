@@ -9,12 +9,13 @@
 package apiv1
 
 import (
+	reflect "reflect"
+	sync "sync"
+
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	reflect "reflect"
-	sync "sync"
 )
 
 const (
@@ -113,11 +114,9 @@ func (WalletErrorCode) EnumDescriptor() ([]byte, []int) {
 // CreateWalletRequest represents request for create wallet.
 type CreateWalletRequest struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	Wallet        *Wallet `protobuf:"bytes,1,opt,name=wallet,proto3" json:"wallet,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// wallet represents wallet data.
-	Wallet *Wallet `protobuf:"bytes,1,opt,name=wallet,proto3" json:"wallet,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateWalletRequest) Reset() {
@@ -162,8 +161,8 @@ func (x *CreateWalletRequest) GetWallet() *Wallet {
 // CreateWalletResponse represents response from create wallet.
 type CreateWalletResponse struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateWalletResponse) Reset() {
@@ -201,11 +200,9 @@ func (*CreateWalletResponse) Descriptor() ([]byte, []int) {
 // TopupWalletRequest represents request for topup wallet.
 type TopupWalletRequest struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	Topup         *Topup `protobuf:"bytes,1,opt,name=topup,proto3" json:"topup,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// topup represents topup data.
-	Topup *Topup `protobuf:"bytes,1,opt,name=topup,proto3" json:"topup,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TopupWalletRequest) Reset() {
@@ -250,8 +247,8 @@ func (x *TopupWalletRequest) GetTopup() *Topup {
 // TopupWalletResponse represents response from topup wallet.
 type TopupWalletResponse struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TopupWalletResponse) Reset() {
@@ -289,11 +286,9 @@ func (*TopupWalletResponse) Descriptor() ([]byte, []int) {
 // TransferBalanceRequest represents request for transfer balance.
 type TransferBalanceRequest struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	Transfer      *Transfer `protobuf:"bytes,1,opt,name=transfer,proto3" json:"transfer,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// transfer represents transfer data.
-	Transfer *Transfer `protobuf:"bytes,1,opt,name=transfer,proto3" json:"transfer,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TransferBalanceRequest) Reset() {
@@ -338,8 +333,8 @@ func (x *TransferBalanceRequest) GetTransfer() *Transfer {
 // TransferBalanceResponse represents response from transfer balance.
 type TransferBalanceResponse struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TransferBalanceResponse) Reset() {
@@ -377,15 +372,11 @@ func (*TransferBalanceResponse) Descriptor() ([]byte, []int) {
 // Wallet represents wallet.
 type Wallet struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	Id            string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId        string `protobuf:"bytes,2,opt,name=user_id,proto3" json:"user_id,omitempty"`
+	Balance       string `protobuf:"bytes,3,opt,name=balance,proto3" json:"balance,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// id represents unique id.
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// user_id represents user's id.
-	UserId string `protobuf:"bytes,2,opt,name=user_id,proto3" json:"user_id,omitempty"`
-	// balance represents balance.
-	Balance string `protobuf:"bytes,3,opt,name=balance,proto3" json:"balance,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Wallet) Reset() {
@@ -444,13 +435,10 @@ func (x *Wallet) GetBalance() string {
 // Topup represents topup.
 type Topup struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	WalletId      string `protobuf:"bytes,1,opt,name=wallet_id,proto3" json:"wallet_id,omitempty"`
+	Amount        string `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// wallet_id represents wallet's id.
-	WalletId string `protobuf:"bytes,1,opt,name=wallet_id,proto3" json:"wallet_id,omitempty"`
-	// amount represents amount.
-	Amount string `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Topup) Reset() {
@@ -501,20 +489,14 @@ func (x *Topup) GetAmount() string {
 
 // Transfer represents transfer.
 type Transfer struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// sender_id represents sender's id.
-	SenderId string `protobuf:"bytes,1,opt,name=sender_id,proto3" json:"sender_id,omitempty"`
-	// sender_wallet_id represents sender's wallet's id.
-	SenderWalletId string `protobuf:"bytes,2,opt,name=sender_wallet_id,proto3" json:"sender_wallet_id,omitempty"`
-	// receiver_id represents receiver's id.
-	ReceiverId string `protobuf:"bytes,3,opt,name=receiver_id,proto3" json:"receiver_id,omitempty"`
-	// receiver_wallet_id represents receiver's wallet's id.
+	state            protoimpl.MessageState
+	SenderId         string `protobuf:"bytes,1,opt,name=sender_id,proto3" json:"sender_id,omitempty"`
+	SenderWalletId   string `protobuf:"bytes,2,opt,name=sender_wallet_id,proto3" json:"sender_wallet_id,omitempty"`
+	ReceiverId       string `protobuf:"bytes,3,opt,name=receiver_id,proto3" json:"receiver_id,omitempty"`
 	ReceiverWalletId string `protobuf:"bytes,4,opt,name=receiver_wallet_id,proto3" json:"receiver_wallet_id,omitempty"`
-	// amount represents amount.
-	Amount string `protobuf:"bytes,5,opt,name=amount,proto3" json:"amount,omitempty"`
+	Amount           string `protobuf:"bytes,5,opt,name=amount,proto3" json:"amount,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *Transfer) Reset() {
@@ -587,11 +569,9 @@ func (x *Transfer) GetAmount() string {
 // WalletError represents message for any error happening in wallet service.
 type WalletError struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-
-	// error_code represents specific and unique error code for wallet.
-	ErrorCode WalletErrorCode `protobuf:"varint,1,opt,name=error_code,json=errorCode,proto3,enum=api.v1.WalletErrorCode" json:"error_code,omitempty"`
+	sizeCache     protoimpl.SizeCache
+	ErrorCode     WalletErrorCode `protobuf:"varint,1,opt,name=error_code,json=errorCode,proto3,enum=api.v1.WalletErrorCode" json:"error_code,omitempty"`
 }
 
 func (x *WalletError) Reset() {

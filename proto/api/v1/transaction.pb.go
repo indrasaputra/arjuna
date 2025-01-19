@@ -9,13 +9,14 @@
 package apiv1
 
 import (
+	reflect "reflect"
+	sync "sync"
+
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
-	reflect "reflect"
-	sync "sync"
 )
 
 const (
@@ -102,11 +103,9 @@ func (TransactionErrorCode) EnumDescriptor() ([]byte, []int) {
 // CreateTransactionRequest represents request for create transaction.
 type CreateTransactionRequest struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	Transaction   *Transaction `protobuf:"bytes,1,opt,name=transaction,proto3" json:"transaction,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// transaction represents transaction data.
-	Transaction *Transaction `protobuf:"bytes,1,opt,name=transaction,proto3" json:"transaction,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateTransactionRequest) Reset() {
@@ -151,11 +150,9 @@ func (x *CreateTransactionRequest) GetTransaction() *Transaction {
 // CreateTransactionResponse represents response from create transaction.
 type CreateTransactionResponse struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	Data          *Transaction `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// data represents transaction.
-	Data *Transaction `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateTransactionResponse) Reset() {
@@ -200,19 +197,13 @@ func (x *CreateTransactionResponse) GetData() *Transaction {
 // Transaction represents transaction.
 type Transaction struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,proto3" json:"created_at,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	SenderId      string                 `protobuf:"bytes,2,opt,name=sender_id,proto3" json:"sender_id,omitempty"`
+	ReceiverId    string                 `protobuf:"bytes,3,opt,name=receiver_id,proto3" json:"receiver_id,omitempty"`
+	Amount        string                 `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// id represents unique id.
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// sender_id represents sender's id.
-	SenderId string `protobuf:"bytes,2,opt,name=sender_id,proto3" json:"sender_id,omitempty"`
-	// receiver_id represents receiver's id.
-	ReceiverId string `protobuf:"bytes,3,opt,name=receiver_id,proto3" json:"receiver_id,omitempty"`
-	// amount represents amount.
-	Amount string `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount,omitempty"`
-	// created_at represents when the transaction was created.
-	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,proto3" json:"created_at,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Transaction) Reset() {
@@ -285,11 +276,9 @@ func (x *Transaction) GetCreatedAt() *timestamppb.Timestamp {
 // TransactionError represents message for any error happening in transaction service.
 type TransactionError struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-
-	// error_code represents specific and unique error code for transaction.
-	ErrorCode TransactionErrorCode `protobuf:"varint,1,opt,name=error_code,json=errorCode,proto3,enum=api.v1.TransactionErrorCode" json:"error_code,omitempty"`
+	sizeCache     protoimpl.SizeCache
+	ErrorCode     TransactionErrorCode `protobuf:"varint,1,opt,name=error_code,json=errorCode,proto3,enum=api.v1.TransactionErrorCode" json:"error_code,omitempty"`
 }
 
 func (x *TransactionError) Reset() {

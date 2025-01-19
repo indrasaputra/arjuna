@@ -9,13 +9,14 @@
 package apiv1
 
 import (
+	reflect "reflect"
+	sync "sync"
+
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
-	reflect "reflect"
-	sync "sync"
 )
 
 const (
@@ -166,11 +167,9 @@ func (UserErrorCode) EnumDescriptor() ([]byte, []int) {
 // RegisterUserRequest represents request for register user.
 type RegisterUserRequest struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	User          *User `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// user represents user data.
-	User *User `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RegisterUserRequest) Reset() {
@@ -215,11 +214,9 @@ func (x *RegisterUserRequest) GetUser() *User {
 // RegisterUserResponse represents response from register user.
 type RegisterUserResponse struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	Data          *User `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// data represents user.
-	Data *User `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RegisterUserResponse) Reset() {
@@ -264,11 +261,9 @@ func (x *RegisterUserResponse) GetData() *User {
 // DeleteUserRequest represents request for delete user.
 type DeleteUserRequest struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	Id            string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// id represents user's id.
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DeleteUserRequest) Reset() {
@@ -313,8 +308,8 @@ func (x *DeleteUserRequest) GetId() string {
 // DeleteUserResponse represents response from delete user.
 type DeleteUserResponse struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DeleteUserResponse) Reset() {
@@ -352,11 +347,9 @@ func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
 // GetAllUsersRequest represents request for get all users.
 type GetAllUsersRequest struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-
-	// limit specifies how many users to retrieve in a single call.
-	Limit uint32 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	sizeCache     protoimpl.SizeCache
+	Limit         uint32 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
 }
 
 func (x *GetAllUsersRequest) Reset() {
@@ -401,11 +394,9 @@ func (x *GetAllUsersRequest) GetLimit() uint32 {
 // GetAllUsersResponse represents response from get all users.
 type GetAllUsersResponse struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-
-	// data represents an array of user data.
-	Data []*User `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	Data          []*User `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetAllUsersResponse) Reset() {
@@ -450,21 +441,14 @@ func (x *GetAllUsersResponse) GetData() []*User {
 // User represents a user data.
 type User struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,proto3" json:"updated_at,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// id represents a user's id.
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// email represents a user's email.
-	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
-	// password represents the user's password.
-	Password string `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
-	// name represents a user's name.
-	Name string `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	// created_at represents when the user was registered.
-	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,proto3" json:"created_at,omitempty"`
-	// updated_at represents when the user was last updated.
-	UpdatedAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,proto3" json:"updated_at,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *User) Reset() {
@@ -544,19 +528,13 @@ func (x *User) GetUpdatedAt() *timestamppb.Timestamp {
 // UserOutbox represents a user outbox data.
 type UserOutbox struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	Payload       *User                  `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,proto3" json:"updated_at,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// id represents a users_outbox's id.
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// status represents specific status.
-	Status UserOutboxStatus `protobuf:"varint,2,opt,name=status,proto3,enum=api.v1.UserOutboxStatus" json:"status,omitempty"`
-	// payload represents a user message.
-	Payload *User `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
-	// created_at represents when the user was registered.
-	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,proto3" json:"created_at,omitempty"`
-	// updated_at represents when the user was last updated.
-	UpdatedAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,proto3" json:"updated_at,omitempty"`
+	sizeCache     protoimpl.SizeCache
+	Status        UserOutboxStatus `protobuf:"varint,2,opt,name=status,proto3,enum=api.v1.UserOutboxStatus" json:"status,omitempty"`
 }
 
 func (x *UserOutbox) Reset() {
@@ -629,11 +607,9 @@ func (x *UserOutbox) GetUpdatedAt() *timestamppb.Timestamp {
 // UserError represents message for any error happening in user.
 type UserError struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-
-	// error_code represents specific and unique error code for user.
-	ErrorCode UserErrorCode `protobuf:"varint,1,opt,name=error_code,json=errorCode,proto3,enum=api.v1.UserErrorCode" json:"error_code,omitempty"`
+	sizeCache     protoimpl.SizeCache
+	ErrorCode     UserErrorCode `protobuf:"varint,1,opt,name=error_code,json=errorCode,proto3,enum=api.v1.UserErrorCode" json:"error_code,omitempty"`
 }
 
 func (x *UserError) Reset() {

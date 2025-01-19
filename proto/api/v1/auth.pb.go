@@ -9,12 +9,13 @@
 package apiv1
 
 import (
+	reflect "reflect"
+	sync "sync"
+
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	reflect "reflect"
-	sync "sync"
 )
 
 const (
@@ -114,11 +115,9 @@ func (AuthErrorCode) EnumDescriptor() ([]byte, []int) {
 // LoginRequest represents request for login.
 type LoginRequest struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	Credential    *Credential `protobuf:"bytes,1,opt,name=credential,proto3" json:"credential,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// credential represents credential for login.
-	Credential *Credential `protobuf:"bytes,1,opt,name=credential,proto3" json:"credential,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *LoginRequest) Reset() {
@@ -163,11 +162,9 @@ func (x *LoginRequest) GetCredential() *Credential {
 // LoginResponse represents response from login.
 type LoginResponse struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	Data          *Token `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// data represents token.
-	Data *Token `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *LoginResponse) Reset() {
@@ -212,11 +209,9 @@ func (x *LoginResponse) GetData() *Token {
 // RegisterAccountRequest represents request for account registration.
 type RegisterAccountRequest struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	Account       *Account `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// Account represents account to register.
-	Account *Account `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RegisterAccountRequest) Reset() {
@@ -261,8 +256,8 @@ func (x *RegisterAccountRequest) GetAccount() *Account {
 // RegisterAccountResponse represents response for account registration.
 type RegisterAccountResponse struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RegisterAccountResponse) Reset() {
@@ -300,17 +295,12 @@ func (*RegisterAccountResponse) Descriptor() ([]byte, []int) {
 // Account represents account.
 type Account struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	Id            string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId        string `protobuf:"bytes,2,opt,name=user_id,proto3" json:"user_id,omitempty"`
+	Email         string `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	Password      string `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// id represents unique id.
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// user_id represents user's id.
-	UserId string `protobuf:"bytes,2,opt,name=user_id,proto3" json:"user_id,omitempty"`
-	// email represents user's email.
-	Email string `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
-	// password represents user's password
-	Password string `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Account) Reset() {
@@ -376,13 +366,10 @@ func (x *Account) GetPassword() string {
 // Credential represents login credential.
 type Credential struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
+	Email         string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Password      string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	unknownFields protoimpl.UnknownFields
-
-	// email represents account's email.
-	Email string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
-	// password represents account's password.
-	Password string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Credential) Reset() {
@@ -433,17 +420,12 @@ func (x *Credential) GetPassword() string {
 
 // Token represents token.
 type Token struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// access_token represents an access token.
-	AccessToken string `protobuf:"bytes,1,opt,name=access_token,proto3" json:"access_token,omitempty"`
-	// access_token_expires_in represents how many seconds left before access token expired.
-	AccessTokenExpiresIn uint32 `protobuf:"varint,2,opt,name=access_token_expires_in,proto3" json:"access_token_expires_in,omitempty"`
-	// refresh_token represents an refresh token.
-	RefreshToken string `protobuf:"bytes,3,opt,name=refresh_token,proto3" json:"refresh_token,omitempty"`
-	// refresh_token_expires_in represents how many seconds left before refresh token expired.
+	state                 protoimpl.MessageState
+	AccessToken           string `protobuf:"bytes,1,opt,name=access_token,proto3" json:"access_token,omitempty"`
+	RefreshToken          string `protobuf:"bytes,3,opt,name=refresh_token,proto3" json:"refresh_token,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+	AccessTokenExpiresIn  uint32 `protobuf:"varint,2,opt,name=access_token_expires_in,proto3" json:"access_token_expires_in,omitempty"`
 	RefreshTokenExpiresIn uint32 `protobuf:"varint,4,opt,name=refresh_token_expires_in,proto3" json:"refresh_token_expires_in,omitempty"`
 }
 
@@ -510,11 +492,9 @@ func (x *Token) GetRefreshTokenExpiresIn() uint32 {
 // AuthError represents message for any error happening in auth service.
 type AuthError struct {
 	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-
-	// error_code represents specific and unique error code for auth.
-	ErrorCode AuthErrorCode `protobuf:"varint,1,opt,name=error_code,json=errorCode,proto3,enum=api.v1.AuthErrorCode" json:"error_code,omitempty"`
+	sizeCache     protoimpl.SizeCache
+	ErrorCode     AuthErrorCode `protobuf:"varint,1,opt,name=error_code,json=errorCode,proto3,enum=api.v1.AuthErrorCode" json:"error_code,omitempty"`
 }
 
 func (x *AuthError) Reset() {
