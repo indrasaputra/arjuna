@@ -52,6 +52,8 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/v1Credential'
+            required:
+              - credential
       tags:
         - Auth
   /v1/transactions:
@@ -137,6 +139,8 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/v1User'
+            required:
+              - user
         - name: X-Idempotency-Key
           in: header
           required: true
@@ -164,6 +168,8 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/v1Topup'
+            required:
+              - topup
         - name: Authorization
           in: header
           required: true
@@ -250,6 +256,10 @@ definitions:
         description: User's password
         title: password represents user's password
     description: Account represents account.
+    required:
+      - id
+      - user_id
+      - email
   v1CreateTransactionResponse:
     type: object
     properties:
@@ -274,6 +284,9 @@ definitions:
         example: weakPassword
         description: User's password
     description: Credential represents login credential.
+    required:
+      - email
+      - password
   v1DeleteUserResponse:
     type: object
     description: DeleteUserResponse represents response from delete user.
@@ -326,6 +339,11 @@ definitions:
         description: refresh_token_expires_in represents how many seconds left before refresh token expired.
         readOnly: true
     description: Token represents token.
+    required:
+      - access_token
+      - access_token_expires_in
+      - refresh_token
+      - refresh_token_expires_in
   v1Topup:
     type: object
     properties:
@@ -338,6 +356,9 @@ definitions:
         example: "10.23"
         description: Topup amount
     description: Topup represents topup.
+    required:
+      - wallet_id
+      - amount
   v1TopupWalletResponse:
     type: object
     description: TopupWalletResponse represents response from topup wallet.
@@ -391,6 +412,12 @@ definitions:
         example: "10.23"
         description: Transfer amount
     description: Transfer represents transfer.
+    required:
+      - sender_id
+      - sender_wallet_id
+      - receiver_id
+      - receiver_wallet_id
+      - amount
   v1TransferBalanceResponse:
     type: object
     description: TransferBalanceResponse represents response from transfer balance.
@@ -431,6 +458,9 @@ definitions:
     description: User represents a user data.
     required:
       - email
+      - email
+      - password
+      - name
   v1Wallet:
     type: object
     properties:
@@ -448,3 +478,6 @@ definitions:
         example: "10.23"
         description: Wallet's balance
     description: Wallet represents wallet.
+    required:
+      - user_id
+      - balance

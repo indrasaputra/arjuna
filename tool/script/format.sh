@@ -18,6 +18,4 @@ for dir in `find . -type d`; do
   fi
 done
 
-for file in `find . -name '*.proto'`; do
-  clang-format -i ${file}
-done
+buf format -w

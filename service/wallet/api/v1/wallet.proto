@@ -8,100 +8,110 @@ import "google/api/field_behavior.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/indrasaputra/arjuna/service/wallet/api/v1;apiv1";
-
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
-  info : {
-    title : "Wallet API",
-    version : "1.0.0",
-    contact : {
-      name : "Indra Saputra",
-      url : "https://github.com/indrasaputra",
-    },
-    license : {
-      name : "BSD 3-Clause License",
-      url : "https://github.com/indrasaputra/arjuna/blob/main/LICENSE",
-    },
-  },
-  host : "localhost:8000",
-  schemes : HTTP,
-  consumes : "application/json",
-  produces : "application/json",
+  info: {
+    title: "Wallet API"
+    version: "1.0.0"
+    contact: {
+      name: "Indra Saputra"
+      url: "https://github.com/indrasaputra"
+    }
+    license: {
+      name: "BSD 3-Clause License"
+      url: "https://github.com/indrasaputra/arjuna/blob/main/LICENSE"
+    }
+  }
+  host: "localhost:8000"
+  schemes: HTTP
+  consumes: "application/json"
+  produces: "application/json"
 };
 
 // WalletCommandService provides all use cases to work with wallet.
 service WalletCommandService {
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
-    description : "This service provides all use cases to work with wallet."
-  };
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {description: "This service provides all use cases to work with wallet."};
 
   // CreateWallet.
   //
   // This endpoint creates a wallet.
-  rpc CreateWallet(CreateWalletRequest) returns (CreateWalletResponse) {
-  };
+  rpc CreateWallet(CreateWalletRequest) returns (CreateWalletResponse) {}
 
   // Topup.
   //
   // This endpoint topups a wallet.
   rpc TopupWallet(TopupWalletRequest) returns (TopupWalletResponse) {
     option (google.api.http) = {
-      put : "/v1/wallets/topups",
-      body : "topup"
+      put: "/v1/wallets/topups"
+      body: "topup"
     };
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id : "TopupWallet",
-      tags : "Wallet",
-      parameters : {
-        headers : [
-          {name : "Authorization", type : STRING, required : true},
-          {name : "X-Idempotency-Key" type : STRING, required : true}
+      operation_id: "TopupWallet"
+      tags: "Wallet"
+      parameters: {
+        headers: [
+          {
+            name: "Authorization"
+            type: STRING
+            required: true
+          },
+          {
+            name: "X-Idempotency-Key"
+            type: STRING
+            required: true
+          }
         ]
-      },
+      }
     };
-  };
+  }
 
   // TransferBalance.
   //
   // This endpoint transfers balance from one wallet to another wallet.
   rpc TransferBalance(TransferBalanceRequest) returns (TransferBalanceResponse) {
     option (google.api.http) = {
-      put : "/v1/wallets/transfers",
-      body : "transfer"
+      put: "/v1/wallets/transfers"
+      body: "transfer"
     };
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id : "TransferWallet",
-      tags : "Wallet",
-      parameters : {
-        headers : [
-          {name : "Authorization", type : STRING, required : true},
-          {name : "X-Idempotency-Key" type : STRING, required : true}
+      operation_id: "TransferWallet"
+      tags: "Wallet"
+      parameters: {
+        headers: [
+          {
+            name: "Authorization"
+            type: STRING
+            required: true
+          },
+          {
+            name: "X-Idempotency-Key"
+            type: STRING
+            required: true
+          }
         ]
-      },
+      }
     };
-  };
+  }
 }
 
 // CreateWalletRequest represents request for create wallet.
 message CreateWalletRequest {
   // wallet represents wallet data.
-  Wallet wallet = 1;
+  Wallet wallet = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 // CreateWalletResponse represents response from create wallet.
-message CreateWalletResponse {
-}
+message CreateWalletResponse {}
 
 // TopupWalletRequest represents request for topup wallet.
 message TopupWalletRequest {
   // topup represents topup data.
-  Topup topup = 1;
+  Topup topup = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 // TopupWalletResponse represents response from topup wallet.
-message TopupWalletResponse {
-}
+message TopupWalletResponse {}
 
 // TransferBalanceRequest represents request for transfer balance.
 message TransferBalanceRequest {
@@ -110,96 +120,108 @@ message TransferBalanceRequest {
 }
 
 // TransferBalanceResponse represents response from transfer balance.
-message TransferBalanceResponse {
-}
+message TransferBalanceResponse {}
 
 // Wallet represents wallet.
 message Wallet {
   // id represents unique id.
   string id = 1 [
     (google.api.field_behavior) = OUTPUT_ONLY,
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      example : "\"01917a0c-cdfe-74dd-9d95-4d87b5d1f0b8\""
-    }
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {example: "\"01917a0c-cdfe-74dd-9d95-4d87b5d1f0b8\""}
   ];
 
   // user_id represents user's id.
   string user_id = 2 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      description : "Wallet's user's id"
-      example : "\"01917a0c-cdfe-7aae-b311-a8c7c32f5c70\""
+      description: "Wallet's user's id"
+      example: "\"01917a0c-cdfe-7aae-b311-a8c7c32f5c70\""
     },
     json_name = "user_id"
   ];
 
   // balance represents balance.
-  string balance = 3 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description : "Wallet's balance"
-    example : "\"10.23\""
-  } ];
+  string balance = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Wallet's balance"
+      example: "\"10.23\""
+    }
+  ];
 }
 
 // Topup represents topup.
 message Topup {
   // wallet_id represents wallet's id.
   string wallet_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      description : "Wallet's id"
-      example : "\"01917a0c-cdfe-701e-9547-ed45a24d7c84\""
+      description: "Wallet's id"
+      example: "\"01917a0c-cdfe-701e-9547-ed45a24d7c84\""
     },
     json_name = "wallet_id"
   ];
 
   // amount represents amount.
-  string amount = 2 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description : "Topup amount"
-    example : "\"10.23\""
-  } ];
+  string amount = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Topup amount"
+      example: "\"10.23\""
+    }
+  ];
 }
 
 // Transfer represents transfer.
 message Transfer {
   // sender_id represents sender's id.
   string sender_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      description : "Sender's id"
-      example : "\"01917a10-1086-74a6-8cfb-0074f65bebe3\""
+      description: "Sender's id"
+      example: "\"01917a10-1086-74a6-8cfb-0074f65bebe3\""
     },
     json_name = "sender_id"
   ];
 
   // sender_wallet_id represents sender's wallet's id.
   string sender_wallet_id = 2 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      description : "Sender's wallet's id"
-      example : "\"01917a10-1086-7faa-9c9e-0bf6a9cf6928\""
+      description: "Sender's wallet's id"
+      example: "\"01917a10-1086-7faa-9c9e-0bf6a9cf6928\""
     },
     json_name = "sender_wallet_id"
   ];
 
   // receiver_id represents receiver's id.
   string receiver_id = 3 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      description : "Receiver's id"
-      example : "\"01917a10-1086-7c94-93c4-32de26621dae\""
+      description: "Receiver's id"
+      example: "\"01917a10-1086-7c94-93c4-32de26621dae\""
     },
     json_name = "receiver_id"
   ];
 
   // receiver_wallet_id represents receiver's wallet's id.
   string receiver_wallet_id = 4 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      description : "Receiver's wallet's id"
-      example : "\"01917a10-1086-72df-818a-b72d663fb3b5\""
+      description: "Receiver's wallet's id"
+      example: "\"01917a10-1086-72df-818a-b72d663fb3b5\""
     },
     json_name = "receiver_wallet_id"
   ];
 
   // amount represents amount.
-  string amount = 5 [ (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description : "Transfer amount"
-    example : "\"10.23\""
-  } ];
+  string amount = 5 [
+    (google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Transfer amount"
+      example: "\"10.23\""
+    }
+  ];
 }
 
 // WalletError represents message for any error happening in wallet service.

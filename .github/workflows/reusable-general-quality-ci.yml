@@ -19,12 +19,15 @@ jobs:
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
-      - name: Format proto files using clang-format
-        uses: DoozyX/clang-format-lint-action@v0.18.2
+      - name: Setup buf
+        uses: bufbuild/buf-action@v1
         with:
-          source: "."
-          extensions: "proto"
-          clangFormatVersion: 11
+          setup_only: true
+          version: 1.50.0
+      - name: Format and lint using buf
+        run: |
+          buf format -w
+          make check.proto
       - name: Lint proto files
         uses: plexsystems/protolint-action@v0.7.0
         with:

@@ -34,6 +34,10 @@ pretty: tidy gen.db gen.mock format lint lint.struct
 check.import: ## Check if import blocks are separated accordingly.
 	tool/script/check-import.sh
 
+.PHONY: check.proto
+check.proto: ## Check if proto is formatted well.
+	tool/script/check-proto.sh
+
 ##@ Generator
 .PHONY: gen.proto
 gen.proto: ## Generate golang files from proto.

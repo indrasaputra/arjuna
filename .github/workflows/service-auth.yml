@@ -58,7 +58,7 @@ jobs:
 
   go-code-quality:
     name: Go code quality check
-    needs: [change-check]
+    needs: [change-check, general-quality-check]
     if: ${{ needs.change-check.outputs.has-change == 'true' }}
     uses: ./.github/workflows/reusable-go-quality-ci.yml
     with:
