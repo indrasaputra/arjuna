@@ -78,12 +78,14 @@ message RegisterAccountResponse {}
 message Account {
   // id represents unique id.
   string id = 1 [
+    (google.api.field_behavior) = REQUIRED,
     (google.api.field_behavior) = OUTPUT_ONLY,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {example: "\"01917a0c-475e-7d4a-9ec1-a56d14d78569\""}
   ];
 
   // user_id represents user's id.
   string user_id = 2 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "User's id"
       format: "string"
@@ -93,11 +95,14 @@ message Account {
   ];
 
   // email represents user's email.
-  string email = 3 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "User's email"
-    pattern: "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
-    example: "\"email@domain.com\""
-  }];
+  string email = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "User's email"
+      pattern: "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
+      example: "\"email@domain.com\""
+    }
+  ];
 
   // password represents user's password
   string password = 4 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
@@ -134,26 +139,27 @@ message Credential {
 message Token {
   // access_token represents an access token.
   string access_token = 1 [
-    (google.api.field_behavior) = OUTPUT_ONLY,
     (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = OUTPUT_ONLY,
     json_name = "access_token"
   ];
   // access_token_expires_in represents how many seconds left before access token expired.
   uint32 access_token_expires_in = 2 [
-    (google.api.field_behavior) = OUTPUT_ONLY,
     (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = OUTPUT_ONLY,
     json_name = "access_token_expires_in"
   ];
   // refresh_token represents an refresh token.
   string refresh_token = 3 [
-    (google.api.field_behavior) = OUTPUT_ONLY,
     (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = OUTPUT_ONLY,
+
     json_name = "refresh_token"
   ];
   // refresh_token_expires_in represents how many seconds left before refresh token expired.
   uint32 refresh_token_expires_in = 4 [
-    (google.api.field_behavior) = OUTPUT_ONLY,
     (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = OUTPUT_ONLY,
     json_name = "refresh_token_expires_in"
   ];
 }

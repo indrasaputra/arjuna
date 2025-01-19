@@ -110,7 +110,7 @@ service UserQueryService {
 // RegisterUserRequest represents request for register user.
 message RegisterUserRequest {
   // user represents user data.
-  User user = 1;
+  User user = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 // RegisterUserResponse represents response from register user.
@@ -149,15 +149,19 @@ message User {
   ];
 
   // email represents a user's email.
-  string email = 2 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    required: "email"
-    description: "user's email"
-    pattern: "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
-    example: "\"first@user.com\""
-  }];
+  string email = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      required: "email"
+      description: "user's email"
+      pattern: "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
+      example: "\"first@user.com\""
+    }
+  ];
 
   // password represents the user's password.
   string password = 3 [
+    (google.api.field_behavior) = REQUIRED,
     (google.api.field_behavior) = INPUT_ONLY,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "user's password"
@@ -167,12 +171,15 @@ message User {
   ];
 
   // name represents a user's name.
-  string name = 4 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "user's name"
-    min_length: 1
-    max_length: 255
-    example: "\"First User\""
-  }];
+  string name = 4 [
+    (google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "user's name"
+      min_length: 1
+      max_length: 255
+      example: "\"First User\""
+    }
+  ];
 
   // created_at represents when the user was registered.
   google.protobuf.Timestamp created_at = 5 [

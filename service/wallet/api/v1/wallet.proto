@@ -98,7 +98,7 @@ service WalletCommandService {
 // CreateWalletRequest represents request for create wallet.
 message CreateWalletRequest {
   // wallet represents wallet data.
-  Wallet wallet = 1;
+  Wallet wallet = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 // CreateWalletResponse represents response from create wallet.
@@ -107,7 +107,7 @@ message CreateWalletResponse {}
 // TopupWalletRequest represents request for topup wallet.
 message TopupWalletRequest {
   // topup represents topup data.
-  Topup topup = 1;
+  Topup topup = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 // TopupWalletResponse represents response from topup wallet.
@@ -132,6 +132,7 @@ message Wallet {
 
   // user_id represents user's id.
   string user_id = 2 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Wallet's user's id"
       example: "\"01917a0c-cdfe-7aae-b311-a8c7c32f5c70\""
@@ -140,16 +141,20 @@ message Wallet {
   ];
 
   // balance represents balance.
-  string balance = 3 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "Wallet's balance"
-    example: "\"10.23\""
-  }];
+  string balance = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Wallet's balance"
+      example: "\"10.23\""
+    }
+  ];
 }
 
 // Topup represents topup.
 message Topup {
   // wallet_id represents wallet's id.
   string wallet_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Wallet's id"
       example: "\"01917a0c-cdfe-701e-9547-ed45a24d7c84\""
@@ -158,16 +163,20 @@ message Topup {
   ];
 
   // amount represents amount.
-  string amount = 2 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "Topup amount"
-    example: "\"10.23\""
-  }];
+  string amount = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Topup amount"
+      example: "\"10.23\""
+    }
+  ];
 }
 
 // Transfer represents transfer.
 message Transfer {
   // sender_id represents sender's id.
   string sender_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Sender's id"
       example: "\"01917a10-1086-74a6-8cfb-0074f65bebe3\""
@@ -177,6 +186,7 @@ message Transfer {
 
   // sender_wallet_id represents sender's wallet's id.
   string sender_wallet_id = 2 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Sender's wallet's id"
       example: "\"01917a10-1086-7faa-9c9e-0bf6a9cf6928\""
@@ -186,6 +196,7 @@ message Transfer {
 
   // receiver_id represents receiver's id.
   string receiver_id = 3 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Receiver's id"
       example: "\"01917a10-1086-7c94-93c4-32de26621dae\""
@@ -195,6 +206,7 @@ message Transfer {
 
   // receiver_wallet_id represents receiver's wallet's id.
   string receiver_wallet_id = 4 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Receiver's wallet's id"
       example: "\"01917a10-1086-72df-818a-b72d663fb3b5\""
@@ -203,10 +215,13 @@ message Transfer {
   ];
 
   // amount represents amount.
-  string amount = 5 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "Transfer amount"
-    example: "\"10.23\""
-  }];
+  string amount = 5 [
+    (google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Transfer amount"
+      example: "\"10.23\""
+    }
+  ];
 }
 
 // WalletError represents message for any error happening in wallet service.
