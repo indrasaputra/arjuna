@@ -2,6 +2,9 @@ package log
 
 import (
 	"context"
+	"io"
+	"log/slog"
+	"os"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -63,4 +66,45 @@ func newLoggerConfig(env string) zap.Config {
 	c.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	c.EncoderConfig.TimeKey = ""
 	return c
+}
+
+type SlogJSONHandler struct {
+	*slog.JSONHandler
+}
+
+func NewSlogJSONHandler(w io.Writer, o *slog.HandlerOptions) *SlogJSONHandler {
+	return &SlogJSONHandler{slog.NewJSONHandler(w, o)}
+}
+
+func (s *SlogJSONHandler) Handle(ctx context.Context, r slog.Record) error {
+	s.addTraceId(ctx, &r)
+	return s.JSONHandler.Handle(ctx, r)
+}
+
+func (s *SlogJSONHandler) addTraceId(ctx context.Context, r *slog.Record) {
+	traceID := trace.GetTraceIDFromContext(ctx)
+	r.AddAttrs(
+		slog.Attr{Key: traceIDKey, Value: slog.StringValue(traceID)},
+	)
+}
+
+func (s *SlogJSONHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return &SlogJSONHandler{
+		JSONHandler: s.JSONHandler.WithAttrs(attrs).(*slog.JSONHandler),
+	}
+}
+
+func (s *SlogJSONHandler) WithGroup(name string) slog.Handler {
+	return &SlogJSONHandler{
+		JSONHandler: s.JSONHandler.WithGroup(name).(*slog.JSONHandler),
+	}
+}
+
+func NewSlogLogger(svc string) *slog.Logger {
+	h := NewSlogJSONHandler(os.Stdout, nil)
+	l := slog.New(h)
+	l = l.With(
+		slog.Attr{Key: "service", Value: slog.StringValue(svc)},
+	)
+	return l
 }

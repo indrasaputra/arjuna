@@ -3,6 +3,7 @@ package interceptor
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"go.uber.org/zap"
@@ -48,5 +49,13 @@ func ZapLogger(l *zap.Logger) logging.Logger {
 		default:
 			panic(fmt.Sprintf("unknown level %v", lvl))
 		}
+	})
+}
+
+// SlogLogger intercepts logs with log/slog.
+// Copied from https://github.com/grpc-ecosystem/go-grpc-middleware/blob/main/interceptors/logging/examples/slog/example_test.go
+func SlogLogger(l *slog.Logger) logging.Logger {
+	return logging.LoggerFunc(func(ctx context.Context, lvl logging.Level, msg string, fields ...any) {
+		l.Log(ctx, slog.Level(lvl), msg, fields...)
 	})
 }
