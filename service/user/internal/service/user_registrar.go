@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"log/slog"
 	"net/mail"
 	"regexp"
 	"strings"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
-	"github.com/indrasaputra/arjuna/service/user/internal/app"
 )
 
 var (
@@ -73,13 +73,13 @@ func NewUserRegistrar(txm uow.TxManager, ur RegisterUserRepository, uor Register
 // It checks the email for duplication.
 func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User, key string) (uuid.UUID, error) {
 	if err := ur.validateIdempotencyKey(ctx, key); err != nil {
-		app.Logger.Errorf(ctx, "[UserRegistrar-Register] fail check idempotency key: %s - %v", key, err)
+		slog.ErrorContext(ctx, "[UserRegistrar-Register] fail check idempotency key", "idempotency_key", key, "error", err)
 		return uuid.Nil, err
 	}
 
 	sanitizeUser(user)
 	if err := validateUser(user); err != nil {
-		app.Logger.Errorf(ctx, "[UserRegistrar-Register] user is invalid: %v", err)
+		slog.ErrorContext(ctx, "[UserRegistrar-Register] fail validate user", "error", err)
 		return uuid.Nil, err
 	}
 
@@ -88,7 +88,7 @@ func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User, key st
 
 	err := ur.saveUserToRepository(ctx, user)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[UserRegistrar-Register] fail save to repository: %v", err)
+		slog.ErrorContext(ctx, "[UserRegistrar-Register] fail save to repository", "error", err)
 		return uuid.Nil, err
 	}
 	return user.ID, nil
@@ -97,18 +97,18 @@ func (ur *UserRegistrar) Register(ctx context.Context, user *entity.User, key st
 func (ur *UserRegistrar) saveUserToRepository(ctx context.Context, user *entity.User) error {
 	err := ur.txManager.Do(ctx, func(ctx context.Context) error {
 		if err := ur.userRepo.Insert(ctx, user); err != nil {
-			app.Logger.Errorf(ctx, "[UserRegistrar-saveUserToRepository] fail insert user to repo: %v", err)
+			slog.ErrorContext(ctx, "[UserRegistrar-saveUserToRepository] fail insert user to repo", "error", err)
 			return err
 		}
 		payload := createUserOutbox(user)
 		err := ur.userOutboxRepo.Insert(ctx, payload)
 		if err != nil {
-			app.Logger.Errorf(ctx, "[UserRegistrar-saveUserToRepository] fail insert user outbox to repo: %v", err)
+			slog.ErrorContext(ctx, "[UserRegistrar-saveUserToRepository] fail insert user outbox to repo", "error", err)
 		}
 		return err
 	})
 	if err != nil {
-		app.Logger.Errorf(ctx, "[UserRegistrar-saveUserToRepository] transaction fail: %v", err)
+		slog.ErrorContext(ctx, "[UserRegistrar-saveUserToRepository] transaction fail", "error", err)
 	}
 	return err
 }

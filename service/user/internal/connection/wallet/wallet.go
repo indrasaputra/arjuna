@@ -2,13 +2,13 @@ package wallet
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/gogo/status"
 	"github.com/shopspring/decimal"
 	"google.golang.org/grpc/codes"
 
 	"github.com/indrasaputra/arjuna/service/user/entity"
-	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	enwallet "github.com/indrasaputra/arjuna/service/wallet/entity"
 	sdkwallet "github.com/indrasaputra/arjuna/service/wallet/pkg/sdk/wallet"
 )
@@ -28,7 +28,7 @@ func (a *Wallet) CreateWallet(ctx context.Context, user *entity.User) error {
 	req := &enwallet.Wallet{UserID: user.ID, Balance: decimal.Zero}
 	err := a.client.CreateWallet(ctx, req)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[Wallet-CreateWallet] fail call register: %v", err)
+		slog.ErrorContext(ctx, "[Wallet-CreateWallet] fail call register", "error", err)
 	}
 	if status.Code(err) == codes.AlreadyExists {
 		return entity.ErrAlreadyExists()

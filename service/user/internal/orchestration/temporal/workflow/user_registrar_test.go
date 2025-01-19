@@ -12,9 +12,7 @@ import (
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/testsuite"
 
-	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/service/user/entity"
-	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/connection/auth"
 	"github.com/indrasaputra/arjuna/service/user/internal/connection/wallet"
 	orcact "github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/activity"
@@ -40,8 +38,6 @@ func TestNewRegisterUserWorkflow(t *testing.T) {
 }
 
 func TestRegisterUserWorkflow_RegisterUser(t *testing.T) {
-	app.Logger = sdklog.NewLogger(testEnv)
-
 	t.Run("execute workflow returns error", func(t *testing.T) {
 		st := createRegisterUserWorkflowSuite()
 		user := createTestUser()

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"go.temporal.io/sdk/client"
@@ -11,7 +12,6 @@ import (
 	tempflow "go.temporal.io/sdk/workflow"
 
 	"github.com/indrasaputra/arjuna/service/user/entity"
-	"github.com/indrasaputra/arjuna/service/user/internal/app"
 )
 
 const (
@@ -69,10 +69,10 @@ func (r *RegisterUserWorkflow) RegisterUser(ctx context.Context, input *entity.R
 	}
 	wr, err := r.client.ExecuteWorkflow(ctx, opts, RegisterUser, input)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[RegisterUserWorkflow-RegisterUser] workflow failure: %v", err)
+		slog.ErrorContext(ctx, "[RegisterUserWorkflow-RegisterUser] fail to start workflow", "error", err)
 		return nil, entity.ErrInternal("Something went wrong within our server. Please, try again")
 	}
-	app.Logger.Infof(ctx, "Started workflow with ID: %s and run ID: %s", wr.GetID(), wr.GetRunID())
+	slog.InfoContext(ctx, "[RegisterUserWorkflow-RegisterUser] started workflow", "workflow-id", wr.GetID(), "run-id", wr.GetRunID())
 
 	var output *entity.RegisterUserOutput
 	err = wr.Get(ctx, &output)
@@ -81,7 +81,7 @@ func (r *RegisterUserWorkflow) RegisterUser(ctx context.Context, input *entity.R
 		if errors.As(err, &appErr) && appErr.Type() == ErrNonRetryableUserExist {
 			return nil, entity.ErrAlreadyExists()
 		}
-		app.Logger.Errorf(ctx, "[RegisterUserWorkflow-RegisterUser] error get workflow result: %v", err)
+		slog.ErrorContext(ctx, "[RegisterUserWorkflow-RegisterUser] error get workflow result", "error", err)
 		return nil, entity.ErrInternal("Something went wrong within our server. Please, try again")
 	}
 	return output, nil

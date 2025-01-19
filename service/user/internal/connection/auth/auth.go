@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/gogo/status"
 	"google.golang.org/grpc/codes"
@@ -9,7 +10,6 @@ import (
 	enauth "github.com/indrasaputra/arjuna/service/auth/entity"
 	sdkauth "github.com/indrasaputra/arjuna/service/auth/pkg/sdk/auth"
 	"github.com/indrasaputra/arjuna/service/user/entity"
-	"github.com/indrasaputra/arjuna/service/user/internal/app"
 )
 
 // Auth is responsible to connect to auth service.
@@ -27,7 +27,7 @@ func (a *Auth) CreateAccount(ctx context.Context, user *entity.User) error {
 	req := &enauth.Account{UserID: user.ID, Email: user.Email, Password: user.Password}
 	err := a.client.Register(ctx, req)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[Auth-CreateAccount] fail call register: %v", err)
+		slog.ErrorContext(ctx, "[Auth-CreateAccount] fail call register", "error", err)
 	}
 	if status.Code(err) == codes.AlreadyExists {
 		return entity.ErrAlreadyExists()

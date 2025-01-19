@@ -2,12 +2,12 @@ package handler
 
 import (
 	"context"
+	"log/slog"
 
 	"google.golang.org/grpc/metadata"
 
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/user/entity"
-	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
 )
 
@@ -38,13 +38,13 @@ func (uc *UserCommand) RegisterUser(ctx context.Context, request *apiv1.Register
 	}
 
 	if request == nil || request.GetUser() == nil {
-		app.Logger.Errorf(ctx, "[UserCommand-RegisterUser] empty or nil user")
+		slog.ErrorContext(ctx, "[UserCommand-RegisterUser] empty or nil user")
 		return nil, entity.ErrEmptyUser()
 	}
 
 	id, err := uc.registrar.Register(ctx, createUserFromRegisterUserRequest(request), key[0])
 	if err != nil {
-		app.Logger.Errorf(ctx, "[UserCommand-RegisterUser] fail register user: %v", err)
+		slog.ErrorContext(ctx, "[UserCommand-RegisterUser] fail register user", "error", err)
 		return nil, err
 	}
 	return &apiv1.RegisterUserResponse{Data: &apiv1.User{Id: id.String()}}, nil

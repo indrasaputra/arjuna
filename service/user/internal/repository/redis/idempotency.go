@@ -2,12 +2,12 @@ package redis
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/indrasaputra/arjuna/service/user/entity"
-	"github.com/indrasaputra/arjuna/service/user/internal/app"
 )
 
 const (
@@ -33,7 +33,7 @@ func (i *IdempotencyKey) Exists(ctx context.Context, key string) (bool, error) {
 		return false, nil
 	}
 	if err != nil {
-		app.Logger.Errorf(ctx, "[IdempotencyKeyRedis-Exists] internal error: %v", err)
+		slog.ErrorContext(ctx, "[IdempotencyKeyRedis-Exists] internal error", "error", err)
 		return false, entity.ErrInternal("fail check in redis")
 	}
 	return true, nil

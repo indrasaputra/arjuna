@@ -2,12 +2,12 @@ package service
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/google/uuid"
 
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
-	"github.com/indrasaputra/arjuna/service/user/internal/app"
 )
 
 const (
@@ -63,17 +63,17 @@ func (ur *UserRelayRegistrar) Register(ctx context.Context) error {
 	err := ur.txManager.Do(ctx, func(ctx context.Context) error {
 		records, err := ur.userOutboxRepo.GetAllReady(ctx, limitGetAllReady)
 		if err != nil {
-			app.Logger.Errorf(ctx, "[UserRelayRegistrar-Register] fail get all ready")
+			slog.ErrorContext(ctx, "[UserRelayRegistrar-Register] fail get all ready", "error", err)
 			return err
 		}
 
 		for _, rc := range records {
 			if err := ur.setRecordAsProcessed(ctx, rc); err != nil {
-				app.Logger.Errorf(ctx, "fail processing record: %v", rc)
+				slog.ErrorContext(ctx, "[UserRelayRegistrar-Register] fail set record as processed", "record", rc, "error", err)
 				continue
 			}
 			if err := ur.enqueueRecordToOrchestrator(ctx, rc); err != nil {
-				app.Logger.Errorf(ctx, "fail enqueue record: %v with error: %v", rc, err)
+				slog.ErrorContext(ctx, "[UserRelayRegistrar-Register] fail enqueue record", "record", rc, "error", err)
 			}
 		}
 		return nil
@@ -84,7 +84,7 @@ func (ur *UserRelayRegistrar) Register(ctx context.Context) error {
 func (ur *UserRelayRegistrar) enqueueRecordToOrchestrator(ctx context.Context, record *entity.UserOutbox) error {
 	err := ur.startRegisterUserWorkflow(ctx, record)
 	if err != nil {
-		app.Logger.Errorf(ctx, "fail start workflow for record: %v with error: %v", record, err)
+		slog.ErrorContext(ctx, "[UserRelayRegistrar-Register] fail start workflow", "record", record, "error", err)
 		return ur.setRecordAsFailed(ctx, record)
 	}
 	return ur.setRecordAsDelivered(ctx, record)
@@ -94,7 +94,7 @@ func (ur *UserRelayRegistrar) startRegisterUserWorkflow(ctx context.Context, rec
 	input := &entity.RegisterUserInput{User: record.Payload}
 	_, err := ur.orchestrator.RegisterUser(ctx, input)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[UserRegistrar-Register] orchestration fail: %v", err)
+		slog.ErrorContext(ctx, "[UserRelayRegistrar-Register] orchestration fail", "error", err)
 		return err
 	}
 	return nil

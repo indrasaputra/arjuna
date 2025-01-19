@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,7 +25,6 @@ import (
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/user/entity"
-	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/builder"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
 	connauth "github.com/indrasaputra/arjuna/service/user/internal/connection/auth"
@@ -72,7 +72,8 @@ func API(_ *cobra.Command, _ []string) {
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
 
-	app.Logger = sdklog.NewLogger(cfg.AppEnv)
+	logger := sdklog.NewSlogLogger(cfg.ServiceName)
+	slog.SetDefault(logger)
 
 	_, err = trace.NewProvider(ctx, cfg.Tracer)
 	checkError(err)
@@ -121,7 +122,8 @@ func Worker(_ *cobra.Command, _ []string) {
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
 
-	app.Logger = sdklog.NewLogger(cfg.AppEnv)
+	logger := sdklog.NewSlogLogger(cfg.ServiceName)
+	slog.SetDefault(logger)
 
 	_, err = trace.NewProvider(ctx, cfg.Tracer)
 	checkError(err)
@@ -163,7 +165,8 @@ func Relayer(_ *cobra.Command, _ []string) {
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
 
-	app.Logger = sdklog.NewLogger(cfg.AppEnv)
+	logger := sdklog.NewSlogLogger(cfg.ServiceName)
+	slog.SetDefault(logger)
 
 	_, err = trace.NewProvider(ctx, cfg.Tracer)
 	checkError(err)
@@ -185,9 +188,9 @@ func Relayer(_ *cobra.Command, _ []string) {
 	svc := service.NewUserRelayRegistrar(p, w, txm)
 
 	for {
-		app.Logger.Infof(ctx, "running user registration relayer at %v", time.Now())
+		slog.InfoContext(ctx, "running user registration relayer", "time", time.Now())
 		if err := svc.Register(ctx); err != nil {
-			app.Logger.Errorf(ctx, "error during relay register: %v", err)
+			slog.ErrorContext(ctx, "error during relay register", "error", err)
 		}
 		time.Sleep(time.Duration(cfg.RelayerSleepTimeMillisecond) * time.Millisecond)
 	}

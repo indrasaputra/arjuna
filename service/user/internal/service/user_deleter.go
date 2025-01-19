@@ -2,10 +2,9 @@ package service
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/google/uuid"
-
-	"github.com/indrasaputra/arjuna/service/user/internal/app"
 )
 
 // DeleteUser defines the interface to delete a user.
@@ -36,7 +35,7 @@ func NewUserDeleter(repo DeleteUserRepository) *UserDeleter {
 func (td *UserDeleter) HardDelete(ctx context.Context, id uuid.UUID) error {
 	err := td.repo.HardDelete(ctx, id)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[UserDeleter-HardDelete] fail delete user: %v", err)
+		slog.ErrorContext(ctx, "[UserDeleter-HardDelete] fail delete user", "error", err)
 	}
 	return err
 }
