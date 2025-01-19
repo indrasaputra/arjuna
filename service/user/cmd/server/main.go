@@ -241,19 +241,14 @@ func insertUsers(ctx context.Context, db uow.Tr, val []byte) {
 	var users []*entity.User
 	_ = json.Unmarshal(val, &users)
 
-	query := "INSERT INTO users (id, name, created_at, updated_at, created_by, updated_by) VALUES ($1, $2, NOW(), NOW(), $3, $4)"
+	query := `INSERT INTO users (id, name, created_at, updated_at, created_by, updated_by)
+				VALUES ($1, $2, NOW(), NOW(), $3, $4)
+				ON CONFLICT (id) DO NOTHING;`
 	for _, user := range users {
 		_, err := db.Exec(ctx, query, user.ID, user.Name, user.ID, user.ID)
-		checkInsertError(err)
+		checkError(err)
 	}
 	log.Printf("Successfully insert %d users\n", len(users))
-}
-
-func checkInsertError(err error) {
-	if uow.IsUniqueViolationError(err) {
-		return
-	}
-	checkError(err)
 }
 
 func checkError(err error) {

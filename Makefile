@@ -28,7 +28,7 @@ lint: lint.cleancache
 
 .PHONY: pretty
 pretty: ## Prettify golang and proto files. Basically, it runs tidy, format, and lint command.
-pretty: tidy gen.db gen.mock format lint
+pretty: tidy gen.db gen.mock format lint lint.struct
 
 .PHONY: check.import
 check.import: ## Check if import blocks are separated accordingly.
