@@ -2,13 +2,13 @@ package service
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/wallet/entity"
-	"github.com/indrasaputra/arjuna/service/wallet/internal/app"
 )
 
 // TransferWallet defines interface to transfer wallet.
@@ -85,12 +85,12 @@ func (wt *WalletTransferer) getSenderAndReceiverWallet(ctx context.Context, tran
 	if transfer.SenderWalletID.String() < transfer.ReceiverWalletID.String() {
 		senWallet, err := wt.walletRepo.GetUserWalletForUpdate(ctx, transfer.SenderWalletID, transfer.SenderID)
 		if err != nil {
-			app.Logger.Errorf(ctx, "[WalletTransferer-getSenderAndReceiverWallet] sender < receiver; get sender wallet fail: %v", err)
+			slog.ErrorContext(ctx, "[WalletTransferer-getSenderAndReceiverWallet] sender < receiver; get sender wallet fail", "error", err)
 			return nil, nil, err
 		}
 		recWallet, err := wt.walletRepo.GetUserWalletForUpdate(ctx, transfer.ReceiverWalletID, transfer.ReceiverID)
 		if err != nil {
-			app.Logger.Errorf(ctx, "[WalletTransferer-getSenderAndReceiverWallet] sender < receiver; get receiver wallet fail: %v", err)
+			slog.ErrorContext(ctx, "[WalletTransferer-getSenderAndReceiverWallet] sender < receiver; get receiver wallet fail", "error", err)
 			return nil, nil, err
 		}
 		return senWallet, recWallet, nil
@@ -98,12 +98,12 @@ func (wt *WalletTransferer) getSenderAndReceiverWallet(ctx context.Context, tran
 
 	recWallet, err := wt.walletRepo.GetUserWalletForUpdate(ctx, transfer.ReceiverWalletID, transfer.ReceiverID)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[WalletTransferer-getSenderAndReceiverWallet] sender >= receiver; get receiver wallet fail: %v", err)
+		slog.ErrorContext(ctx, "[WalletTransferer-getSenderAndReceiverWallet] sender >= receiver; get receiver wallet fail", "error", err)
 		return nil, nil, err
 	}
 	senWallet, err := wt.walletRepo.GetUserWalletForUpdate(ctx, transfer.SenderWalletID, transfer.SenderID)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[WalletTransferer-getSenderAndReceiverWallet] sender >= receiver; get sender wallet fail: %v", err)
+		slog.ErrorContext(ctx, "[WalletTransferer-getSenderAndReceiverWallet] sender >= receiver; get sender wallet fail", "error", err)
 		return nil, nil, err
 	}
 	return senWallet, recWallet, nil
@@ -111,11 +111,11 @@ func (wt *WalletTransferer) getSenderAndReceiverWallet(ctx context.Context, tran
 
 func (wt *WalletTransferer) updateUserBalances(ctx context.Context, transfer *entity.TransferWallet) error {
 	if err := wt.walletRepo.AddWalletBalance(ctx, transfer.SenderWalletID, transfer.Amount.Neg()); err != nil {
-		app.Logger.Errorf(ctx, "[WalletTransferer-updateUserBalances] subtract sender balance fail: %v", err)
+		slog.ErrorContext(ctx, "[WalletTransferer-updateUserBalances] subtract sender balance fail", "error", err)
 		return err
 	}
 	if err := wt.walletRepo.AddWalletBalance(ctx, transfer.ReceiverWalletID, transfer.Amount); err != nil {
-		app.Logger.Errorf(ctx, "[WalletTransferer-updateUserBalances] add receiver balance fail: %v", err)
+		slog.ErrorContext(ctx, "[WalletTransferer-updateUserBalances] add receiver balance fail", "error", err)
 		return err
 	}
 	return nil

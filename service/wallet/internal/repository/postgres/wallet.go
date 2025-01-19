@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -9,7 +10,6 @@ import (
 
 	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/service/wallet/entity"
-	"github.com/indrasaputra/arjuna/service/wallet/internal/app"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/repository/db"
 )
 
@@ -44,7 +44,7 @@ func (w *Wallet) Insert(ctx context.Context, wallet *entity.Wallet) error {
 		return entity.ErrAlreadyExists()
 	}
 	if err != nil {
-		app.Logger.Errorf(ctx, "[PostgresWallet-Insert] fail insert wallet with tx: %v", err)
+		slog.ErrorContext(ctx, "[PostgresWallet-Insert] fail insert wallet with tx", "error", err)
 		return entity.ErrInternal(err.Error())
 	}
 	return nil
@@ -55,7 +55,7 @@ func (w *Wallet) AddWalletBalance(ctx context.Context, id uuid.UUID, amount deci
 	param := db.AddWalletBalanceParams{ID: id, Amount: amount}
 	err := w.queries.AddWalletBalance(ctx, param)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[WalletPostgres-addWalletBalance] internal error: %v", err)
+		slog.ErrorContext(ctx, "[WalletPostgres-addWalletBalance] internal error", "error", err)
 		return entity.ErrInternal(err.Error())
 	}
 	return nil
@@ -69,7 +69,7 @@ func (w *Wallet) GetUserWalletForUpdate(ctx context.Context, id uuid.UUID, userI
 		return nil, entity.ErrEmptyWallet()
 	}
 	if err != nil {
-		app.Logger.Errorf(ctx, "[WalletPostgres-GetUserWalletWithTx] internal error: %v", err)
+		slog.ErrorContext(ctx, "[WalletPostgres-GetUserWalletForUpdate] internal error", "error", err)
 		return nil, entity.ErrInternal(err.Error())
 	}
 	return &entity.Wallet{

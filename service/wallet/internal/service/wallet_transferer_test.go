@@ -9,10 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/wallet/entity"
-	"github.com/indrasaputra/arjuna/service/wallet/internal/app"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/service"
 	mock_service "github.com/indrasaputra/arjuna/service/wallet/test/mock/service"
 )
@@ -40,8 +38,6 @@ func TestNewWalletTransferer(t *testing.T) {
 func TestWalletTransferer_TransferBalance(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("transfer is nil", func(t *testing.T) {
 		st := createWalletTransfererSuite(ctrl)

@@ -8,9 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/service/wallet/entity"
-	"github.com/indrasaputra/arjuna/service/wallet/internal/app"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/service"
 	mock_service "github.com/indrasaputra/arjuna/service/wallet/test/mock/service"
 )
@@ -40,7 +38,6 @@ func TestNewWalletTopup(t *testing.T) {
 func TestWalletTopup_Topup(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("empty wallet is prohibited", func(t *testing.T) {
 		st := createWalletTopupSuite(ctrl)

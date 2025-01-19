@@ -13,10 +13,8 @@ import (
 	"go.uber.org/mock/gomock"
 
 	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
-	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/wallet/entity"
-	"github.com/indrasaputra/arjuna/service/wallet/internal/app"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/repository/db"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/repository/postgres"
 )
@@ -45,7 +43,6 @@ func TestNewWallet(t *testing.T) {
 func TestWallet_Insert(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 	query := `INSERT INTO wallets \(id, user_id, balance, created_at, updated_at, created_by, updated_by\)
 				VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, \$7\)`
 
@@ -103,8 +100,6 @@ func TestWallet_AddWalletBalance(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	app.Logger = sdklog.NewLogger(testEnv)
-
 	query := `UPDATE wallets SET balance = balance \+ \$2 WHERE id = \$1`
 
 	t.Run("add account balance returns internal error", func(t *testing.T) {
@@ -139,8 +134,6 @@ func TestWallet_AddWalletBalance(t *testing.T) {
 func TestWallet_GetUserWalletForUpdate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	query := `SELECT id, user_id, balance, created_at, updated_at, deleted_at, created_by, updated_by, deleted_by FROM wallets WHERE id = \$1 AND user_id = \$2 LIMIT 1 FOR NO KEY UPDATE`
 

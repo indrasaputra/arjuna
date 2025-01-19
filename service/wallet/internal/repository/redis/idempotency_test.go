@@ -9,8 +9,6 @@ import (
 	goredis "github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 
-	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
-	"github.com/indrasaputra/arjuna/service/wallet/internal/app"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/repository/redis"
 )
 
@@ -32,7 +30,6 @@ func TestNewIdempotency(t *testing.T) {
 }
 
 func TestIdempotency_Exists(t *testing.T) {
-	app.Logger = sdklog.NewLogger(testEnv)
 	key := "idempotency"
 
 	t.Run("set returns nil", func(t *testing.T) {

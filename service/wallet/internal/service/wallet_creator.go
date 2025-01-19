@@ -2,12 +2,12 @@ package service
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
 
 	"github.com/indrasaputra/arjuna/service/wallet/entity"
-	"github.com/indrasaputra/arjuna/service/wallet/internal/app"
 )
 
 // CreateWallet defines interface to create wallet.
@@ -36,7 +36,7 @@ func NewWalletCreator(t CreateWalletRepository) *WalletCreator {
 // It needs idempotency key.
 func (wc *WalletCreator) Create(ctx context.Context, wallet *entity.Wallet) error {
 	if err := validateWallet(wallet); err != nil {
-		app.Logger.Errorf(ctx, "[WalletCreator-Create] wallet is invalid: %v", err)
+		slog.ErrorContext(ctx, "[WalletCreator-Create] wallet is invalid", "error", err)
 		return err
 	}
 
@@ -45,7 +45,7 @@ func (wc *WalletCreator) Create(ctx context.Context, wallet *entity.Wallet) erro
 
 	err := wc.walletRepo.Insert(ctx, wallet)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[WalletCreator-Create] fail save to repository: %v", err)
+		slog.ErrorContext(ctx, "[WalletCreator-Create] fail save to repository", "error", err)
 		return err
 	}
 	return nil

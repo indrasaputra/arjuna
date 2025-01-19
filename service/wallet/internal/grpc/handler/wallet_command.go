@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
@@ -10,7 +11,6 @@ import (
 	"github.com/indrasaputra/arjuna/pkg/sdk/grpc/interceptor"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/wallet/entity"
-	"github.com/indrasaputra/arjuna/service/wallet/internal/app"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/service"
 )
 
@@ -34,7 +34,7 @@ func NewWalletCommand(c service.CreateWallet, t service.TopupWallet, tf service.
 // CreateWallet handles HTTP/2 gRPC request similar to POST in HTTP/1.1.
 func (wc *WalletCommand) CreateWallet(ctx context.Context, request *apiv1.CreateWalletRequest) (*apiv1.CreateWalletResponse, error) {
 	if request == nil || request.GetWallet() == nil {
-		app.Logger.Errorf(ctx, "[WalletCommand-CreateWallet] empty or nil wallet")
+		slog.ErrorContext(ctx, "[WalletCommand-CreateWallet] empty or nil wallet")
 		return nil, entity.ErrEmptyWallet()
 	}
 
@@ -43,7 +43,7 @@ func (wc *WalletCommand) CreateWallet(ctx context.Context, request *apiv1.Create
 
 	err := wc.creator.Create(ctx, req)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[WalletCommand-CreateWallet] fail register wallet: %v", err)
+		slog.ErrorContext(ctx, "[WalletCommand-CreateWallet] fail register wallet", "error", err)
 		return nil, err
 	}
 	return &apiv1.CreateWalletResponse{}, nil
@@ -63,7 +63,7 @@ func (wc *WalletCommand) TopupWallet(ctx context.Context, request *apiv1.TopupWa
 	userID := ctx.Value(interceptor.HeaderKeyUserID).(uuid.UUID)
 
 	if request == nil || request.GetTopup() == nil {
-		app.Logger.Errorf(ctx, "[WalletCommand-TopupWallet] empty or nil topup")
+		slog.ErrorContext(ctx, "[WalletCommand-TopupWallet] empty or nil topup")
 		return nil, entity.ErrEmptyWallet()
 	}
 
@@ -72,7 +72,7 @@ func (wc *WalletCommand) TopupWallet(ctx context.Context, request *apiv1.TopupWa
 
 	err := wc.topup.Topup(ctx, req)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[WalletCommand-TopupWallet] fail topup wallet: %v", err)
+		slog.ErrorContext(ctx, "[WalletCommand-TopupWallet] fail topup wallet", "error", err)
 		return nil, err
 	}
 	return &apiv1.TopupWalletResponse{}, nil
@@ -81,7 +81,7 @@ func (wc *WalletCommand) TopupWallet(ctx context.Context, request *apiv1.TopupWa
 // TransferBalance handles HTTP/2 gRPC request similar to POST in HTTP/1.1.
 func (wc *WalletCommand) TransferBalance(ctx context.Context, request *apiv1.TransferBalanceRequest) (*apiv1.TransferBalanceResponse, error) {
 	if request == nil || request.GetTransfer() == nil {
-		app.Logger.Errorf(ctx, "[WalletCommand-TransferBalance] empty or nil transfer")
+		slog.ErrorContext(ctx, "[WalletCommand-TransferBalance] empty or nil transfer")
 		return nil, entity.ErrEmptyWallet()
 	}
 
@@ -90,7 +90,7 @@ func (wc *WalletCommand) TransferBalance(ctx context.Context, request *apiv1.Tra
 
 	err := wc.transfer.TransferBalance(ctx, req)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[WalletCommand-TransferBalance] fail transfer wallet: %v", err)
+		slog.ErrorContext(ctx, "[WalletCommand-TransferBalance] fail transfer wallet", "error", err)
 		return nil, err
 	}
 	return &apiv1.TransferBalanceResponse{}, nil

@@ -2,12 +2,12 @@ package service
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"github.com/indrasaputra/arjuna/service/wallet/entity"
-	"github.com/indrasaputra/arjuna/service/wallet/internal/app"
 )
 
 // TopupWallet defines interface to topup wallet.
@@ -48,18 +48,18 @@ func (wt *WalletTopup) Topup(ctx context.Context, topup *entity.TopupWallet) err
 	}
 
 	if err := wt.validateIdempotencyKey(ctx, topup.IdempotencyKey); err != nil {
-		app.Logger.Errorf(ctx, "[WalletTopup-Topup] fail check idempotency key: %s - %v", topup.IdempotencyKey, err)
+		slog.ErrorContext(ctx, "[WalletTopup-Topup] fail check idempotency key", "idempotency_key", topup.IdempotencyKey, "error", err)
 		return err
 	}
 
 	if err := validateTopupWallet(topup); err != nil {
-		app.Logger.Errorf(ctx, "[WalletTopup-Topup] wallet is invalid: %v", err)
+		slog.ErrorContext(ctx, "[WalletTopup-Topup] wallet is invalid", "error", err)
 		return err
 	}
 
 	err := wt.walletRepo.AddWalletBalance(ctx, topup.WalletID, topup.Amount)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[WalletTopup-Topup] fail update to repository: %v", err)
+		slog.ErrorContext(ctx, "[WalletTopup-Topup] fail update wallet balance", "error", err)
 		return err
 	}
 	return nil
