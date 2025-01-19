@@ -2,43 +2,41 @@ package postgres_test
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
-	"github.com/uptrace/bun"
-	"github.com/uptrace/bun/dialect/pgdialect"
+	"go.uber.org/mock/gomock"
 
 	"github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
+	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 )
 
 var (
 	testCtx = context.Background()
 )
 
-type BunDBSuite struct {
-	sqldb *sql.DB
-	mock  sqlmock.Sqlmock
-	bun   *postgres.BunDB
+type TxDBSuite struct {
+	db     pgxmock.PgxPoolIface
+	getter *mock_uow.MockTxGetter
+	tx     *postgres.TxDB
 }
 
-func TestNewTxGetter(t *testing.T) {
-	t.Run("success create tx getter", func(t *testing.T) {
-		g := postgres.NewTxGetter()
-
-		assert.NotNil(t, g)
+func TestIsUniqueViolationError(t *testing.T) {
+	t.Run("error is not unique violation", func(t *testing.T) {
+		res := postgres.IsUniqueViolationError(assert.AnError)
+		assert.False(t, res)
 	})
-}
 
-func TestNewTxManager(t *testing.T) {
-	t.Run("success create tx manager", func(t *testing.T) {
-		tx, err := postgres.NewTxManager(&pgxpool.Pool{})
+	t.Run("nil error is not unique violation", func(t *testing.T) {
+		res := postgres.IsUniqueViolationError(nil)
+		assert.False(t, res)
+	})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, tx)
+	t.Run("error is unique violation", func(t *testing.T) {
+		res := postgres.IsUniqueViolationError(&pgconn.PgError{Code: "23505"})
+		assert.True(t, res)
 	})
 }
 
@@ -51,220 +49,85 @@ func TestNewPgxPool(t *testing.T) {
 	})
 }
 
-func TestNewDBWithPgx(t *testing.T) {
-	t.Run("success create db with pgx", func(t *testing.T) {
-		db, err := postgres.NewDBWithPgx(postgres.Config{})
+func TestNewTxDB(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-		assert.NoError(t, err)
-		assert.NotNil(t, db)
+	t.Run("success create txdb", func(t *testing.T) {
+		st := createTxDBSuite(t, ctrl)
+
+		assert.NotNil(t, st.tx)
 	})
 }
 
-func TestNewBunDB(t *testing.T) {
-	t.Run("fail create an instance of BunDB", func(t *testing.T) {
-		db, err := postgres.NewBunDB(nil)
+func TestTxDB_Exec(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-		assert.Error(t, err)
-		assert.Equal(t, postgres.ErrNullDB, err)
-		assert.Nil(t, db)
-	})
+	t.Run("success execute exec", func(t *testing.T) {
+		st := createTxDBSuite(t, ctrl)
 
-	t.Run("success create an instance of BunDB", func(t *testing.T) {
-		db, err := postgres.NewBunDB(&bun.DB{})
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectExec("exec").WithArgs("arg1", "arg2").WillReturnResult(pgxmock.NewResult("exec", 1))
+
+		res, err := st.tx.Exec(testCtx, "exec", "arg1", "arg2")
 
 		assert.NoError(t, err)
-		assert.NotNil(t, db)
+		assert.NotNil(t, res)
 	})
 }
 
-func TestBunDB_Begin(t *testing.T) {
-	t.Run("fail begin the transaction due to unexpected mock call", func(t *testing.T) {
-		st := createBunDBSuite(t)
-		defer func() {
-			_ = st.sqldb.Close()
-		}()
+func TestTxDB_Query(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-		tx, err := st.bun.Begin(testCtx)
+	t.Run("success execute query", func(t *testing.T) {
+		st := createTxDBSuite(t, ctrl)
 
-		assert.Error(t, err)
-		assert.Nil(t, tx)
-	})
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectQuery("query").
+			WithArgs("arg1", "arg2").
+			WillReturnRows(pgxmock.
+				NewRows([]string{"id"}).
+				AddRow("id"))
 
-	t.Run("success begin the transaction", func(t *testing.T) {
-		st := createBunDBSuite(t)
-		defer func() {
-			_ = st.sqldb.Close()
-		}()
-		st.mock.ExpectBegin()
-
-		tx, err := st.bun.Begin(testCtx)
+		res, err := st.tx.Query(testCtx, "query", "arg1", "arg2")
 
 		assert.NoError(t, err)
-		assert.NotNil(t, tx)
+		assert.NotNil(t, res)
 	})
 }
 
-func TestBunDB_Query(t *testing.T) {
-	query := `SELECT id FROM tables`
+func TestTxDB_QueryRow(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	t.Run("query returns error", func(t *testing.T) {
-		st := createBunDBSuite(t)
-		defer func() {
-			_ = st.sqldb.Close()
-		}()
-		var dest interface{}
-		errReturn := errors.New("error")
+	t.Run("success execute query row", func(t *testing.T) {
+		st := createTxDBSuite(t, ctrl)
 
-		st.mock.ExpectQuery(query).WillReturnError(errReturn)
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectQuery("query").
+			WithArgs("arg1", "arg2").
+			WillReturnRows(pgxmock.
+				NewRows([]string{"id"}).
+				AddRow("id"))
 
-		err := st.bun.Query(testCtx, &dest, query)
+		res := st.tx.QueryRow(testCtx, "query", "arg1", "arg2")
 
-		assert.Error(t, err)
-		assert.Equal(t, errReturn, err)
-	})
-
-	t.Run("query success", func(t *testing.T) {
-		st := createBunDBSuite(t)
-		defer func() {
-			_ = st.sqldb.Close()
-		}()
-		var id int
-
-		st.mock.ExpectQuery(query).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
-
-		err := st.bun.Query(testCtx, &id, query)
-
-		assert.NoError(t, err)
+		assert.NotNil(t, res)
 	})
 }
 
-func TestBunTx_Begin(t *testing.T) {
-	t.Run("tx begin return itself", func(t *testing.T) {
-		st := createBunDBSuite(t)
-		defer func() {
-			_ = st.sqldb.Close()
-		}()
-		st.mock.ExpectBegin()
-		res, _ := st.bun.Begin(testCtx)
-
-		tx, err := res.Begin(testCtx)
-
-		assert.NoError(t, err)
-		assert.NotNil(t, tx)
-		assert.Equal(t, res, tx)
-	})
-}
-
-func TestBunTx_Commit(t *testing.T) {
-	t.Run("commit returns error", func(t *testing.T) {
-		st := createBunDBSuite(t)
-		defer func() {
-			_ = st.sqldb.Close()
-		}()
-		st.mock.ExpectBegin()
-		tx, _ := st.bun.Begin(testCtx)
-		errReturn := errors.New("error")
-		st.mock.ExpectCommit().WillReturnError(errReturn)
-
-		err := tx.Commit(testCtx)
-
-		assert.Error(t, err)
-	})
-
-	t.Run("commit success", func(t *testing.T) {
-		st := createBunDBSuite(t)
-		defer func() {
-			_ = st.sqldb.Close()
-		}()
-		st.mock.ExpectBegin()
-		tx, _ := st.bun.Begin(testCtx)
-		st.mock.ExpectCommit()
-
-		err := tx.Commit(testCtx)
-
-		assert.NoError(t, err)
-	})
-}
-
-func TestBunTx_Rollback(t *testing.T) {
-	t.Run("rollback returns error", func(t *testing.T) {
-		st := createBunDBSuite(t)
-		defer func() {
-			_ = st.sqldb.Close()
-		}()
-		st.mock.ExpectBegin()
-		tx, _ := st.bun.Begin(testCtx)
-		errReturn := errors.New("error")
-		st.mock.ExpectRollback().WillReturnError(errReturn)
-
-		err := tx.Rollback(testCtx)
-
-		assert.Error(t, err)
-	})
-
-	t.Run("rollback success", func(t *testing.T) {
-		st := createBunDBSuite(t)
-		defer func() {
-			_ = st.sqldb.Close()
-		}()
-		st.mock.ExpectBegin()
-		tx, _ := st.bun.Begin(testCtx)
-		st.mock.ExpectRollback()
-
-		err := tx.Rollback(testCtx)
-
-		assert.NoError(t, err)
-	})
-}
-
-func TestBunTx_Query(t *testing.T) {
-	query := `SELECT id FROM tables`
-
-	t.Run("query returns error", func(t *testing.T) {
-		st := createBunDBSuite(t)
-		defer func() {
-			_ = st.sqldb.Close()
-		}()
-		errReturn := errors.New("error")
-		st.mock.ExpectBegin()
-		tx, _ := st.bun.Begin(testCtx)
-		st.mock.ExpectQuery(query).WillReturnError(errReturn)
-		var dest interface{}
-
-		err := tx.Query(testCtx, &dest, query)
-
-		assert.Error(t, err)
-		assert.Equal(t, errReturn, err)
-	})
-
-	t.Run("query success", func(t *testing.T) {
-		st := createBunDBSuite(t)
-		defer func() {
-			_ = st.sqldb.Close()
-		}()
-		st.mock.ExpectBegin()
-		tx, _ := st.bun.Begin(testCtx)
-		st.mock.ExpectQuery(query).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
-		var id int
-
-		err := tx.Query(testCtx, &id, query)
-
-		assert.NoError(t, err)
-	})
-}
-
-func createBunDBSuite(t *testing.T) *BunDBSuite {
-	db, mock, err := sqlmock.New()
+func createTxDBSuite(t *testing.T, ctrl *gomock.Controller) *TxDBSuite {
+	pool, err := pgxmock.NewPool()
 	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		t.Fatalf("error opening a stub database connection: %v\n", err)
 	}
-
-	bdb := bun.NewDB(db, pgdialect.New())
-	b, _ := postgres.NewBunDB(bdb)
-
-	return &BunDBSuite{
-		sqldb: db,
-		mock:  mock,
-		bun:   b,
+	g := mock_uow.NewMockTxGetter(ctrl)
+	tx := postgres.NewTxDB(pool, g)
+	return &TxDBSuite{
+		db:     pool,
+		getter: g,
+		tx:     tx,
 	}
 }

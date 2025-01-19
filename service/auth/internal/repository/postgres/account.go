@@ -5,7 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
+	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/service/auth/entity"
 	"github.com/indrasaputra/arjuna/service/auth/internal/app"
 	"github.com/indrasaputra/arjuna/service/auth/internal/repository/db"
@@ -38,7 +38,7 @@ func (a *Account) Insert(ctx context.Context, account *entity.Account) error {
 		UpdatedBy: account.UpdatedBy,
 	}
 	err := a.queries.CreateAccount(ctx, param)
-	if uow.IsUniqueViolationError(err) {
+	if sdkpostgres.IsUniqueViolationError(err) {
 		return entity.ErrAlreadyExists()
 	}
 	if err != nil {

@@ -61,11 +61,11 @@ func API(_ *cobra.Command, _ []string) {
 	pool, err := postgres.NewPgxPool(cfg.Postgres)
 	checkError(err)
 	defer pool.Close()
-	txm, err := postgres.NewTxManager(pool)
+	txm, err := uow.NewTxManager(pool)
 	checkError(err)
 	redisClient, err := builder.BuildRedisClient(&cfg.Redis)
 	checkError(err)
-	queries := builder.BuildQueries(pool, postgres.NewTxGetter())
+	queries := builder.BuildQueries(pool, uow.NewTxGetter())
 
 	dep := &builder.Dependency{
 		Config:      cfg,

@@ -108,7 +108,7 @@ func TestAuth_Register(t *testing.T) {
 		st := createAuthSuite(ctrl)
 		account := createTestAccount()
 
-		st.repo.EXPECT().Insert(testCtx, account).Return(entity.ErrInternal(""))
+		st.repo.EXPECT().Insert(testCtx, account).Return(assert.AnError)
 
 		err := st.auth.Register(testCtx, account)
 
@@ -166,7 +166,7 @@ func TestAuth_Login(t *testing.T) {
 
 	t.Run("repository returns error", func(t *testing.T) {
 		st := createAuthSuite(ctrl)
-		st.repo.EXPECT().GetByEmail(testCtx, testEmail).Return(nil, entity.ErrInternal("error"))
+		st.repo.EXPECT().GetByEmail(testCtx, testEmail).Return(nil, assert.AnError)
 
 		token, err := st.auth.Login(testCtx, testEmail, testPassword)
 

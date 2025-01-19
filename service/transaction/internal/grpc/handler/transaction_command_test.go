@@ -103,7 +103,7 @@ func TestTransactionCommand_CreateTransaction(t *testing.T) {
 			entity.ErrInvalidSender(),
 			entity.ErrInvalidReceiver(),
 			entity.ErrInvalidAmount(),
-			entity.ErrInternal("error"),
+			assert.AnError,
 		}
 		for _, errRet := range errors {
 			st.creator.EXPECT().Create(testCtxWithValidKey, gomock.Any(), testIdempotencyKey).Return(uuid.Must(uuid.NewV7()), errRet)

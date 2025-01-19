@@ -96,7 +96,7 @@ func TestRegisterUserActivity_HardDeleteInUser(t *testing.T) {
 	t.Run("error when delete user from database", func(t *testing.T) {
 		st := createRegisterUserActivitySuite(ctrl)
 		user := createTestUser()
-		st.db.EXPECT().HardDelete(testCtx, user.ID).Return(entity.ErrInternal(""))
+		st.db.EXPECT().HardDelete(testCtx, user.ID).Return(assert.AnError)
 
 		err := st.activity.HardDeleteInUser(testCtx, user.ID)
 

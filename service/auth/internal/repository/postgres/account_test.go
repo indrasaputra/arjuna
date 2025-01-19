@@ -5,15 +5,13 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
+	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
-	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/auth/entity"
 	"github.com/indrasaputra/arjuna/service/auth/internal/app"
 	"github.com/indrasaputra/arjuna/service/auth/internal/repository/db"
@@ -63,7 +61,7 @@ func TestAccount_Insert(t *testing.T) {
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
 		st.db.ExpectExec(query).
 			WithArgs(account.ID, account.UserID, account.Email, account.Password, account.CreatedAt, account.UpdatedAt, account.CreatedBy, account.UpdatedBy).
-			WillReturnError(&pgconn.PgError{Code: "23505"})
+			WillReturnError(sdkpostgres.ErrUniqueViolation)
 
 		err := st.account.Insert(testCtx, account)
 
@@ -108,7 +106,7 @@ func TestAccount_GetByEmail(t *testing.T) {
 		acc := createTestAccount()
 		st := createAccountSuite(t, ctrl)
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectQuery(query).WithArgs(acc.Email).WillReturnError(pgx.ErrNoRows)
+		st.db.ExpectQuery(query).WithArgs(acc.Email).WillReturnError(sdkpostgres.ErrNotFound)
 
 		res, err := st.account.GetByEmail(testCtx, acc.Email)
 
@@ -158,9 +156,8 @@ func createAccountSuite(t *testing.T, ctrl *gomock.Controller) *AccountSuite {
 	if err != nil {
 		t.Fatalf("error opening a stub database connection: %v\n", err)
 	}
-	defer pool.Close()
 	g := mock_uow.NewMockTxGetter(ctrl)
-	tx := uow.NewTxDB(pool, g)
+	tx := sdkpostgres.NewTxDB(pool, g)
 	q := db.New(tx)
 	ac := postgres.NewAccount(q)
 	return &AccountSuite{

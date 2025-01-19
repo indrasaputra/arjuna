@@ -14,6 +14,7 @@ import (
 	"github.com/indrasaputra/arjuna/pkg/sdk/grpc/server"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
+	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/app"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/builder"
@@ -50,7 +51,7 @@ func API(_ *cobra.Command, _ []string) {
 	pool, err := postgres.NewPgxPool(cfg.Postgres)
 	checkError(err)
 	defer pool.Close()
-	queries := builder.BuildQueries(pool, postgres.NewTxGetter())
+	queries := builder.BuildQueries(pool, uow.NewTxGetter())
 	redisClient, err := builder.BuildRedisClient(&cfg.Redis)
 	checkError(err)
 

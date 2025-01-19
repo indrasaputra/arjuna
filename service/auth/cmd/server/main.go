@@ -63,7 +63,7 @@ func API(_ *cobra.Command, _ []string) {
 	pool, err := postgres.NewPgxPool(cfg.Postgres)
 	checkError(err)
 	defer pool.Close()
-	queries := builder.BuildQueries(pool, postgres.NewTxGetter())
+	queries := builder.BuildQueries(pool, uow.NewTxGetter())
 
 	dep := &builder.Dependency{
 		Config:             cfg,

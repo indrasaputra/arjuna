@@ -48,7 +48,7 @@ func TestTransactionCreator_Create(t *testing.T) {
 
 	t.Run("validate idempotency key returns error", func(t *testing.T) {
 		st := createTransactionCreatorSuite(ctrl)
-		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, entity.ErrInternal("error"))
+		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, assert.AnError)
 
 		id, err := st.trx.Create(testCtx, nil, testIdempotencyKey)
 
@@ -118,7 +118,7 @@ func TestTransactionCreator_Create(t *testing.T) {
 		trx := createTestTransaction()
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
-		st.trxRepo.EXPECT().Insert(testCtx, trx).Return(entity.ErrInternal(""))
+		st.trxRepo.EXPECT().Insert(testCtx, trx).Return(assert.AnError)
 
 		id, err := st.trx.Create(testCtx, trx, testIdempotencyKey)
 

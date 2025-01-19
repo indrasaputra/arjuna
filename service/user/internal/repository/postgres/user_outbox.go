@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
+	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/db"
@@ -37,7 +37,7 @@ func (uo *UserOutbox) Insert(ctx context.Context, payload *entity.UserOutbox) er
 		UpdatedBy: payload.UpdatedBy,
 	}
 	err := uo.queries.CreateUserOutbox(ctx, param)
-	if uow.IsUniqueViolationError(err) {
+	if sdkpostgres.IsUniqueViolationError(err) {
 		return entity.ErrAlreadyExists()
 	}
 	if err != nil {

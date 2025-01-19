@@ -5,6 +5,7 @@ import (
 
 	goredis "github.com/redis/go-redis/v9"
 
+	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/config"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/grpc/handler"
@@ -49,6 +50,6 @@ func BuildRedisClient(cfg *config.Redis) (*goredis.Client, error) {
 
 // BuildQueries builds sqlc queries.
 func BuildQueries(tr uow.Tr, getter uow.TxGetter) *db.Queries {
-	tx := uow.NewTxDB(tr, getter)
+	tx := sdkpostgres.NewTxDB(tr, getter)
 	return db.New(tx)
 }

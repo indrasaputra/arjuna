@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	sdkauth "github.com/indrasaputra/arjuna/service/auth/pkg/sdk/auth"
 	"github.com/indrasaputra/arjuna/service/user/internal/config"
@@ -96,6 +97,6 @@ func BuildRedisClient(cfg *config.Redis) (*goredis.Client, error) {
 
 // BuildQueries builds sqlc queries.
 func BuildQueries(tr uow.Tr, getter uow.TxGetter) *db.Queries {
-	tx := uow.NewTxDB(tr, getter)
+	tx := sdkpostgres.NewTxDB(tr, getter)
 	return db.New(tx)
 }

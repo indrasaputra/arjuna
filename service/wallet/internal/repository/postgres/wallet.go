@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 
-	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
+	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/service/wallet/entity"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/app"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/repository/db"
@@ -40,7 +40,7 @@ func (w *Wallet) Insert(ctx context.Context, wallet *entity.Wallet) error {
 	}
 	err := w.queries.CreateWallet(ctx, param)
 
-	if uow.IsUniqueViolationError(err) {
+	if sdkpostgres.IsUniqueViolationError(err) {
 		return entity.ErrAlreadyExists()
 	}
 	if err != nil {

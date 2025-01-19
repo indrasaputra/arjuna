@@ -2,7 +2,6 @@ package workflow_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -50,7 +49,7 @@ func TestRegisterUserWorkflow_RegisterUser(t *testing.T) {
 
 		st.client.
 			On("ExecuteWorkflow", testCtx, mock.Anything, mock.AnythingOfType("func(internal.Context, *entity.RegisterUserInput) (*entity.RegisterUserOutput, error)"), input).
-			Return(nil, errors.New("temporal is down"))
+			Return(nil, assert.AnError)
 
 		res, err := st.workflow.RegisterUser(testCtx, input)
 
@@ -69,7 +68,7 @@ func TestRegisterUserWorkflow_RegisterUser(t *testing.T) {
 			Return(wr, nil)
 		wr.On("GetID").Return("")
 		wr.On("GetRunID").Return("")
-		wr.On("Get", testCtx, mock.Anything).Return(temporal.NewNonRetryableApplicationError("", workflow.ErrNonRetryableUserExist, errors.New("")))
+		wr.On("Get", testCtx, mock.Anything).Return(temporal.NewNonRetryableApplicationError("", workflow.ErrNonRetryableUserExist, assert.AnError))
 
 		res, err := st.workflow.RegisterUser(testCtx, input)
 
@@ -88,7 +87,7 @@ func TestRegisterUserWorkflow_RegisterUser(t *testing.T) {
 			Return(wr, nil)
 		wr.On("GetID").Return("")
 		wr.On("GetRunID").Return("")
-		wr.On("Get", testCtx, mock.Anything).Return(errors.New("workflow run error"))
+		wr.On("Get", testCtx, mock.Anything).Return(assert.AnError)
 
 		res, err := st.workflow.RegisterUser(testCtx, input)
 
@@ -146,7 +145,7 @@ func TestRegisterUser(t *testing.T) {
 		st := createRegisterUserSuite()
 		input := createRegisterUserInput()
 
-		st.env.OnActivity(workflow.ActivityAuthCreate, mock.Anything, input.User).Return(errors.New("auth error"))
+		st.env.OnActivity(workflow.ActivityAuthCreate, mock.Anything, input.User).Return(assert.AnError)
 
 		st.env.ExecuteWorkflow(workflow.RegisterUser, input)
 
@@ -159,7 +158,7 @@ func TestRegisterUser(t *testing.T) {
 		input := createRegisterUserInput()
 
 		st.env.OnActivity(workflow.ActivityAuthCreate, mock.Anything, input.User).Return(nil)
-		st.env.OnActivity(workflow.ActivityWalletCreate, mock.Anything, input.User).Return(errors.New("wallet error"))
+		st.env.OnActivity(workflow.ActivityWalletCreate, mock.Anything, input.User).Return(assert.AnError)
 		st.env.OnActivity(workflow.ActivityUserHardDelete, mock.Anything, input.User.ID).Return(nil)
 
 		st.env.ExecuteWorkflow(workflow.RegisterUser, input)

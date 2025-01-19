@@ -54,7 +54,7 @@ func TestWalletTopup_Topup(t *testing.T) {
 	t.Run("validate idempotency key returns error", func(t *testing.T) {
 		st := createWalletTopupSuite(ctrl)
 		topup := createTestTopupWallet()
-		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, entity.ErrInternal("error"))
+		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, assert.AnError)
 
 		err := st.topup.Topup(testCtx, topup)
 
@@ -108,7 +108,7 @@ func TestWalletTopup_Topup(t *testing.T) {
 		st := createWalletTopupSuite(ctrl)
 		topup := createTestTopupWallet()
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
-		st.topupRepo.EXPECT().AddWalletBalance(testCtx, topup.WalletID, topup.Amount).Return(entity.ErrInternal(""))
+		st.topupRepo.EXPECT().AddWalletBalance(testCtx, topup.WalletID, topup.Amount).Return(assert.AnError)
 
 		err := st.topup.Topup(testCtx, topup)
 

@@ -65,7 +65,7 @@ func TestWalletCreator_Create(t *testing.T) {
 	t.Run("wallet repo insert returns error", func(t *testing.T) {
 		st := createWalletCreatorSuite(ctrl)
 		wallet := createTestWallet()
-		st.walletRepo.EXPECT().Insert(testCtx, wallet).Return(entity.ErrInternal(""))
+		st.walletRepo.EXPECT().Insert(testCtx, wallet).Return(assert.AnError)
 
 		err := st.wallet.Create(testCtx, wallet)
 

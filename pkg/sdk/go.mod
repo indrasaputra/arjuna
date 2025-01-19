@@ -16,19 +16,13 @@ require (
 require github.com/stretchr/testify v1.9.0
 
 require (
-	github.com/uptrace/bun v1.1.9
-	github.com/uptrace/bun/dialect/pgdialect v1.1.9
-)
-
-require github.com/DATA-DOG/go-sqlmock v1.5.2
-
-require (
 	github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2 v2.0.0
 	github.com/avito-tech/go-transaction-manager/trm/v2 v2.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/jackc/pgx-shopspring-decimal v0.0.0-20220624020537-1d36b5a1853e
 	github.com/jackc/pgx/v5 v5.7.0
+	github.com/pashagolub/pgxmock/v4 v4.4.0
 	github.com/prometheus/client_golang v1.19.1
 	github.com/vgarvardt/pgx-google-uuid/v5 v5.6.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.53.0
@@ -55,15 +49,11 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
-	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/common v0.48.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
-	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
-	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
-	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	go.opentelemetry.io/otel/metric v1.28.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
 	go.uber.org/multierr v1.10.0 // indirect

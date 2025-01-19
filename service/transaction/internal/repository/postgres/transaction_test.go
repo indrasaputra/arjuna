@@ -5,15 +5,14 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/pashagolub/pgxmock/v4"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
+	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
-	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/transaction/entity"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/app"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/repository/db"
@@ -63,7 +62,7 @@ func TestTransaction_Insert(t *testing.T) {
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
 		st.db.ExpectExec(query).
 			WithArgs(trx.ID, trx.SenderID, trx.ReceiverID, trx.Amount, trx.CreatedAt, trx.UpdatedAt, trx.CreatedBy, trx.UpdatedBy).
-			WillReturnError(&pgconn.PgError{Code: "23505"})
+			WillReturnError(sdkpostgres.ErrUniqueViolation)
 
 		err := st.trx.Insert(testCtx, trx)
 
@@ -140,9 +139,8 @@ func createTransactionSuite(t *testing.T, ctrl *gomock.Controller) *TransactionS
 	if err != nil {
 		t.Fatalf("error opening a stub database connection: %v\n", err)
 	}
-	defer pool.Close()
 	g := mock_uow.NewMockTxGetter(ctrl)
-	tx := uow.NewTxDB(pool, g)
+	tx := sdkpostgres.NewTxDB(pool, g)
 	q := db.New(tx)
 	trx := postgres.NewTransaction(q)
 	return &TransactionSuite{

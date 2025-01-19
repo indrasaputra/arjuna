@@ -3,7 +3,7 @@ package postgres
 import (
 	"context"
 
-	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
+	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/service/transaction/entity"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/app"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/repository/db"
@@ -36,7 +36,7 @@ func (t *Transaction) Insert(ctx context.Context, trx *entity.Transaction) error
 		UpdatedBy:  trx.UpdatedBy,
 	}
 	err := t.queries.CreateTransaction(ctx, param)
-	if uow.IsUniqueViolationError(err) {
+	if sdkpostgres.IsUniqueViolationError(err) {
 		return entity.ErrAlreadyExists()
 	}
 	if err != nil {
