@@ -10,17 +10,14 @@ import (
 	"go.uber.org/mock/gomock"
 
 	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
-	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/auth/entity"
-	"github.com/indrasaputra/arjuna/service/auth/internal/app"
 	"github.com/indrasaputra/arjuna/service/auth/internal/repository/db"
 	"github.com/indrasaputra/arjuna/service/auth/internal/repository/postgres"
 )
 
 var (
 	testCtx = context.Background()
-	testEnv = "development"
 )
 
 type AccountSuite struct {
@@ -42,7 +39,6 @@ func TestNewAccount(t *testing.T) {
 func TestAccount_Insert(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 	query := `INSERT INTO accounts \(id, user_id, email, password, created_at, updated_at, created_by, updated_by\) 
 				VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8\)`
 
@@ -99,7 +95,6 @@ func TestAccount_Insert(t *testing.T) {
 func TestAccount_GetByEmail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 	query := `SELECT id, user_id, email, password, created_at, updated_at, deleted_at, created_by, updated_by, deleted_by FROM accounts WHERE email = \$1 LIMIT 1`
 
 	t.Run("get by email returns empty row", func(t *testing.T) {

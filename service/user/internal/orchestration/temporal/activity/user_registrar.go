@@ -3,12 +3,12 @@ package activity
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"go.temporal.io/sdk/temporal"
 
 	"github.com/indrasaputra/arjuna/service/user/entity"
-	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/workflow"
 )
 
@@ -64,7 +64,7 @@ func (r *RegisterUserActivity) CreateWallet(ctx context.Context, user *entity.Us
 func (r *RegisterUserActivity) HardDeleteInUser(ctx context.Context, id uuid.UUID) error {
 	err := r.database.HardDelete(ctx, id)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[RegisterUserActivity-HardDeleteInUser] fail hard delete in user: %v", err)
+		slog.ErrorContext(ctx, "[RegisterUserActivity-HardDeleteInUser] fail hard delete in user", "error", err)
 	}
 	return err
 }

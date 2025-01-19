@@ -2,12 +2,12 @@ package postgres
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/google/uuid"
 
 	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/service/user/entity"
-	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/db"
 )
 
@@ -41,7 +41,7 @@ func (uo *UserOutbox) Insert(ctx context.Context, payload *entity.UserOutbox) er
 		return entity.ErrAlreadyExists()
 	}
 	if err != nil {
-		app.Logger.Errorf(ctx, "[PostgresUserOutbox-Insert] fail insert user with tx: %v", err)
+		slog.ErrorContext(ctx, "[PostgresUserOutbox-Insert] fail insert user", "error", err)
 		return entity.ErrInternal(err.Error())
 	}
 	return nil
@@ -56,7 +56,7 @@ func (uo *UserOutbox) GetAllReady(ctx context.Context, limit uint) ([]*entity.Us
 	}
 	outboxes, err := uo.queries.GetAllUserOutboxesForUpdateByStatus(ctx, param)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[PostgresUserOutbox-GetAllReady] fail get all user's outbox: %v", err)
+		slog.ErrorContext(ctx, "[PostgresUserOutbox-GetAllReady] fail get all user's outbox", "error", err)
 		return []*entity.UserOutbox{}, entity.ErrInternal(err.Error())
 	}
 
@@ -96,7 +96,7 @@ func (uo *UserOutbox) SetRecordStatus(ctx context.Context, id uuid.UUID, status 
 
 	err := uo.queries.UpdateUserOutboxID(ctx, param)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[PostgresUserOutbox-SetRecordStatus] fail set record's status to %v: %v", status, err)
+		slog.ErrorContext(ctx, "[PostgresUserOutbox-SetRecordStatus] fail set record's status", "dest-status", status, "error", err)
 		return entity.ErrInternal(err.Error())
 	}
 	return nil

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,7 +22,6 @@ import (
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/wallet/entity"
-	"github.com/indrasaputra/arjuna/service/wallet/internal/app"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/builder"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/config"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/grpc/handler"
@@ -53,7 +53,8 @@ func API(_ *cobra.Command, _ []string) {
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
 
-	app.Logger = sdklog.NewLogger(cfg.AppEnv)
+	logger := sdklog.NewSlogLogger(cfg.ServiceName)
+	slog.SetDefault(logger)
 
 	_, err = trace.NewProvider(ctx, cfg.Tracer)
 	checkError(err)

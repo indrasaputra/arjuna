@@ -8,16 +8,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/service/user/entity"
-	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/orchestration/temporal/activity"
 	mock_activity "github.com/indrasaputra/arjuna/service/user/test/mock/orchestration/temporal/activity"
 )
 
 var (
 	testCtx = context.Background()
-	testEnv = "development"
 )
 
 type RegisterUserActivitySuite struct {
@@ -91,7 +88,6 @@ func TestRegisterUserActivity_CreateWallet(t *testing.T) {
 func TestRegisterUserActivity_HardDeleteInUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("error when delete user from database", func(t *testing.T) {
 		st := createRegisterUserActivitySuite(ctrl)

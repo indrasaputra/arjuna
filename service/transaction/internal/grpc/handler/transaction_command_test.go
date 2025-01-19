@@ -9,17 +9,14 @@ import (
 	"go.uber.org/mock/gomock"
 	"google.golang.org/grpc/metadata"
 
-	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/transaction/entity"
-	"github.com/indrasaputra/arjuna/service/transaction/internal/app"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/grpc/handler"
 	mock_service "github.com/indrasaputra/arjuna/service/transaction/test/mock/service"
 )
 
 const (
 	testIdempotencyKey = "key"
-	testEnv            = "development"
 )
 
 var (
@@ -45,7 +42,6 @@ func TestNewTransactionCommand(t *testing.T) {
 func TestTransactionCommand_CreateTransaction(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("metadata not found", func(t *testing.T) {
 		st := createTransactionCommandSuite(ctrl)

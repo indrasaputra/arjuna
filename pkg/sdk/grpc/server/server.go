@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
@@ -17,12 +18,12 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/indrasaputra/arjuna/pkg/sdk/grpc/interceptor"
+	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 )
 
 const (
@@ -65,10 +66,11 @@ func newServer(name, port string, options ...grpc.ServerOption) *Server {
 //
 // These are list of interceptors that are attached (from innermost to outermost):
 //   - Metrics, using Prometheus.
-//   - Logging, using zap logger.
+//   - Logging, using log/slog.
 //   - Recoverer, using grpcrecovery.
 func NewServer(cfg *Config) *Server {
-	logger, _ := zap.NewProduction() // error is impossible, hence ignored.
+	logger := sdklog.NewSlogLogger(cfg.Name)
+
 	grpc_prometheus.EnableHandlingTimeHistogram()
 
 	unary := defaultUnaryServerInterceptors(logger, cfg)
@@ -156,24 +158,24 @@ func (gs *Server) Stop() {
 	gs.server.Stop()
 }
 
-func defaultUnaryServerInterceptors(logger *zap.Logger, cfg *Config) []grpc.UnaryServerInterceptor {
+func defaultUnaryServerInterceptors(logger *slog.Logger, cfg *Config) []grpc.UnaryServerInterceptor {
 	opts := []logging.Option{logging.WithLogOnEvents(logging.StartCall, logging.FinishCall)}
 
 	return []grpc.UnaryServerInterceptor{
 		grpcrecovery.UnaryServerInterceptor(grpcrecovery.WithRecoveryHandler(recoveryHandler)),
-		logging.UnaryServerInterceptor(interceptor.ZapLogger(logger), opts...),
+		logging.UnaryServerInterceptor(interceptor.SlogLogger(logger), opts...),
 		grpc_prometheus.UnaryServerInterceptor,
 		selector.UnaryServerInterceptor(auth.UnaryServerInterceptor(interceptor.AuthBasic(cfg.Username, cfg.Password)), selector.MatchFunc(interceptor.ApplyMethod(cfg.AppliedBasicAuthMethods...))),
 		selector.UnaryServerInterceptor(auth.UnaryServerInterceptor(interceptor.AuthBearer(cfg.Secret)), selector.MatchFunc(interceptor.ApplyMethod(cfg.AppliedBearerAuthMethods...))),
 	}
 }
 
-func defaultStreamServerInterceptors(logger *zap.Logger, cfg *Config) []grpc.StreamServerInterceptor {
+func defaultStreamServerInterceptors(logger *slog.Logger, cfg *Config) []grpc.StreamServerInterceptor {
 	opts := []logging.Option{logging.WithLogOnEvents(logging.StartCall, logging.FinishCall)}
 
 	return []grpc.StreamServerInterceptor{
 		grpcrecovery.StreamServerInterceptor(grpcrecovery.WithRecoveryHandler(recoveryHandler)),
-		logging.StreamServerInterceptor(interceptor.ZapLogger(logger), opts...),
+		logging.StreamServerInterceptor(interceptor.SlogLogger(logger), opts...),
 		grpc_prometheus.StreamServerInterceptor,
 		selector.StreamServerInterceptor(auth.StreamServerInterceptor(interceptor.AuthBasic(cfg.Username, cfg.Password)), selector.MatchFunc(interceptor.ApplyMethod(cfg.AppliedBasicAuthMethods...))),
 		selector.StreamServerInterceptor(auth.StreamServerInterceptor(interceptor.AuthBearer(cfg.Secret)), selector.MatchFunc(interceptor.ApplyMethod(cfg.AppliedBearerAuthMethods...))),

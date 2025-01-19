@@ -6,9 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/service/user/entity"
-	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
 	mock_service "github.com/indrasaputra/arjuna/service/user/test/mock/service"
 )
@@ -31,7 +29,6 @@ func TestNewUserDeleter(t *testing.T) {
 func TestUserDeleter_HardDelete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("delete from db returns error", func(t *testing.T) {
 		user := createTestUser()

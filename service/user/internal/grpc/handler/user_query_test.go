@@ -6,10 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/user/entity"
-	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/grpc/handler"
 	mock_service "github.com/indrasaputra/arjuna/service/user/test/mock/service"
 )
@@ -20,7 +18,6 @@ const (
 
 var (
 	testUser = &entity.User{}
-	testEnv  = "development"
 )
 
 type UserQuerySuite struct {
@@ -41,7 +38,6 @@ func TestNewUserQuery(t *testing.T) {
 func TestUserQuery_GetAllUsers(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("nil request is prohibited", func(t *testing.T) {
 		st := createUserQuerySuite(ctrl)

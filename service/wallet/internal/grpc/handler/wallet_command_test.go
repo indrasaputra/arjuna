@@ -10,17 +10,14 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	"github.com/indrasaputra/arjuna/pkg/sdk/grpc/interceptor"
-	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/wallet/entity"
-	"github.com/indrasaputra/arjuna/service/wallet/internal/app"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/grpc/handler"
 	mock_service "github.com/indrasaputra/arjuna/service/wallet/test/mock/service"
 )
 
 const (
 	testIdempotencyKey = "key"
-	testEnv            = "development"
 )
 
 var (
@@ -49,7 +46,6 @@ func TestNewWalletCommand(t *testing.T) {
 func TestWalletCommand_CreateWallet(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("nil request is prohibited", func(t *testing.T) {
 		st := createWalletCommandSuite(ctrl)
@@ -118,7 +114,6 @@ func TestWalletCommand_CreateWallet(t *testing.T) {
 func TestWalletCommand_TopupWallet(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("metadata not found", func(t *testing.T) {
 		st := createWalletCommandSuite(ctrl)
@@ -206,7 +201,6 @@ func TestWalletCommand_TopupWallet(t *testing.T) {
 func TestWalletCommand_TransferBalance(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("nil request is prohibited", func(t *testing.T) {
 		st := createWalletCommandSuite(ctrl)

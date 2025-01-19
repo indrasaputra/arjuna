@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"log/slog"
 	"net/mail"
 	"strings"
 	"time"
@@ -13,7 +14,6 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/indrasaputra/arjuna/service/auth/entity"
-	"github.com/indrasaputra/arjuna/service/auth/internal/app"
 )
 
 const (
@@ -53,7 +53,7 @@ func NewAuth(repo AuthRepository, key []byte, exp int) *Auth {
 // As of now, refresh token is not implemented and it only returns access token.
 func (a *Auth) Login(ctx context.Context, email, password string) (*entity.Token, error) {
 	if err := validateLoginParams(email, password); err != nil {
-		app.Logger.Errorf(ctx, "[Auth-Login] param invalid: %v", err)
+		slog.ErrorContext(ctx, "[Auth-Login] param invalid", "error", err)
 		return nil, err
 	}
 
@@ -75,7 +75,7 @@ func (a *Auth) Login(ctx context.Context, email, password string) (*entity.Token
 func (a *Auth) Register(ctx context.Context, account *entity.Account) error {
 	sanitizeAccount(account)
 	if err := validateAccount(account); err != nil {
-		app.Logger.Errorf(ctx, "[Auth-Register] account is invalid: %v", err)
+		slog.ErrorContext(ctx, "[Auth-Register] account is invalid", "error", err)
 		return err
 	}
 
@@ -90,7 +90,7 @@ func (a *Auth) Register(ctx context.Context, account *entity.Account) error {
 
 	err = a.repo.Insert(ctx, account)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[Auth-Register] fail save to repository: %v", err)
+		slog.ErrorContext(ctx, "[Auth-Register] fail save to repository", "error", err)
 		return err
 	}
 	return nil
@@ -138,7 +138,7 @@ func generateUniqueID() uuid.UUID {
 func encryptPassword(ctx context.Context, password string) (string, error) {
 	res, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		app.Logger.Errorf(ctx, "[encryptPassword] fail generate from password: %v", err)
+		slog.ErrorContext(ctx, "[encryptPassword] fail generate from password", "error", err)
 		return "", entity.ErrInternal("fail to hash the password")
 	}
 	return string(res), nil

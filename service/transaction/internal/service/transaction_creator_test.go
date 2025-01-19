@@ -9,9 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/service/transaction/entity"
-	"github.com/indrasaputra/arjuna/service/transaction/internal/app"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/service"
 	mock_service "github.com/indrasaputra/arjuna/service/transaction/test/mock/service"
 )
@@ -20,7 +18,6 @@ var (
 	testCtx            = context.Background()
 	testSenderID       = uuid.Must(uuid.NewV7())
 	testReceiverID     = uuid.Must(uuid.NewV7())
-	testEnv            = "development"
 	testAmount, _      = decimal.NewFromString("10.23")
 	testIdempotencyKey = "key"
 )
@@ -44,7 +41,6 @@ func TestNewTransactionCreator(t *testing.T) {
 func TestTransactionCreator_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	t.Run("validate idempotency key returns error", func(t *testing.T) {
 		st := createTransactionCreatorSuite(ctrl)

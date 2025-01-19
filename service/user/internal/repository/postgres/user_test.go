@@ -12,17 +12,14 @@ import (
 	"go.uber.org/mock/gomock"
 
 	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
-	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
-	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/db"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
 )
 
 var (
 	testCtx = context.Background()
-	testEnv = "development"
 )
 
 type UserSuite struct {
@@ -44,7 +41,6 @@ func TestNewUser(t *testing.T) {
 func TestUser_Insert(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	query := `INSERT INTO users \(id, name, created_at, updated_at, created_by, updated_by\) VALUES \(\$1, \$2, \$3, \$4, \$5, \$6\)`
 
@@ -101,7 +97,6 @@ func TestUser_Insert(t *testing.T) {
 func TestUser_GetByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	query := `SELECT id, name, created_at, updated_at, deleted_at, created_by, updated_by, deleted_by FROM users WHERE id = \$1 LIMIT 1`
 
@@ -148,7 +143,6 @@ func TestUser_GetByID(t *testing.T) {
 func TestUser_GetAll(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	query := `SELECT id, name, created_at, updated_at, deleted_at, created_by, updated_by, deleted_by FROM users LIMIT \$1`
 	limit := uint(10)
@@ -182,7 +176,6 @@ func TestUser_GetAll(t *testing.T) {
 func TestUser_HardDelete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	app.Logger = sdklog.NewLogger(testEnv)
 
 	query := `DELETE FROM users WHERE id = \$1`
 

@@ -3,12 +3,12 @@ package postgres
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"github.com/google/uuid"
 
 	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/service/user/entity"
-	"github.com/indrasaputra/arjuna/service/user/internal/app"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/db"
 )
 
@@ -42,7 +42,7 @@ func (u *User) Insert(ctx context.Context, user *entity.User) error {
 		return entity.ErrAlreadyExists()
 	}
 	if err != nil {
-		app.Logger.Errorf(ctx, "[PostgresUser-Insert] fail insert user: %v", err)
+		slog.ErrorContext(ctx, "[PostgresUser-Insert] fail insert user", "error", err)
 		return entity.ErrInternal(err.Error())
 	}
 	return nil
@@ -56,7 +56,7 @@ func (u *User) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) 
 		return nil, entity.ErrNotFound()
 	}
 	if err != nil {
-		app.Logger.Errorf(ctx, "[PostgresUser-GetByID] fail get user: %v", err)
+		slog.ErrorContext(ctx, "[PostgresUser-GetByID] fail get user", "error", err)
 		return nil, entity.ErrInternal(err.Error())
 	}
 
@@ -76,7 +76,7 @@ func (u *User) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) 
 func (u *User) GetAll(ctx context.Context, limit uint) ([]*entity.User, error) {
 	users, err := u.queries.GetAllUsers(ctx, int32(limit))
 	if err != nil {
-		app.Logger.Errorf(ctx, "[PostgresUser-GetAll] fail get all users: %v", err)
+		slog.ErrorContext(ctx, "[PostgresUser-GetAll] fail get all users", "error", err)
 		return []*entity.User{}, entity.ErrInternal(err.Error())
 	}
 
@@ -98,7 +98,7 @@ func (u *User) GetAll(ctx context.Context, limit uint) ([]*entity.User, error) {
 // If the user doesn't exist, it doesn't returns error.
 func (u *User) HardDelete(ctx context.Context, id uuid.UUID) error {
 	if err := u.queries.HardDeleteUserByID(ctx, id); err != nil {
-		app.Logger.Errorf(ctx, "[PostgresUser-doHardDelete] fail delete user: %v", err)
+		slog.ErrorContext(ctx, "[PostgresUser-HardDelete] fail hard delete user", "error", err)
 		return entity.ErrInternal(err.Error())
 	}
 	return nil

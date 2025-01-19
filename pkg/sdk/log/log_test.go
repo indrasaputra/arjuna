@@ -2,6 +2,8 @@ package log_test
 
 import (
 	"context"
+	"log/slog"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,42 +15,45 @@ var (
 	testCtx = context.Background()
 )
 
-func TestNewLogger(t *testing.T) {
-	t.Run("success create development logger", func(t *testing.T) {
-		l := log.NewLogger(log.EnvDevelopment)
-		assert.NotNil(t, l)
-	})
+func TestNewSlogJSONHandler(t *testing.T) {
+	t.Run("successfully create an instance of SlogJSONHandler", func(t *testing.T) {
+		handler := log.NewSlogJSONHandler(os.Stdout, nil)
 
-	t.Run("success create production logger", func(t *testing.T) {
-		l := log.NewLogger(log.EnvProduction)
-		assert.NotNil(t, l)
+		assert.NotNil(t, handler)
 	})
 }
 
-func TestLogger_Debugf(t *testing.T) {
-	t.Run("success emit log for Debugf", func(t *testing.T) {
-		l := log.NewLogger(log.EnvDevelopment)
-		assert.NotPanics(t, func() { l.Debugf(testCtx, "Debugf") })
+func TestSlogJSONHandler_Handle(t *testing.T) {
+	t.Run("successfully handle a log", func(t *testing.T) {
+		handler := log.NewSlogJSONHandler(os.Stdout, nil)
+		err := handler.Handle(testCtx, slog.Record{Level: slog.LevelError, Message: "error"})
+
+		assert.NoError(t, err)
 	})
 }
 
-func TestLogger_Errorf(t *testing.T) {
-	t.Run("success emit log for Errorf", func(t *testing.T) {
-		l := log.NewLogger(log.EnvDevelopment)
-		assert.NotPanics(t, func() { l.Errorf(testCtx, "Errorf") })
+func TestSlogJSONHandler_WithAttrs(t *testing.T) {
+	t.Run("successfully add attributes to the log", func(t *testing.T) {
+		handler := log.NewSlogJSONHandler(os.Stdout, nil)
+		newHandler := handler.WithAttrs([]slog.Attr{{Key: "key", Value: slog.StringValue("value")}})
+
+		assert.NotNil(t, newHandler)
 	})
 }
 
-func TestLogger_Infof(t *testing.T) {
-	t.Run("success emit log for Infof", func(t *testing.T) {
-		l := log.NewLogger(log.EnvDevelopment)
-		assert.NotPanics(t, func() { l.Infof(testCtx, "Infof") })
+func TestSlogJSONHandler_WithGroup(t *testing.T) {
+	t.Run("successfully add group to the log", func(t *testing.T) {
+		handler := log.NewSlogJSONHandler(os.Stdout, nil)
+		newHandler := handler.WithGroup("group")
+
+		assert.NotNil(t, newHandler)
 	})
 }
 
-func TestLogger_Warnf(t *testing.T) {
-	t.Run("success emit log for Warnf", func(t *testing.T) {
-		l := log.NewLogger(log.EnvDevelopment)
-		assert.NotPanics(t, func() { l.Warnf(testCtx, "debugf") })
+func TestNewSlogLogger(t *testing.T) {
+	t.Run("successfully create an instance of SlogLogger", func(t *testing.T) {
+		logger := log.NewSlogLogger("my-service")
+
+		assert.NotNil(t, logger)
 	})
 }
