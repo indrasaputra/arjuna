@@ -66,7 +66,7 @@ func newServer(name, port string, options ...grpc.ServerOption) *Server {
 //
 // These are list of interceptors that are attached (from innermost to outermost):
 //   - Metrics, using Prometheus.
-//   - Logging, using zap logger.
+//   - Logging, using log/slog.
 //   - Recoverer, using grpcrecovery.
 func NewServer(cfg *Config) *Server {
 	logger := sdklog.NewSlogLogger(cfg.Name)

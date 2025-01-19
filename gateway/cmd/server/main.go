@@ -10,7 +10,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
-	"go.uber.org/zap"
 	_ "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -18,6 +17,7 @@ import (
 	"github.com/indrasaputra/arjuna/gateway/config"
 	"github.com/indrasaputra/arjuna/gateway/server"
 	"github.com/indrasaputra/arjuna/pkg/sdk/grpc/interceptor"
+	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 )
@@ -32,7 +32,7 @@ func main() {
 	checkError(err)
 
 	gatewayServer := server.NewGrpcGateway(cfg.Port)
-	options := defaultGrpcServerOptions()
+	options := defaultGrpcServerOptions(cfg.ServiceName)
 	registerGrpcGatewayService(context.Background(), gatewayServer, cfg, options...)
 
 	log.Println("running grpc gateway server...")
@@ -57,19 +57,19 @@ func registerGrpcGatewayService(ctx context.Context, gatewayServer *server.GrpcG
 	})
 }
 
-func defaultGrpcServerOptions() []grpc.DialOption {
-	logger, _ := zap.NewProduction() // error is impossible, hence ignored.
+func defaultGrpcServerOptions(name string) []grpc.DialOption {
+	logger := sdklog.NewSlogLogger(name)
 
 	opts := []logging.Option{logging.WithLogOnEvents(logging.StartCall, logging.FinishCall)}
 
 	return []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithChainUnaryInterceptor(
-			logging.UnaryClientInterceptor(interceptor.ZapLogger(logger), opts...),
+			logging.UnaryClientInterceptor(interceptor.SlogLogger(logger), opts...),
 			grpc_prometheus.UnaryClientInterceptor,
 		),
 		grpc.WithChainStreamInterceptor(
-			logging.StreamClientInterceptor(interceptor.ZapLogger(logger), opts...),
+			logging.StreamClientInterceptor(interceptor.SlogLogger(logger), opts...),
 			grpc_prometheus.StreamClientInterceptor,
 		),
 		grpc.WithStatsHandler(otelgrpc.NewClientHandler(otelgrpc.WithTracerProvider(otel.GetTracerProvider()))),
