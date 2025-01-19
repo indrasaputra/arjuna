@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
+	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/user/entity"
 	"github.com/indrasaputra/arjuna/service/user/internal/app"
@@ -38,7 +39,7 @@ func (u *User) Insert(ctx context.Context, user *entity.User) error {
 	}
 	err := u.queries.CreateUser(ctx, param)
 
-	if uow.IsUniqueViolationError(err) {
+	if sdkpostgres.IsUniqueViolationError(err) {
 		return entity.ErrAlreadyExists()
 	}
 	if err != nil {

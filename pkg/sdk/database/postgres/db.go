@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	postgresConnFormat = "host=%s port=%d user=%s password=%s dbname=%s sslmode=%s"
+	postgresUniqueViolationCode = "23505"
+	postgresConnFormat          = "host=%s port=%d user=%s password=%s dbname=%s sslmode=%s"
 )
 
 var (
@@ -24,6 +25,17 @@ var (
 	// ErrNullDB is returned when nil is sent to mandatory db parameter.
 	ErrNullDB = errors.New("db instance is null")
 )
+
+// IsUniqueViolationError checks if the error is a unique violation error.
+func IsUniqueViolationError(err error) bool {
+	if err == nil {
+		return false
+	}
+	if pgErr, ok := err.(*pgconn.PgError); ok {
+		return pgErr.Code == postgresUniqueViolationCode
+	}
+	return false
+}
 
 // Config holds configuration for PostgreSQL.
 type Config struct {
