@@ -18,7 +18,6 @@ import (
 
 var (
 	testCtx = context.Background()
-	testEnv = "development"
 )
 
 type AccountSuite struct {

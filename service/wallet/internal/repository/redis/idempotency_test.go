@@ -14,7 +14,6 @@ import (
 
 var (
 	testCtx = context.Background()
-	testEnv = "development"
 )
 
 type IdempotencySuite struct {

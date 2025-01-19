@@ -18,7 +18,6 @@ var (
 	testUserIDString = testUserID.String()
 	testEmail        = "email@email.com"
 	testPassword     = "password"
-	testEnv          = "development"
 )
 
 type AuthSuite struct {

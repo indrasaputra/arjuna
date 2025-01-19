@@ -27,12 +27,12 @@ func NewSlogJSONHandler(w io.Writer, o *slog.HandlerOptions) *SlogJSONHandler {
 // Handle overrides the Handle method from slog.JSONHandler
 // with the imbued trace_id and stacktrace.
 func (s *SlogJSONHandler) Handle(ctx context.Context, r slog.Record) error {
-	s.addTraceId(ctx, &r)
+	s.addTraceID(ctx, &r)
 	s.printStackTrace(&r)
 	return s.JSONHandler.Handle(ctx, r)
 }
 
-func (s *SlogJSONHandler) addTraceId(ctx context.Context, r *slog.Record) {
+func (s *SlogJSONHandler) addTraceID(ctx context.Context, r *slog.Record) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	r.AddAttrs(
 		slog.Attr{Key: traceIDKey, Value: slog.StringValue(traceID)},

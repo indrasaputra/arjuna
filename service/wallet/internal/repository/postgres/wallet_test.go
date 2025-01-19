@@ -21,7 +21,6 @@ import (
 
 var (
 	testCtx = context.Background()
-	testEnv = "development"
 )
 
 type WalletSuite struct {

@@ -6,8 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/indrasaputra/arjuna/pkg/sdk/log"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/indrasaputra/arjuna/pkg/sdk/log"
 )
 
 var (

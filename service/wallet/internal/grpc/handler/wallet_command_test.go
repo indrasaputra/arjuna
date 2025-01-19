@@ -18,7 +18,6 @@ import (
 
 const (
 	testIdempotencyKey = "key"
-	testEnv            = "development"
 )
 
 var (

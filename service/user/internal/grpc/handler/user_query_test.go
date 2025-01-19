@@ -18,7 +18,6 @@ const (
 
 var (
 	testUser = &entity.User{}
-	testEnv  = "development"
 )
 
 type UserQuerySuite struct {
