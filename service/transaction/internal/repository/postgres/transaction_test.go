@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
+	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
-	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/transaction/entity"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/app"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/repository/db"
@@ -142,7 +142,7 @@ func createTransactionSuite(t *testing.T, ctrl *gomock.Controller) *TransactionS
 	}
 	defer pool.Close()
 	g := mock_uow.NewMockTxGetter(ctrl)
-	tx := uow.NewTxDB(pool, g)
+	tx := sdkpostgres.NewTxDB(pool, g)
 	q := db.New(tx)
 	trx := postgres.NewTransaction(q)
 	return &TransactionSuite{

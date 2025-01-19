@@ -1,6 +1,7 @@
 package builder
 
 import (
+	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/auth/internal/config"
 	"github.com/indrasaputra/arjuna/service/auth/internal/grpc/handler"
@@ -26,6 +27,6 @@ func BuildAuthHandler(dep *Dependency) (*handler.Auth, error) {
 
 // BuildQueries builds sqlc queries.
 func BuildQueries(tr uow.Tr, getter uow.TxGetter) *db.Queries {
-	tx := uow.NewTxDB(tr, getter)
+	tx := sdkpostgres.NewTxDB(tr, getter)
 	return db.New(tx)
 }

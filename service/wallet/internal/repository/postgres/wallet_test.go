@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
+	sdkpostgres "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
 	mock_uow "github.com/indrasaputra/arjuna/pkg/sdk/test/mock/uow"
-	"github.com/indrasaputra/arjuna/pkg/sdk/uow"
 	"github.com/indrasaputra/arjuna/service/wallet/entity"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/app"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/repository/db"
@@ -207,7 +207,7 @@ func createWalletSuite(t *testing.T, ctrl *gomock.Controller) *WalletSuite {
 	}
 	defer pool.Close()
 	g := mock_uow.NewMockTxGetter(ctrl)
-	tx := uow.NewTxDB(pool, g)
+	tx := sdkpostgres.NewTxDB(pool, g)
 	q := db.New(tx)
 	w := postgres.NewWallet(q)
 	return &WalletSuite{
