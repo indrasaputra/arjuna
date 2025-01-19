@@ -1,7 +1,6 @@
 package handler_test
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -69,7 +68,7 @@ func TestAuth_Login(t *testing.T) {
 
 	t.Run("auth service returns error", func(t *testing.T) {
 		st := createAuthSuite(ctrl)
-		st.auth.EXPECT().Login(testCtx, testEmail, testPassword).Return(nil, errors.New("error"))
+		st.auth.EXPECT().Login(testCtx, testEmail, testPassword).Return(nil, assert.AnError)
 
 		req := &apiv1.LoginRequest{Credential: &apiv1.Credential{Email: testEmail, Password: testPassword}}
 		res, err := st.handler.Login(testCtx, req)
@@ -121,7 +120,7 @@ func TestAuth_RegisterAccount(t *testing.T) {
 
 	t.Run("auth service returns error", func(t *testing.T) {
 		st := createAuthSuite(ctrl)
-		st.auth.EXPECT().Register(testCtx, gomock.Any()).Return(errors.New("error"))
+		st.auth.EXPECT().Register(testCtx, gomock.Any()).Return(assert.AnError)
 
 		req := &apiv1.RegisterAccountRequest{Account: &apiv1.Account{UserId: testUserIDString, Email: testEmail, Password: testPassword}}
 		res, err := st.handler.RegisterAccount(testCtx, req)

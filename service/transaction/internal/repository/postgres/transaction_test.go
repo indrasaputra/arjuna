@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/pashagolub/pgxmock/v4"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
@@ -63,7 +62,7 @@ func TestTransaction_Insert(t *testing.T) {
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
 		st.db.ExpectExec(query).
 			WithArgs(trx.ID, trx.SenderID, trx.ReceiverID, trx.Amount, trx.CreatedAt, trx.UpdatedAt, trx.CreatedBy, trx.UpdatedBy).
-			WillReturnError(&pgconn.PgError{Code: "23505"})
+			WillReturnError(sdkpostgres.ErrUniqueViolation)
 
 		err := st.trx.Insert(testCtx, trx)
 

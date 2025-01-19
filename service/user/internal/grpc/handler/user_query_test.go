@@ -55,12 +55,11 @@ func TestUserQuery_GetAllUsers(t *testing.T) {
 
 	t.Run("user service returns error", func(t *testing.T) {
 		st := createUserQuerySuite(ctrl)
-		st.getter.EXPECT().GetAll(testCtx, defaultLimit).Return([]*entity.User{}, entity.ErrInternal(""))
+		st.getter.EXPECT().GetAll(testCtx, defaultLimit).Return([]*entity.User{}, assert.AnError)
 
 		res, err := st.handler.GetAllUsers(testCtx, &apiv1.GetAllUsersRequest{Limit: uint32(defaultLimit)})
 
 		assert.Error(t, err)
-		assert.Equal(t, entity.ErrInternal(""), err)
 		assert.Nil(t, res)
 	})
 

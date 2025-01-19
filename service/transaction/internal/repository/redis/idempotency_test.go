@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
-	"github.com/indrasaputra/arjuna/service/transaction/entity"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/app"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/repository/redis"
 )
@@ -50,7 +49,7 @@ func TestIdempotency_Exists(t *testing.T) {
 	t.Run("set returns error", func(t *testing.T) {
 		args := goredis.SetArgs{Get: true, TTL: 24 * time.Hour}
 		st := createIdempotencySuite()
-		st.mock.ExpectSetArgs(key, 1, args).SetErr(entity.ErrInternal("error"))
+		st.mock.ExpectSetArgs(key, 1, args).SetErr(assert.AnError)
 
 		res, err := st.idp.Exists(testCtx, key)
 

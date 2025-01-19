@@ -21,6 +21,8 @@ var (
 var (
 	// ErrNotFound is a sentinel error for not found error.
 	ErrNotFound = pgx.ErrNoRows
+	// ErrUniqueViolation is a sentinel error for unique violation error.
+	ErrUniqueViolation = &pgconn.PgError{Code: postgresUniqueViolationCode}
 )
 
 // IsUniqueViolationError checks if the error is a unique violation error.

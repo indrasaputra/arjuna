@@ -5,8 +5,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -63,7 +61,7 @@ func TestAccount_Insert(t *testing.T) {
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
 		st.db.ExpectExec(query).
 			WithArgs(account.ID, account.UserID, account.Email, account.Password, account.CreatedAt, account.UpdatedAt, account.CreatedBy, account.UpdatedBy).
-			WillReturnError(&pgconn.PgError{Code: "23505"})
+			WillReturnError(sdkpostgres.ErrUniqueViolation)
 
 		err := st.account.Insert(testCtx, account)
 
@@ -108,7 +106,7 @@ func TestAccount_GetByEmail(t *testing.T) {
 		acc := createTestAccount()
 		st := createAccountSuite(t, ctrl)
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectQuery(query).WithArgs(acc.Email).WillReturnError(pgx.ErrNoRows)
+		st.db.ExpectQuery(query).WithArgs(acc.Email).WillReturnError(sdkpostgres.ErrNotFound)
 
 		res, err := st.account.GetByEmail(testCtx, acc.Email)
 

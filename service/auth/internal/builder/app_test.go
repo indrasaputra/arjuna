@@ -34,7 +34,6 @@ func TestBuildQueries(t *testing.T) {
 		if err != nil {
 			t.Fatalf("error opening a stub database connection: %v\n", err)
 		}
-		defer pool.Close()
 		g := mock_uow.NewMockTxGetter(ctrl)
 
 		queries := builder.BuildQueries(pool, g)
