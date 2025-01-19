@@ -205,7 +205,6 @@ func createWalletSuite(t *testing.T, ctrl *gomock.Controller) *WalletSuite {
 	if err != nil {
 		t.Fatalf("error opening a stub database connection: %v\n", err)
 	}
-	defer pool.Close()
 	g := mock_uow.NewMockTxGetter(ctrl)
 	tx := sdkpostgres.NewTxDB(pool, g)
 	q := db.New(tx)
