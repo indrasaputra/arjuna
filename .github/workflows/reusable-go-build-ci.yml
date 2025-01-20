@@ -43,6 +43,7 @@ on:
 jobs:
   build-push-docker:
     name: Build & push ${{ inputs.service }}-${{ inputs.cmd }} image
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
