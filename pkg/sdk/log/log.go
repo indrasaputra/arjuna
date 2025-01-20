@@ -14,14 +14,30 @@ const (
 	traceIDKey = "trace_id"
 )
 
+// StackTraceConfig is a configuration for stack traces.
+type StackTraceConfig struct {
+	// Enabled determines if stack traces should be captured
+	Enabled bool
+	// MinLevel is the minimum log level at which to capture stack traces
+	MinLevel slog.Level
+}
+
 // SlogJSONHandler is a wrapper for slog.JSONHandler.
 type SlogJSONHandler struct {
 	*slog.JSONHandler
+	stackTraceConfig StackTraceConfig
 }
 
-// NewSlogJSONHandler creates an instance of SlogJSONHandler.
+// NewSlogJSONHandler creates an instance of SlogJSONHandler using default StrackTraceConfig.
+// Default StrackTraceConfig is enabled and the minimum level is error.
 func NewSlogJSONHandler(w io.Writer, o *slog.HandlerOptions) *SlogJSONHandler {
-	return &SlogJSONHandler{slog.NewJSONHandler(w, o)}
+	return &SlogJSONHandler{
+		slog.NewJSONHandler(w, o),
+		StackTraceConfig{
+			Enabled:  true,
+			MinLevel: slog.LevelError,
+		},
+	}
 }
 
 // Handle overrides the Handle method from slog.JSONHandler
@@ -40,7 +56,7 @@ func (s *SlogJSONHandler) addTraceID(ctx context.Context, r *slog.Record) {
 }
 
 func (s *SlogJSONHandler) printStackTrace(r *slog.Record) {
-	if r.Level >= slog.LevelError {
+	if s.stackTraceConfig.Enabled && r.Level >= s.stackTraceConfig.MinLevel {
 		// Add a stack trace as an attribute
 		r.AddAttrs(slog.Attr{
 			Key:   "stacktrace",
