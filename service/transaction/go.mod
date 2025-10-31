@@ -1,6 +1,6 @@
 module github.com/indrasaputra/arjuna/service/transaction
 
-go 1.22.4
+go 1.25.3
 
 replace (
 	github.com/indrasaputra/arjuna/pkg/sdk v0.0.0 => ../../pkg/sdk
