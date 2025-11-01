@@ -27,5 +27,5 @@ jobs:
       - name: Format and lint buf and proto
         run: |
           devbox run -- buf format -w
+          devbox run -- protolint lint -config_dir_path . .
           devbox run -- make check.proto
-          devbox run -- make lint
