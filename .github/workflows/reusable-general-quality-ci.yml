@@ -26,6 +26,8 @@ jobs:
           devbox-version: 0.16.0
       - name: Format and lint buf and proto
         run: |
-          buf format -w
-          make check.proto
-          make lint
+          devbox shell -- bash -c "
+            buf format -w
+            make check.proto
+            make lint
+          "
