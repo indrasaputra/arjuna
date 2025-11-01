@@ -49,14 +49,13 @@ jobs:
             - 'tool/**'
             - 'gateway/**'
 
-  # general-quality-check:
-  #   name: General quality check
-  #   uses: ./.github/workflows/reusable-general-quality-ci.yml
+  general-quality-check:
+    name: General quality check
+    uses: ./.github/workflows/reusable-general-quality-ci.yml
 
   go-code-quality:
     name: Go code quality check
-    # needs: [change-check, general-quality-check]
-    needs: [change-check]
+    needs: [change-check, general-quality-check]
     if: ${{ needs.change-check.outputs.has-change == 'true' }}
     uses: ./.github/workflows/reusable-go-quality-ci.yml
     with:
@@ -67,8 +66,7 @@ jobs:
 
   compile-binary:
     name: Compile binary
-    # needs: [general-quality-check, go-code-quality, change-check]
-    needs: [go-code-quality, change-check]
+    needs: [general-quality-check, go-code-quality, change-check]
     if: ${{ needs.change-check.outputs.has-change == 'true' }}
     uses: ./.github/workflows/reusable-go-compile-ci.yml
     with:

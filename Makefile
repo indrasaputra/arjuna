@@ -1,5 +1,4 @@
 OUTPUT_DIR			= deploy/output
-PROTOGEN_IMAGE		= indrasaputra/protogen:2024-07-13
 SERVICES			= apidoc gateway auth transaction user wallet
 
 include Makefile.help.mk
@@ -42,14 +41,6 @@ check.proto: ## Check if proto is formatted well.
 .PHONY: gen.proto
 gen.proto: ## Generate golang files from proto.
 	tool/script/generate-proto.sh
-
-.PHONY: gen.proto.docker
-gen.proto.docker: ## Generate proto and prettify files using docker.
-	docker run -it --rm \
-    --mount "type=bind,source=$(PWD),destination=/work" \
-    --mount "type=volume,source=arjuna-go-mod-cache,destination=/go,consistency=cached" \
-    --mount "type=volume,source=arjuna-buf-cache,destination=/home/.cache,consistency=cached" \
-    -w /work $(PROTOGEN_IMAGE) make -e -f Makefile gen.proto pretty
 
 .PHONY: gen.mock
 gen.mock: ## Generate mock from all golang interfaces.
