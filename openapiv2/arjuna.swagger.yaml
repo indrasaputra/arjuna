@@ -52,8 +52,6 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/v1Credential'
-            required:
-              - credential
       tags:
         - Auth
   /v1/transactions:
@@ -139,8 +137,6 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/v1User'
-            required:
-              - user
         - name: X-Idempotency-Key
           in: header
           required: true
@@ -168,8 +164,6 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/v1Topup'
-            required:
-              - topup
         - name: Authorization
           in: header
           required: true
@@ -457,7 +451,6 @@ definitions:
         readOnly: true
     description: User represents a user data.
     required:
-      - email
       - email
       - password
       - name

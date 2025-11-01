@@ -1,0 +1,15 @@
+go 1.25.1
+
+use ./gateway
+
+use ./pkg/sdk
+
+use ./proto
+
+use ./service/auth
+
+use ./service/transaction
+
+use ./service/user
+
+use ./service/wallet

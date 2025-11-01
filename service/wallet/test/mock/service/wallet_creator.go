@@ -20,6 +20,7 @@ import (
 
 // MockCreateWallet is a mock of CreateWallet interface.
 type MockCreateWallet struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockCreateWalletMockRecorder
 }
@@ -57,6 +58,7 @@ func (mr *MockCreateWalletMockRecorder) Create(ctx, wallet any) *gomock.Call {
 
 // MockCreateWalletRepository is a mock of CreateWalletRepository interface.
 type MockCreateWalletRepository struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockCreateWalletRepositoryMockRecorder
 }

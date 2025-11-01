@@ -22,6 +22,7 @@ import (
 
 // MockTopupWallet is a mock of TopupWallet interface.
 type MockTopupWallet struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockTopupWalletMockRecorder
 }
@@ -59,6 +60,7 @@ func (mr *MockTopupWalletMockRecorder) Topup(ctx, topup any) *gomock.Call {
 
 // MockTopupWalletRepository is a mock of TopupWalletRepository interface.
 type MockTopupWalletRepository struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockTopupWalletRepositoryMockRecorder
 }
@@ -96,6 +98,7 @@ func (mr *MockTopupWalletRepositoryMockRecorder) AddWalletBalance(ctx, id, amoun
 
 // MockIdempotencyKeyRepository is a mock of IdempotencyKeyRepository interface.
 type MockIdempotencyKeyRepository struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockIdempotencyKeyRepositoryMockRecorder
 }

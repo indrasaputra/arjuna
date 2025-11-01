@@ -21,6 +21,7 @@ import (
 
 // MockRelayRegisterUser is a mock of RelayRegisterUser interface.
 type MockRelayRegisterUser struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockRelayRegisterUserMockRecorder
 }
@@ -59,6 +60,7 @@ func (mr *MockRelayRegisterUserMockRecorder) RelayRegister(ctx, user any) *gomoc
 
 // MockRelayRegisterUserOrchestration is a mock of RelayRegisterUserOrchestration interface.
 type MockRelayRegisterUserOrchestration struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockRelayRegisterUserOrchestrationMockRecorder
 }
@@ -97,6 +99,7 @@ func (mr *MockRelayRegisterUserOrchestrationMockRecorder) RegisterUser(ctx, inpu
 
 // MockRelayRegisterUserOutboxRepository is a mock of RelayRegisterUserOutboxRepository interface.
 type MockRelayRegisterUserOutboxRepository struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockRelayRegisterUserOutboxRepositoryMockRecorder
 }

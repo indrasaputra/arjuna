@@ -21,6 +21,7 @@ import (
 
 // MockCreateTransaction is a mock of CreateTransaction interface.
 type MockCreateTransaction struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockCreateTransactionMockRecorder
 }
@@ -59,6 +60,7 @@ func (mr *MockCreateTransactionMockRecorder) Create(ctx, transaction, key any) *
 
 // MockIdempotencyKeyRepository is a mock of IdempotencyKeyRepository interface.
 type MockIdempotencyKeyRepository struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockIdempotencyKeyRepositoryMockRecorder
 }
@@ -97,6 +99,7 @@ func (mr *MockIdempotencyKeyRepositoryMockRecorder) Exists(ctx, key any) *gomock
 
 // MockCreateTransactionRepository is a mock of CreateTransactionRepository interface.
 type MockCreateTransactionRepository struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockCreateTransactionRepositoryMockRecorder
 }

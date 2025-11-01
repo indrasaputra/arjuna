@@ -21,6 +21,7 @@ import (
 
 // MockRegisterUser is a mock of RegisterUser interface.
 type MockRegisterUser struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockRegisterUserMockRecorder
 }
@@ -59,6 +60,7 @@ func (mr *MockRegisterUserMockRecorder) Register(ctx, user, key any) *gomock.Cal
 
 // MockRegisterUserRepository is a mock of RegisterUserRepository interface.
 type MockRegisterUserRepository struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockRegisterUserRepositoryMockRecorder
 }
@@ -96,6 +98,7 @@ func (mr *MockRegisterUserRepositoryMockRecorder) Insert(ctx, user any) *gomock.
 
 // MockRegisterUserOutboxRepository is a mock of RegisterUserOutboxRepository interface.
 type MockRegisterUserOutboxRepository struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockRegisterUserOutboxRepositoryMockRecorder
 }
@@ -133,6 +136,7 @@ func (mr *MockRegisterUserOutboxRepositoryMockRecorder) Insert(ctx, payload any)
 
 // MockIdempotencyKeyRepository is a mock of IdempotencyKeyRepository interface.
 type MockIdempotencyKeyRepository struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockIdempotencyKeyRepositoryMockRecorder
 }

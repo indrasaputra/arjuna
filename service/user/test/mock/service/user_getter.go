@@ -20,6 +20,7 @@ import (
 
 // MockGetUser is a mock of GetUser interface.
 type MockGetUser struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockGetUserMockRecorder
 }
@@ -58,6 +59,7 @@ func (mr *MockGetUserMockRecorder) GetAll(ctx, limit any) *gomock.Call {
 
 // MockGetUserRepository is a mock of GetUserRepository interface.
 type MockGetUserRepository struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockGetUserRepositoryMockRecorder
 }

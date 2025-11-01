@@ -22,6 +22,7 @@ import (
 
 // MockTransferWallet is a mock of TransferWallet interface.
 type MockTransferWallet struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockTransferWalletMockRecorder
 }
@@ -59,6 +60,7 @@ func (mr *MockTransferWalletMockRecorder) TransferBalance(ctx, transfer any) *go
 
 // MockWalletTransfererRepository is a mock of WalletTransfererRepository interface.
 type MockWalletTransfererRepository struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockWalletTransfererRepositoryMockRecorder
 }
