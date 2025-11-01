@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	"google.golang.org/grpc/metadata"
@@ -171,7 +172,7 @@ func TestWalletCommand_TopupWallet(t *testing.T) {
 			entity.ErrInternal("error"),
 		}
 		for _, errRet := range errors {
-			st.topup.EXPECT().Topup(testCtxWithValidKey, gomock.Any()).Return(errRet)
+			st.topup.EXPECT().Topup(testCtxWithValidKey, gomock.Any()).Return(nil, errRet)
 
 			res, err := st.handler.TopupWallet(testCtxWithValidKey, request)
 
@@ -182,11 +183,18 @@ func TestWalletCommand_TopupWallet(t *testing.T) {
 	})
 
 	t.Run("success topup wallet", func(t *testing.T) {
+		walletID := uuid.Must(uuid.NewV7())
+		userID := uuid.Must(uuid.NewV7())
+
 		st := createWalletCommandSuite(ctrl)
-		st.topup.EXPECT().Topup(testCtxWithValidKey, gomock.Any()).Return(nil)
+		st.topup.EXPECT().Topup(testCtxWithValidKey, gomock.Any()).Return(&entity.Wallet{
+			ID:      walletID,
+			UserID:  userID,
+			Balance: decimal.NewFromFloat(10.23),
+		}, nil)
 		request := &apiv1.TopupWalletRequest{
 			Topup: &apiv1.Topup{
-				WalletId: uuid.Must(uuid.NewV7()).String(),
+				WalletId: walletID.String(),
 				Amount:   "10.23",
 			},
 		}

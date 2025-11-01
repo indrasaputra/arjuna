@@ -42,10 +42,11 @@ func TestWalletTopup_Topup(t *testing.T) {
 	t.Run("empty wallet is prohibited", func(t *testing.T) {
 		st := createWalletTopupSuite(ctrl)
 
-		err := st.topup.Topup(testCtx, nil)
+		wallet, err := st.topup.Topup(testCtx, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyWallet(), err)
+		assert.Nil(t, wallet)
 	})
 
 	t.Run("validate idempotency key returns error", func(t *testing.T) {
@@ -53,9 +54,10 @@ func TestWalletTopup_Topup(t *testing.T) {
 		topup := createTestTopupWallet()
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, assert.AnError)
 
-		err := st.topup.Topup(testCtx, topup)
+		wallet, err := st.topup.Topup(testCtx, topup)
 
 		assert.Error(t, err)
+		assert.Nil(t, wallet)
 	})
 
 	t.Run("idempotency key has been used", func(t *testing.T) {
@@ -63,9 +65,10 @@ func TestWalletTopup_Topup(t *testing.T) {
 		topup := createTestTopupWallet()
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(true, nil)
 
-		err := st.topup.Topup(testCtx, topup)
+		wallet, err := st.topup.Topup(testCtx, topup)
 
 		assert.Error(t, err)
+		assert.Nil(t, wallet)
 	})
 
 	t.Run("wallet id is invalid", func(t *testing.T) {
@@ -74,9 +77,10 @@ func TestWalletTopup_Topup(t *testing.T) {
 		topup.WalletID = uuid.Nil
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
-		err := st.topup.Topup(testCtx, topup)
+		wallet, err := st.topup.Topup(testCtx, topup)
 
 		assert.Error(t, err)
+		assert.Nil(t, wallet)
 	})
 
 	t.Run("user id is invalid", func(t *testing.T) {
@@ -85,9 +89,10 @@ func TestWalletTopup_Topup(t *testing.T) {
 		topup.UserID = uuid.Nil
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
-		err := st.topup.Topup(testCtx, topup)
+		wallet, err := st.topup.Topup(testCtx, topup)
 
 		assert.Error(t, err)
+		assert.Nil(t, wallet)
 	})
 
 	t.Run("amount is invalid", func(t *testing.T) {
@@ -96,31 +101,34 @@ func TestWalletTopup_Topup(t *testing.T) {
 		topup.Amount = decimal.Zero
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
-		err := st.topup.Topup(testCtx, topup)
+		wallet, err := st.topup.Topup(testCtx, topup)
 
 		assert.Error(t, err)
+		assert.Nil(t, wallet)
 	})
 
 	t.Run("wallet repo update balance returns error", func(t *testing.T) {
 		st := createWalletTopupSuite(ctrl)
 		topup := createTestTopupWallet()
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
-		st.topupRepo.EXPECT().AddWalletBalance(testCtx, topup.WalletID, topup.Amount).Return(assert.AnError)
+		st.topupRepo.EXPECT().AddWalletBalance(testCtx, topup.WalletID, topup.Amount).Return(nil, assert.AnError)
 
-		err := st.topup.Topup(testCtx, topup)
+		wallet, err := st.topup.Topup(testCtx, topup)
 
 		assert.Error(t, err)
+		assert.Nil(t, wallet)
 	})
 
 	t.Run("success create a topup", func(t *testing.T) {
 		st := createWalletTopupSuite(ctrl)
 		topup := createTestTopupWallet()
 		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
-		st.topupRepo.EXPECT().AddWalletBalance(testCtx, topup.WalletID, topup.Amount).Return(nil)
+		st.topupRepo.EXPECT().AddWalletBalance(testCtx, topup.WalletID, topup.Amount).Return(createTestWallet(), nil)
 
-		err := st.topup.Topup(testCtx, topup)
+		wallet, err := st.topup.Topup(testCtx, topup)
 
 		assert.NoError(t, err)
+		assert.NotNil(t, wallet)
 	})
 }
 

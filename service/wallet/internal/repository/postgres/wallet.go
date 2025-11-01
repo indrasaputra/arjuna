@@ -51,14 +51,18 @@ func (w *Wallet) Insert(ctx context.Context, wallet *entity.Wallet) error {
 }
 
 // AddWalletBalance adds some amount to specific user's wallet.
-func (w *Wallet) AddWalletBalance(ctx context.Context, id uuid.UUID, amount decimal.Decimal) error {
+func (w *Wallet) AddWalletBalance(ctx context.Context, id uuid.UUID, amount decimal.Decimal) (*entity.Wallet, error) {
 	param := db.AddWalletBalanceParams{ID: id, Amount: amount}
-	err := w.queries.AddWalletBalance(ctx, param)
+	res, err := w.queries.AddWalletBalance(ctx, param)
 	if err != nil {
 		slog.ErrorContext(ctx, "[WalletPostgres-addWalletBalance] internal error", "error", err)
-		return entity.ErrInternal(err.Error())
+		return nil, entity.ErrInternal(err.Error())
 	}
-	return nil
+	return &entity.Wallet{
+		ID:      res.ID,
+		UserID:  res.UserID,
+		Balance: res.Balance,
+	}, nil
 }
 
 // GetUserWalletForUpdate gets user's wallet for update.

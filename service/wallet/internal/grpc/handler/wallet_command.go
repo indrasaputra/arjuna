@@ -70,12 +70,12 @@ func (wc *WalletCommand) TopupWallet(ctx context.Context, request *apiv1.TopupWa
 	amount, _ := decimal.NewFromString(request.GetTopup().GetAmount())
 	req := createTopupWalletFromTopupWalletRequest(request, userID, amount, key[0])
 
-	err := wc.topup.Topup(ctx, req)
+	wallet, err := wc.topup.Topup(ctx, req)
 	if err != nil {
 		slog.ErrorContext(ctx, "[WalletCommand-TopupWallet] fail topup wallet", "error", err)
 		return nil, err
 	}
-	return &apiv1.TopupWalletResponse{}, nil
+	return &apiv1.TopupWalletResponse{Data: createWalletProto(wallet)}, nil
 }
 
 // TransferBalance handles HTTP/2 gRPC request similar to POST in HTTP/1.1.
@@ -119,5 +119,13 @@ func createTransferWalletFromTransferBalanceRequest(request *apiv1.TransferBalan
 		ReceiverID:       uuid.MustParse(request.GetTransfer().GetReceiverId()),
 		ReceiverWalletID: uuid.MustParse(request.GetTransfer().GetReceiverWalletId()),
 		Amount:           amount,
+	}
+}
+
+func createWalletProto(wallet *entity.Wallet) *apiv1.Wallet {
+	return &apiv1.Wallet{
+		Id:      wallet.ID.String(),
+		UserId:  wallet.UserID.String(),
+		Balance: wallet.Balance.String(),
 	}
 }

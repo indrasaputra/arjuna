@@ -355,6 +355,11 @@ definitions:
       - amount
   v1TopupWalletResponse:
     type: object
+    properties:
+      data:
+        $ref: '#/definitions/v1Wallet'
+        description: data represents wallet.
+        readOnly: true
     description: TopupWalletResponse represents response from topup wallet.
   v1Transaction:
     type: object

@@ -111,7 +111,10 @@ message TopupWalletRequest {
 }
 
 // TopupWalletResponse represents response from topup wallet.
-message TopupWalletResponse {}
+message TopupWalletResponse {
+  // data represents wallet.
+  Wallet data = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
 
 // TransferBalanceRequest represents request for transfer balance.
 message TransferBalanceRequest {

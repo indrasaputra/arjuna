@@ -3,6 +3,7 @@ package postgres_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -106,27 +107,36 @@ func TestWallet_AddWalletBalance(t *testing.T) {
 		id := uuid.Must(uuid.NewV7())
 		amount, _ := decimal.NewFromString("4.56")
 		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectExec(query).
+		st.db.ExpectQuery(query).
 			WithArgs(id, amount).
 			WillReturnError(assert.AnError)
 
-		err := st.wallet.AddWalletBalance(testCtx, id, amount)
+		res, err := st.wallet.AddWalletBalance(testCtx, id, amount)
 
 		assert.Error(t, err)
+		assert.Nil(t, res)
 	})
 
 	t.Run("add account balance returns success", func(t *testing.T) {
 		st := createWalletSuite(t, ctrl)
 		id := uuid.Must(uuid.NewV7())
+		userID := uuid.Must(uuid.NewV7())
 		amount, _ := decimal.NewFromString("4.56")
-		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
-		st.db.ExpectExec(query).
-			WithArgs(id, amount).
-			WillReturnResult(pgxmock.NewResult("UPDATE", 1))
+		newBalance, _ := decimal.NewFromString("14.56")
 
-		err := st.wallet.AddWalletBalance(testCtx, id, amount)
+		st.getter.EXPECT().DefaultTrOrDB(testCtx, st.db).Return(st.db)
+		st.db.ExpectQuery(query).
+			WithArgs(id, amount).
+			WillReturnRows(pgxmock.NewRows([]string{"id", "user_id", "balance", "created_at", "updated_at", "deleted_at", "created_by", "updated_by", "deleted_by"}).
+				AddRow(id, userID, newBalance, time.Now(), time.Now(), nil, uuid.Nil, uuid.Nil, nil))
+
+		res, err := st.wallet.AddWalletBalance(testCtx, id, amount)
 
 		assert.NoError(t, err)
+		assert.NotNil(t, res)
+		assert.Equal(t, id, res.ID)
+		assert.Equal(t, userID, res.UserID)
+		assert.Equal(t, newBalance, res.Balance)
 	})
 }
 

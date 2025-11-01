@@ -14,13 +14,13 @@ import (
 type TopupWallet interface {
 	// Topup topups a wallet's balance.
 	// It needs idempotency key.
-	Topup(ctx context.Context, topup *entity.TopupWallet) error
+	Topup(ctx context.Context, topup *entity.TopupWallet) (*entity.Wallet, error)
 }
 
 // TopupWalletRepository defines the interface to update wallet in repository.
 type TopupWalletRepository interface {
 	// AddWalletBalance adds certain amount (can be negative) to certain wallet.
-	AddWalletBalance(ctx context.Context, id uuid.UUID, amount decimal.Decimal) error
+	AddWalletBalance(ctx context.Context, id uuid.UUID, amount decimal.Decimal) (*entity.Wallet, error)
 }
 
 // IdempotencyKeyRepository defines  interface for idempotency check flow and repository.
@@ -42,27 +42,27 @@ func NewWalletTopup(t TopupWalletRepository, k IdempotencyKeyRepository) *Wallet
 
 // Topup topups wallet's balance.
 // It needs idempotency key.
-func (wt *WalletTopup) Topup(ctx context.Context, topup *entity.TopupWallet) error {
+func (wt *WalletTopup) Topup(ctx context.Context, topup *entity.TopupWallet) (*entity.Wallet, error) {
 	if topup == nil {
-		return entity.ErrEmptyWallet()
+		return nil, entity.ErrEmptyWallet()
 	}
 
 	if err := wt.validateIdempotencyKey(ctx, topup.IdempotencyKey); err != nil {
 		slog.ErrorContext(ctx, "[WalletTopup-Topup] fail check idempotency key", "idempotency_key", topup.IdempotencyKey, "error", err)
-		return err
+		return nil, err
 	}
 
 	if err := validateTopupWallet(topup); err != nil {
 		slog.ErrorContext(ctx, "[WalletTopup-Topup] wallet is invalid", "error", err)
-		return err
+		return nil, err
 	}
 
-	err := wt.walletRepo.AddWalletBalance(ctx, topup.WalletID, topup.Amount)
+	wallet, err := wt.walletRepo.AddWalletBalance(ctx, topup.WalletID, topup.Amount)
 	if err != nil {
 		slog.ErrorContext(ctx, "[WalletTopup-Topup] fail update wallet balance", "error", err)
-		return err
+		return nil, err
 	}
-	return nil
+	return wallet, nil
 }
 
 func (wt *WalletTopup) validateIdempotencyKey(ctx context.Context, key string) error {
