@@ -1,20 +1,20 @@
-name: Blueprint - CI
+name: API Doc - CI
 
 on:
   push:
     paths:
-      - ".github/workflows/blueprint.yml"
+      - ".github/workflows/apidoc.yml"
       - ".github/workflows/reusable-html-build-ci.yml.yml"
       - "openapiv2/**"
       - "proto/**"
-      - "blueprint/**"
+      - "apidoc/**"
   pull_request:
     paths:
-      - ".github/workflows/blueprint.yml"
+      - ".github/workflows/apidoc.yml"
       - ".github/workflows/reusable-html-build-ci.yml.yml"
       - "openapiv2/**"
       - "proto/**"
-      - "blueprint/**"
+      - "apidoc/**"
 
 jobs:
   change-check:
@@ -31,11 +31,11 @@ jobs:
         with:
           filters: |
             changed:
-            - '.github/workflows/blueprint.yml'
+            - '.github/workflows/apidoc.yml'
             - '.github/workflows/reusable-html-build-ci.yml.yml'
             - 'openapiv2/**'
             - 'proto/**'
-            - 'blueprint/**'
+            - 'apidoc/**'
 
   general-quality-check:
     name: General quality check
@@ -50,8 +50,8 @@ jobs:
         cmd: [server]
     uses: ./.github/workflows/reusable-html-build-ci.yml
     with:
-      service: blueprint
-      dockerfile: ./blueprint/dockerfile/blueprint.dockerfile
+      service: apidoc
+      dockerfile: ./apidoc/dockerfile/apidoc.dockerfile
       cmd: ${{ matrix.cmd }}
     secrets:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}

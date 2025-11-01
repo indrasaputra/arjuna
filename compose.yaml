@@ -277,10 +277,10 @@ services:
     profiles:
       - infra
 
-  blueprint:
+  apidoc:
     <<: *default
-    image: indrasaputra/arjuna-blueprint-server:latest
-    container_name: arjuna-blueprint-server
+    image: indrasaputra/arjuna-apidoc-server:latest
+    container_name: arjuna-apidoc-server
     ports:
       - 4000:80
     profiles:

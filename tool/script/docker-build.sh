@@ -14,17 +14,17 @@ set_app_dir() {
 }
 
 set_dockerfile() {
-	if [[ ! $1 = "gateway" ]] && [[ ! $1 = "blueprint" ]]; then
+	if [[ ! $1 = "gateway" ]] && [[ ! $1 = "apidoc" ]]; then
 		DOCKERFILE=service/${DOCKERFILE}
 	fi
 }
 
-build_blueprint() {
-	echo "building blueprint server..."
+build_apidoc() {
+	echo "building apidoc server..."
 	docker build --no-cache -t indrasaputra/arjuna-$1-server:latest -f ${DOCKERFILE} .
 }
 
-build_non_blueprint() {
+build_non_apidoc() {
 	for cmd in "${CMD_DIRS[@]}"; do
 		if [ -d ${APP_DIR}/cmd/${cmd} ]; then
 			echo "building $1 ${cmd}..."
@@ -34,10 +34,10 @@ build_non_blueprint() {
 }
 
 build_docker() {
-	if [[ $1 == "blueprint" ]]; then
-		build_blueprint $1
+	if [[ $1 == "apidoc" ]]; then
+		build_apidoc $1
 	else
-		build_non_blueprint $1
+		build_non_apidoc $1
 	fi
 }
 
