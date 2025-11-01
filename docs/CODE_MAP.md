@@ -10,9 +10,9 @@ This folder contains the github workflows.
 
 ---
 
-### `blueprint`
+### `apidoc`
 
-This folder contains HTML and dockerfile for API blueprint.
+This folder contains HTML and dockerfile for API apidoc.
 
 ---
 
