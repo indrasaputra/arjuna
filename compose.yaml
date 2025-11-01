@@ -35,8 +35,8 @@ services:
 
   db-migrate:
     <<: *default
-    image: migrate/migrate:v4.15.2
-    container_name: arjuna-db-migrate
+    image: arigaio/atlas:0.37.0-alpine
+    container_name: arjuna-atlas-migrate
     depends_on:
       postgres:
         condition: service_healthy
