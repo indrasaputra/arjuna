@@ -21,6 +21,7 @@ import (
 
 // MockRegisterUserAuthConnection is a mock of RegisterUserAuthConnection interface.
 type MockRegisterUserAuthConnection struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockRegisterUserAuthConnectionMockRecorder
 }
@@ -58,6 +59,7 @@ func (mr *MockRegisterUserAuthConnectionMockRecorder) CreateAccount(ctx, user an
 
 // MockRegisterUserWalletConnection is a mock of RegisterUserWalletConnection interface.
 type MockRegisterUserWalletConnection struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockRegisterUserWalletConnectionMockRecorder
 }
@@ -95,6 +97,7 @@ func (mr *MockRegisterUserWalletConnectionMockRecorder) CreateWallet(ctx, user a
 
 // MockRegisterUserDatabase is a mock of RegisterUserDatabase interface.
 type MockRegisterUserDatabase struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockRegisterUserDatabaseMockRecorder
 }

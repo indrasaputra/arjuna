@@ -7,3 +7,5 @@ for dir in `find . -type d`; do
     (cd ${dir} && go mod tidy)
   fi
 done
+
+go work sync

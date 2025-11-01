@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net"
@@ -119,7 +120,8 @@ func (gs *Server) Serve() error {
 	}
 
 	var err error
-	gs.listener, err = net.Listen(connProtocol, fmt.Sprintf(":%s", gs.port))
+	lc := net.ListenConfig{}
+	gs.listener, err = lc.Listen(context.Background(), connProtocol, fmt.Sprintf(":%s", gs.port))
 	if err != nil {
 		return err
 	}

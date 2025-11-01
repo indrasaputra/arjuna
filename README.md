@@ -22,6 +22,10 @@ There are two ways to see the API documentation.
 1. Run the whole project and visit [http://localhost:4000](http://localhost:4000).
 2. Copy-paste [arjuna.swagger.json](/openapiv2/arjuna.swagger.json) to [https://editor.swagger.io](https://editor.swagger.io)
 
+## Installation
+
+Read [Installation](docs/INSTALLATION.md)
+
 ## How to Run
 
 Read [How to Run](docs/HOW_TO_RUN.md).

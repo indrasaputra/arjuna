@@ -13,14 +13,15 @@ import (
 	context "context"
 	reflect "reflect"
 
-	v2 "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
-	v20 "github.com/avito-tech/go-transaction-manager/trm/v2"
+	pgxv5 "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
+	trm "github.com/avito-tech/go-transaction-manager/trm/v2"
 	manager "github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 	gomock "go.uber.org/mock/gomock"
 )
 
 // MockTxManager is a mock of TxManager interface.
 type MockTxManager struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockTxManagerMockRecorder
 }
@@ -57,7 +58,7 @@ func (mr *MockTxManagerMockRecorder) Do(ctx, fn any) *gomock.Call {
 }
 
 // DoWithSettings mocks base method.
-func (m *MockTxManager) DoWithSettings(ctx context.Context, s v20.Settings, fn func(context.Context) error) error {
+func (m *MockTxManager) DoWithSettings(ctx context.Context, s trm.Settings, fn func(context.Context) error) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DoWithSettings", ctx, s, fn)
 	ret0, _ := ret[0].(error)
@@ -71,7 +72,7 @@ func (mr *MockTxManagerMockRecorder) DoWithSettings(ctx, s, fn any) *gomock.Call
 }
 
 // Init mocks base method.
-func (m *MockTxManager) Init(ctx context.Context, s v20.Settings) (context.Context, manager.Closer, error) {
+func (m *MockTxManager) Init(ctx context.Context, s trm.Settings) (context.Context, manager.Closer, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Init", ctx, s)
 	ret0, _ := ret[0].(context.Context)
@@ -88,6 +89,7 @@ func (mr *MockTxManagerMockRecorder) Init(ctx, s any) *gomock.Call {
 
 // MockTxGetter is a mock of TxGetter interface.
 type MockTxGetter struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockTxGetterMockRecorder
 }
@@ -110,10 +112,10 @@ func (m *MockTxGetter) EXPECT() *MockTxGetterMockRecorder {
 }
 
 // DefaultTrOrDB mocks base method.
-func (m *MockTxGetter) DefaultTrOrDB(ctx context.Context, db v2.Tr) v2.Tr {
+func (m *MockTxGetter) DefaultTrOrDB(ctx context.Context, db pgxv5.Tr) pgxv5.Tr {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DefaultTrOrDB", ctx, db)
-	ret0, _ := ret[0].(v2.Tr)
+	ret0, _ := ret[0].(pgxv5.Tr)
 	return ret0
 }
 

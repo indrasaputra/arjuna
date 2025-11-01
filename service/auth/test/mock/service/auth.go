@@ -20,6 +20,7 @@ import (
 
 // MockAuthentication is a mock of Authentication interface.
 type MockAuthentication struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockAuthenticationMockRecorder
 }
@@ -72,6 +73,7 @@ func (mr *MockAuthenticationMockRecorder) Register(ctx, account any) *gomock.Cal
 
 // MockAuthRepository is a mock of AuthRepository interface.
 type MockAuthRepository struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockAuthRepositoryMockRecorder
 }

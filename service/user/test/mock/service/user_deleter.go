@@ -19,6 +19,7 @@ import (
 
 // MockDeleteUser is a mock of DeleteUser interface.
 type MockDeleteUser struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockDeleteUserMockRecorder
 }
@@ -56,6 +57,7 @@ func (mr *MockDeleteUserMockRecorder) HardDelete(ctx, id any) *gomock.Call {
 
 // MockDeleteUserRepository is a mock of DeleteUserRepository interface.
 type MockDeleteUserRepository struct {
+	isgomock struct{}
 	ctrl     *gomock.Controller
 	recorder *MockDeleteUserRepositoryMockRecorder
 }

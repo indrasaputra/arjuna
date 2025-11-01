@@ -28,7 +28,7 @@ lint: lint.cleancache
 
 .PHONY: pretty
 pretty: ## Prettify golang and proto files. Basically, it runs tidy, format, and lint command.
-pretty: tidy gen.db gen.mock format lint lint.struct
+pretty: tidy gen.db gen.proto gen.mock format lint lint.struct
 
 .PHONY: check.import
 check.import: ## Check if import blocks are separated accordingly.
@@ -117,5 +117,14 @@ seed: ## Run database seeder.
 up: ## Run all containers in compose.yaml
 	docker compose --profile "*" up
 
+.PHONY: down
 down: ## Tear down all containers in compose.yaml
 	docker compose --profile "*" down
+
+.PHONY: up.infra
+up.infra: ## Run all containers in compose.yaml
+	docker compose --profile "infra" up
+
+.PHONY: down.infra
+down.infra: ## Tear down all containers in compose.yaml
+	docker compose --profile "infra" down
