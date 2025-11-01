@@ -19,16 +19,13 @@ jobs:
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
-      - name: Setup buf
-        uses: bufbuild/buf-action@v1
+      - name: Install devbox
+        uses: jetify-com/devbox-install-action@v0.14.0
         with:
-          setup_only: true
-          version: 1.50.0
-      - name: Format and lint using buf
+          enable-cache: "true"
+          devbox-version: 0.16.0
+      - name: Format and lint buf and proto
         run: |
           buf format -w
           make check.proto
-      - name: Lint proto files
-        uses: plexsystems/protolint-action@v0.7.0
-        with:
-          configDirectory: .
+          make lint
