@@ -31,7 +31,7 @@ produces:
 paths:
   /v1/auth/login:
     post:
-      summary: Login.
+      summary: Login
       description: |-
         This endpoint logs in an account.
         As of now, refresh token is not implemented and it only returns access token.
@@ -56,7 +56,7 @@ paths:
         - Auth
   /v1/transactions:
     post:
-      summary: CreateTransaction.
+      summary: Create Transaction
       description: This endpoint creates a transaction.
       operationId: CreateTransaction
       responses:
@@ -87,7 +87,7 @@ paths:
         - Transaction
   /v1/users:
     get:
-      summary: Get all users.
+      summary: Get All Users
       description: |-
         This endpoint gets all available users in the system.
         Currently, it only retrieves 10 users at most.
@@ -116,7 +116,7 @@ paths:
         - User
   /v1/users/register:
     post:
-      summary: Register a new user.
+      summary: Register User
       description: |-
         This endpoint registers a new user.
         The X-Idempotency-Key header must be present.
@@ -145,7 +145,7 @@ paths:
         - User
   /v1/wallets/topups:
     put:
-      summary: Topup.
+      summary: Topup Wallet
       description: This endpoint topups a wallet.
       operationId: TopupWallet
       responses:
@@ -176,7 +176,7 @@ paths:
         - Wallet
   /v1/wallets/transfers:
     put:
-      summary: TransferBalance.
+      summary: Transfer Balance
       description: This endpoint transfers balance from one wallet to another wallet.
       operationId: TransferWallet
       responses:

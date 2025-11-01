@@ -32,12 +32,12 @@ const (
 //
 // AuthService provides all use cases to work with auth.
 type AuthServiceClient interface {
-	// Login.
+	// Login
 	//
 	// This endpoint logs in an account.
 	// As of now, refresh token is not implemented and it only returns access token.
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
-	// RegisterAccount.
+	// Register Account
 	//
 	// This endpoint register an account.
 	RegisterAccount(ctx context.Context, in *RegisterAccountRequest, opts ...grpc.CallOption) (*RegisterAccountResponse, error)
@@ -77,12 +77,12 @@ func (c *authServiceClient) RegisterAccount(ctx context.Context, in *RegisterAcc
 //
 // AuthService provides all use cases to work with auth.
 type AuthServiceServer interface {
-	// Login.
+	// Login
 	//
 	// This endpoint logs in an account.
 	// As of now, refresh token is not implemented and it only returns access token.
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
-	// RegisterAccount.
+	// Register Account
 	//
 	// This endpoint register an account.
 	RegisterAccount(context.Context, *RegisterAccountRequest) (*RegisterAccountResponse, error)

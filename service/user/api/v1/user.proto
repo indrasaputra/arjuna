@@ -36,7 +36,7 @@ service UserCommandService {
       "A user is represented by an email as its unique identifier."
 };
 
-  // Register a new user.
+  // Register User
   //
   // This endpoint registers a new user.
   // The X-Idempotency-Key header must be present.
@@ -70,7 +70,7 @@ service UserCommandInternalService {
       "public."
 };
 
-  // Delete a user.
+  // Delete User
   //
   // This endpoint deletes a new user.
   // It is expected to be hidden or internal use only.
@@ -84,7 +84,7 @@ service UserQueryService {
       "user."
 };
 
-  // Get all users.
+  // Get All Users
   //
   // This endpoint gets all available users in the system.
   // Currently, it only retrieves 10 users at most.

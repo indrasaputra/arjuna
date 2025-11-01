@@ -7,9 +7,10 @@ import (
 	"net/http"
 	"testing"
 
-	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
+
+	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 )
 
 func TestLogin(t *testing.T) {

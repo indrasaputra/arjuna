@@ -31,7 +31,7 @@ const (
 //
 // UserCommandService provides state-change service for user.
 type UserCommandServiceClient interface {
-	// Register a new user.
+	// Register User
 	//
 	// This endpoint registers a new user.
 	// The X-Idempotency-Key header must be present.
@@ -62,7 +62,7 @@ func (c *userCommandServiceClient) RegisterUser(ctx context.Context, in *Registe
 //
 // UserCommandService provides state-change service for user.
 type UserCommandServiceServer interface {
-	// Register a new user.
+	// Register User
 	//
 	// This endpoint registers a new user.
 	// The X-Idempotency-Key header must be present.
@@ -146,7 +146,7 @@ const (
 // UserCommandInternalService provides state-change service for user. It should be internal use
 // only.
 type UserCommandInternalServiceClient interface {
-	// Delete a user.
+	// Delete User
 	//
 	// This endpoint deletes a new user.
 	// It is expected to be hidden or internal use only.
@@ -178,7 +178,7 @@ func (c *userCommandInternalServiceClient) DeleteUser(ctx context.Context, in *D
 // UserCommandInternalService provides state-change service for user. It should be internal use
 // only.
 type UserCommandInternalServiceServer interface {
-	// Delete a user.
+	// Delete User
 	//
 	// This endpoint deletes a new user.
 	// It is expected to be hidden or internal use only.
@@ -262,7 +262,7 @@ const (
 //
 // UserQueryService provides query service for user.
 type UserQueryServiceClient interface {
-	// Get all users.
+	// Get All Users
 	//
 	// This endpoint gets all available users in the system.
 	// Currently, it only retrieves 10 users at most.
@@ -293,7 +293,7 @@ func (c *userQueryServiceClient) GetAllUsers(ctx context.Context, in *GetAllUser
 //
 // UserQueryService provides query service for user.
 type UserQueryServiceServer interface {
-	// Get all users.
+	// Get All Users
 	//
 	// This endpoint gets all available users in the system.
 	// Currently, it only retrieves 10 users at most.

@@ -33,15 +33,15 @@ const (
 //
 // WalletCommandService provides all use cases to work with wallet.
 type WalletCommandServiceClient interface {
-	// CreateWallet.
+	// Create Wallet
 	//
 	// This endpoint creates a wallet.
 	CreateWallet(ctx context.Context, in *CreateWalletRequest, opts ...grpc.CallOption) (*CreateWalletResponse, error)
-	// Topup.
+	// Topup Wallet
 	//
 	// This endpoint topups a wallet.
 	TopupWallet(ctx context.Context, in *TopupWalletRequest, opts ...grpc.CallOption) (*TopupWalletResponse, error)
-	// TransferBalance.
+	// Transfer Balance
 	//
 	// This endpoint transfers balance from one wallet to another wallet.
 	TransferBalance(ctx context.Context, in *TransferBalanceRequest, opts ...grpc.CallOption) (*TransferBalanceResponse, error)
@@ -91,15 +91,15 @@ func (c *walletCommandServiceClient) TransferBalance(ctx context.Context, in *Tr
 //
 // WalletCommandService provides all use cases to work with wallet.
 type WalletCommandServiceServer interface {
-	// CreateWallet.
+	// Create Wallet
 	//
 	// This endpoint creates a wallet.
 	CreateWallet(context.Context, *CreateWalletRequest) (*CreateWalletResponse, error)
-	// Topup.
+	// Topup Wallet
 	//
 	// This endpoint topups a wallet.
 	TopupWallet(context.Context, *TopupWalletRequest) (*TopupWalletResponse, error)
-	// TransferBalance.
+	// Transfer Balance
 	//
 	// This endpoint transfers balance from one wallet to another wallet.
 	TransferBalance(context.Context, *TransferBalanceRequest) (*TransferBalanceResponse, error)
