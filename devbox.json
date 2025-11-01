@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.16.0/.schema/devbox.schema.json",
+  "packages": [
+    "go@1.25.1",
+    "golangci-lint@2.5.0",
+    "buf@1.58.0",
+    "mockgen@0.6.0",
+    "protoc-gen-go@1.36.10",
+    "protoc-gen-go-grpc@1.5.1",
+    "grpc-gateway@2.27.2",
+    "protolint@0.56.4",
+    "sqlc@1.30.0",
+    "sqlfluff@3.4.2"
+  ],
+  "env": {
+    "CGO_ENABLED": "0"
+  },
+  "shell": {
+    "init_hook": [
+      "go install golang.org/x/tools/cmd/goimports@v0.38.0",
+      "go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.38.0"
+    ],
+    "scripts": {
+    }
+  }
+}
