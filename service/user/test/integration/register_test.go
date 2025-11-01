@@ -4,6 +4,7 @@
 package integration
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -81,6 +82,10 @@ func TestRegisterUser(t *testing.T) {
 
 func createUser() *entity.User {
 	id, _ := uuid.NewV7()
+	email := fmt.Sprintf("user-register+%s@arjuna.com", id)
+	password := "password"
+	name := "User Register"
+
 	return &entity.User{
 		ID:       id,
 		Email:    email,
