@@ -7,13 +7,20 @@ import (
 	"net/http"
 	"testing"
 
+	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
 
 func TestLogin(t *testing.T) {
+	// register account for login
+	account := createAccount()
+	req := &apiv1.RegisterAccountRequest{Account: account}
+
+	_, _ = grpcClient.RegisterAccount(testCtxBasic, req)
+
 	t.Run("empty email", func(t *testing.T) {
-		payload := map[string]any{"email": "", "password": password}
+		payload := map[string]any{"email": "", "password": account.Password}
 
 		status, resp := sendPost(httpURL+"/v1/auth/login", payload)
 
@@ -25,7 +32,7 @@ func TestLogin(t *testing.T) {
 	})
 
 	t.Run("empty password", func(t *testing.T) {
-		payload := map[string]any{"email": email, "password": ""}
+		payload := map[string]any{"email": account.Email, "password": ""}
 
 		status, resp := sendPost(httpURL+"/v1/auth/login", payload)
 
@@ -37,18 +44,7 @@ func TestLogin(t *testing.T) {
 	})
 
 	t.Run("invalid email", func(t *testing.T) {
-		payload := map[string]any{"email": "invalid-email", "password": password}
-
-		status, resp := sendPost(httpURL+"/v1/auth/login", payload)
-
-		assert.Equal(t, http.StatusBadRequest, status)
-		assert.Equal(t, float64(3), gjson.GetBytes(resp, "code").Float())
-		assert.Equal(t, "credential is invalid", gjson.GetBytes(resp, "message").String())
-		assert.Equal(t, "AUTH_ERROR_CODE_INVALID_CREDENTIAL", gjson.GetBytes(resp, "details.0.errorCode").String())
-	})
-
-	t.Run("invalid password", func(t *testing.T) {
-		payload := map[string]any{"email": email, "password": "not-the-right-password"}
+		payload := map[string]any{"email": "invalid-email", "password": "password"}
 
 		status, resp := sendPost(httpURL+"/v1/auth/login", payload)
 
@@ -59,12 +55,23 @@ func TestLogin(t *testing.T) {
 	})
 
 	t.Run("success login", func(t *testing.T) {
-		payload := map[string]any{"email": email, "password": password}
+		payload := map[string]any{"email": account.Email, "password": account.Password}
 
 		status, resp := sendPost(httpURL+"/v1/auth/login", payload)
 
 		assert.Equal(t, http.StatusOK, status)
 		assert.NotEmpty(t, gjson.GetBytes(resp, "data.access_token").String())
 		assert.NotEmpty(t, gjson.GetBytes(resp, "data.access_token_expires_in").String())
+	})
+
+	t.Run("invalid password", func(t *testing.T) {
+		payload := map[string]any{"email": account.Email, "password": "not-the-right-password"}
+
+		status, resp := sendPost(httpURL+"/v1/auth/login", payload)
+
+		assert.Equal(t, http.StatusBadRequest, status)
+		assert.Equal(t, float64(3), gjson.GetBytes(resp, "code").Float())
+		assert.Equal(t, "credential is invalid", gjson.GetBytes(resp, "message").String())
+		assert.Equal(t, "AUTH_ERROR_CODE_INVALID_CREDENTIAL", gjson.GetBytes(resp, "details.0.errorCode").String())
 	})
 }

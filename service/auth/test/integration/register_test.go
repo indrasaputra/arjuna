@@ -4,6 +4,7 @@
 package integration
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -74,9 +75,13 @@ func TestRegister(t *testing.T) {
 }
 
 func createAccount() *apiv1.Account {
+	userId := uuid.Must(uuid.NewV7()).String()
+	email := fmt.Sprintf("auth-register+%s@arjuna.com", userId)
+	password := "password"
+
 	return &apiv1.Account{
-		UserId:   uuid.Must(uuid.NewV7()).String(),
-		Email:    "auth-register+1@arjuna.com",
-		Password: "password",
+		UserId:   userId,
+		Email:    email,
+		Password: password,
 	}
 }
