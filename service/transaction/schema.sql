@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     id UUID PRIMARY KEY,
     sender_id UUID NOT NULL,
     receiver_id UUID NOT NULL,
-    amount NUMERIC NOT NULL,
+    amount NUMERIC(20, 2) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP,

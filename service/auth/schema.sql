@@ -10,8 +10,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     updated_by UUID NOT NULL,
     deleted_by UUID,
 
-    CONSTRAINT email_length CHECK (LENGTH(email) <= 255),
-    CONSTRAINT password_length CHECK (LENGTH(email) <= 255)
+    CONSTRAINT email_length CHECK (LENGTH(email) <= 255)
 );
 
 CREATE INDEX IF NOT EXISTS index_on_accounts_on_email ON accounts USING btree (
