@@ -25,10 +25,6 @@ var (
 	grpcClient apiv1.UserCommandServiceClient
 	httpClient *http.Client
 	path       = "/v1/users/register"
-
-	email    = "user-register+1@arjuna.com"
-	password = "password"
-	name     = "User Register First"
 )
 
 func init() {

@@ -83,11 +83,12 @@ func (m *MockWalletTransfererRepository) EXPECT() *MockWalletTransfererRepositor
 }
 
 // AddWalletBalance mocks base method.
-func (m *MockWalletTransfererRepository) AddWalletBalance(ctx context.Context, id uuid.UUID, amount decimal.Decimal) error {
+func (m *MockWalletTransfererRepository) AddWalletBalance(ctx context.Context, id uuid.UUID, amount decimal.Decimal) (*entity.Wallet, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddWalletBalance", ctx, id, amount)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entity.Wallet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddWalletBalance indicates an expected call of AddWalletBalance.

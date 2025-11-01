@@ -45,11 +45,12 @@ func (m *MockTopupWallet) EXPECT() *MockTopupWalletMockRecorder {
 }
 
 // Topup mocks base method.
-func (m *MockTopupWallet) Topup(ctx context.Context, topup *entity.TopupWallet) error {
+func (m *MockTopupWallet) Topup(ctx context.Context, topup *entity.TopupWallet) (*entity.Wallet, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Topup", ctx, topup)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entity.Wallet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Topup indicates an expected call of Topup.
@@ -83,11 +84,12 @@ func (m *MockTopupWalletRepository) EXPECT() *MockTopupWalletRepositoryMockRecor
 }
 
 // AddWalletBalance mocks base method.
-func (m *MockTopupWalletRepository) AddWalletBalance(ctx context.Context, id uuid.UUID, amount decimal.Decimal) error {
+func (m *MockTopupWalletRepository) AddWalletBalance(ctx context.Context, id uuid.UUID, amount decimal.Decimal) (*entity.Wallet, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddWalletBalance", ctx, id, amount)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entity.Wallet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddWalletBalance indicates an expected call of AddWalletBalance.

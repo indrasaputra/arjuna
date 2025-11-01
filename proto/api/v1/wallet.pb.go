@@ -243,7 +243,9 @@ func (x *TopupWalletRequest) GetTopup() *Topup {
 
 // TopupWalletResponse represents response from topup wallet.
 type TopupWalletResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// data represents wallet.
+	Data          *Wallet `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -276,6 +278,13 @@ func (x *TopupWalletResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use TopupWalletResponse.ProtoReflect.Descriptor instead.
 func (*TopupWalletResponse) Descriptor() ([]byte, []int) {
 	return file_api_v1_wallet_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *TopupWalletResponse) GetData() *Wallet {
+	if x != nil {
+		return x.Data
+	}
+	return nil
 }
 
 // TransferBalanceRequest represents request for transfer balance.
@@ -616,8 +625,9 @@ const file_api_v1_wallet_proto_rawDesc = "" +
 	"\x06wallet\x18\x01 \x01(\v2\x0e.api.v1.WalletB\x03\xe0A\x02R\x06wallet\"\x16\n" +
 	"\x14CreateWalletResponse\">\n" +
 	"\x12TopupWalletRequest\x12(\n" +
-	"\x05topup\x18\x01 \x01(\v2\r.api.v1.TopupB\x03\xe0A\x02R\x05topup\"\x15\n" +
-	"\x13TopupWalletResponse\"F\n" +
+	"\x05topup\x18\x01 \x01(\v2\r.api.v1.TopupB\x03\xe0A\x02R\x05topup\">\n" +
+	"\x13TopupWalletResponse\x12'\n" +
+	"\x04data\x18\x01 \x01(\v2\x0e.api.v1.WalletB\x03\xe0A\x03R\x04data\"F\n" +
 	"\x16TransferBalanceRequest\x12,\n" +
 	"\btransfer\x18\x01 \x01(\v2\x10.api.v1.TransferR\btransfer\"\x19\n" +
 	"\x17TransferBalanceResponse\"\xe3\x01\n" +
@@ -699,19 +709,20 @@ var file_api_v1_wallet_proto_goTypes = []any{
 var file_api_v1_wallet_proto_depIdxs = []int32{
 	7, // 0: api.v1.CreateWalletRequest.wallet:type_name -> api.v1.Wallet
 	8, // 1: api.v1.TopupWalletRequest.topup:type_name -> api.v1.Topup
-	9, // 2: api.v1.TransferBalanceRequest.transfer:type_name -> api.v1.Transfer
-	0, // 3: api.v1.WalletError.error_code:type_name -> api.v1.WalletErrorCode
-	1, // 4: api.v1.WalletCommandService.CreateWallet:input_type -> api.v1.CreateWalletRequest
-	3, // 5: api.v1.WalletCommandService.TopupWallet:input_type -> api.v1.TopupWalletRequest
-	5, // 6: api.v1.WalletCommandService.TransferBalance:input_type -> api.v1.TransferBalanceRequest
-	2, // 7: api.v1.WalletCommandService.CreateWallet:output_type -> api.v1.CreateWalletResponse
-	4, // 8: api.v1.WalletCommandService.TopupWallet:output_type -> api.v1.TopupWalletResponse
-	6, // 9: api.v1.WalletCommandService.TransferBalance:output_type -> api.v1.TransferBalanceResponse
-	7, // [7:10] is the sub-list for method output_type
-	4, // [4:7] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	7, // 2: api.v1.TopupWalletResponse.data:type_name -> api.v1.Wallet
+	9, // 3: api.v1.TransferBalanceRequest.transfer:type_name -> api.v1.Transfer
+	0, // 4: api.v1.WalletError.error_code:type_name -> api.v1.WalletErrorCode
+	1, // 5: api.v1.WalletCommandService.CreateWallet:input_type -> api.v1.CreateWalletRequest
+	3, // 6: api.v1.WalletCommandService.TopupWallet:input_type -> api.v1.TopupWalletRequest
+	5, // 7: api.v1.WalletCommandService.TransferBalance:input_type -> api.v1.TransferBalanceRequest
+	2, // 8: api.v1.WalletCommandService.CreateWallet:output_type -> api.v1.CreateWalletResponse
+	4, // 9: api.v1.WalletCommandService.TopupWallet:output_type -> api.v1.TopupWalletResponse
+	6, // 10: api.v1.WalletCommandService.TransferBalance:output_type -> api.v1.TransferBalanceResponse
+	8, // [8:11] is the sub-list for method output_type
+	5, // [5:8] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_api_v1_wallet_proto_init() }

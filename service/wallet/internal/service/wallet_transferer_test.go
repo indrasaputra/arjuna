@@ -198,7 +198,7 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 		rw := createTestWallet()
 		st.repo.EXPECT().GetUserWalletForUpdate(testCtxTx, trf.SenderWalletID, trf.SenderID).Return(sw, nil)
 		st.repo.EXPECT().GetUserWalletForUpdate(testCtxTx, trf.ReceiverWalletID, trf.ReceiverID).Return(rw, nil)
-		st.repo.EXPECT().AddWalletBalance(testCtxTx, trf.SenderWalletID, trf.Amount.Neg()).Return(assert.AnError)
+		st.repo.EXPECT().AddWalletBalance(testCtxTx, trf.SenderWalletID, trf.Amount.Neg()).Return(nil, assert.AnError)
 		st.txManager.EXPECT().Do(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(_ context.Context, fn func(context.Context) error) error {
 				assert.Error(t, fn(testCtxTx))
@@ -217,8 +217,8 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 		rw := createTestWallet()
 		st.repo.EXPECT().GetUserWalletForUpdate(testCtxTx, trf.SenderWalletID, trf.SenderID).Return(sw, nil)
 		st.repo.EXPECT().GetUserWalletForUpdate(testCtxTx, trf.ReceiverWalletID, trf.ReceiverID).Return(rw, nil)
-		st.repo.EXPECT().AddWalletBalance(testCtxTx, trf.SenderWalletID, trf.Amount.Neg()).Return(nil)
-		st.repo.EXPECT().AddWalletBalance(testCtxTx, trf.ReceiverWalletID, trf.Amount).Return(assert.AnError)
+		st.repo.EXPECT().AddWalletBalance(testCtxTx, trf.SenderWalletID, trf.Amount.Neg()).Return(nil, nil)
+		st.repo.EXPECT().AddWalletBalance(testCtxTx, trf.ReceiverWalletID, trf.Amount).Return(nil, assert.AnError)
 		st.txManager.EXPECT().Do(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(_ context.Context, fn func(context.Context) error) error {
 				assert.Error(t, fn(testCtxTx))
@@ -237,8 +237,8 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 		rw := createTestWallet()
 		st.repo.EXPECT().GetUserWalletForUpdate(testCtxTx, trf.SenderWalletID, trf.SenderID).Return(sw, nil)
 		st.repo.EXPECT().GetUserWalletForUpdate(testCtxTx, trf.ReceiverWalletID, trf.ReceiverID).Return(rw, nil)
-		st.repo.EXPECT().AddWalletBalance(testCtxTx, trf.SenderWalletID, trf.Amount.Neg()).Return(nil)
-		st.repo.EXPECT().AddWalletBalance(testCtxTx, trf.ReceiverWalletID, trf.Amount).Return(nil)
+		st.repo.EXPECT().AddWalletBalance(testCtxTx, trf.SenderWalletID, trf.Amount.Neg()).Return(nil, nil)
+		st.repo.EXPECT().AddWalletBalance(testCtxTx, trf.ReceiverWalletID, trf.Amount).Return(nil, nil)
 		st.txManager.EXPECT().Do(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(_ context.Context, fn func(context.Context) error) error {
 				assert.NoError(t, fn(testCtxTx))
@@ -257,8 +257,8 @@ func TestWalletTransferer_TransferBalance(t *testing.T) {
 		rw := createTestWallet()
 		st.repo.EXPECT().GetUserWalletForUpdate(testCtxTx, trf.SenderWalletID, trf.SenderID).Return(sw, nil)
 		st.repo.EXPECT().GetUserWalletForUpdate(testCtxTx, trf.ReceiverWalletID, trf.ReceiverID).Return(rw, nil)
-		st.repo.EXPECT().AddWalletBalance(testCtxTx, trf.SenderWalletID, trf.Amount.Neg()).Return(nil)
-		st.repo.EXPECT().AddWalletBalance(testCtxTx, trf.ReceiverWalletID, trf.Amount).Return(nil)
+		st.repo.EXPECT().AddWalletBalance(testCtxTx, trf.SenderWalletID, trf.Amount.Neg()).Return(nil, nil)
+		st.repo.EXPECT().AddWalletBalance(testCtxTx, trf.ReceiverWalletID, trf.Amount).Return(nil, nil)
 		st.txManager.EXPECT().Do(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(_ context.Context, fn func(context.Context) error) error {
 				assert.NoError(t, fn(testCtxTx))

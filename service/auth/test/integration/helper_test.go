@@ -30,8 +30,6 @@ var (
 	grpcClient apiv1.AuthServiceClient
 	httpClient *http.Client
 
-	email         = "user+1@arjuna.com" // from test/fixture/accounts.json
-	password      = "password"          // from test/fixture/accounts.json
 	basicUsername = "auth-user"
 	basicPassword = "auth-password"
 )

@@ -31,7 +31,7 @@ const (
 //
 // TransactionCommandService provides all use cases to work with transaction.
 type TransactionCommandServiceClient interface {
-	// CreateTransaction.
+	// Create Transaction
 	//
 	// This endpoint creates a transaction.
 	CreateTransaction(ctx context.Context, in *CreateTransactionRequest, opts ...grpc.CallOption) (*CreateTransactionResponse, error)
@@ -61,7 +61,7 @@ func (c *transactionCommandServiceClient) CreateTransaction(ctx context.Context,
 //
 // TransactionCommandService provides all use cases to work with transaction.
 type TransactionCommandServiceServer interface {
-	// CreateTransaction.
+	// Create Transaction
 	//
 	// This endpoint creates a transaction.
 	CreateTransaction(context.Context, *CreateTransactionRequest) (*CreateTransactionResponse, error)

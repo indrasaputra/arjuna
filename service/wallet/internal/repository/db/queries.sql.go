@@ -13,9 +13,10 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-const addWalletBalance = `-- name: AddWalletBalance :exec
+const addWalletBalance = `-- name: AddWalletBalance :one
 
-UPDATE wallets SET balance = balance + $2 WHERE id = $1
+UPDATE wallets SET balance = balance + $2 WHERE id = $1 --noqa
+RETURNING id, user_id, balance, created_at, updated_at, deleted_at, created_by, updated_by, deleted_by
 `
 
 type AddWalletBalanceParams struct {
@@ -24,9 +25,21 @@ type AddWalletBalanceParams struct {
 }
 
 // noqa
-func (q *Queries) AddWalletBalance(ctx context.Context, arg AddWalletBalanceParams) error {
-	_, err := q.db.Exec(ctx, addWalletBalance, arg.ID, arg.Amount)
-	return err
+func (q *Queries) AddWalletBalance(ctx context.Context, arg AddWalletBalanceParams) (*Wallet, error) {
+	row := q.db.QueryRow(ctx, addWalletBalance, arg.ID, arg.Amount)
+	var i Wallet
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Balance,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+		&i.DeletedBy,
+	)
+	return &i, err
 }
 
 const createWallet = `-- name: CreateWallet :exec

@@ -22,7 +22,7 @@ type WalletTransfererRepository interface {
 	// GetUserWalletForUpdate gets user's wallet from repository for update.
 	GetUserWalletForUpdate(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*entity.Wallet, error)
 	// AddWalletBalance adds certain amount (can be negative) to certain wallet.
-	AddWalletBalance(ctx context.Context, id uuid.UUID, amount decimal.Decimal) error
+	AddWalletBalance(ctx context.Context, id uuid.UUID, amount decimal.Decimal) (*entity.Wallet, error)
 }
 
 // WalletTransferer is responsible for transfer balance between wallets.
@@ -110,11 +110,11 @@ func (wt *WalletTransferer) getSenderAndReceiverWallet(ctx context.Context, tran
 }
 
 func (wt *WalletTransferer) updateUserBalances(ctx context.Context, transfer *entity.TransferWallet) error {
-	if err := wt.walletRepo.AddWalletBalance(ctx, transfer.SenderWalletID, transfer.Amount.Neg()); err != nil {
+	if _, err := wt.walletRepo.AddWalletBalance(ctx, transfer.SenderWalletID, transfer.Amount.Neg()); err != nil {
 		slog.ErrorContext(ctx, "[WalletTransferer-updateUserBalances] subtract sender balance fail", "error", err)
 		return err
 	}
-	if err := wt.walletRepo.AddWalletBalance(ctx, transfer.ReceiverWalletID, transfer.Amount); err != nil {
+	if _, err := wt.walletRepo.AddWalletBalance(ctx, transfer.ReceiverWalletID, transfer.Amount); err != nil {
 		slog.ErrorContext(ctx, "[WalletTransferer-updateUserBalances] add receiver balance fail", "error", err)
 		return err
 	}
