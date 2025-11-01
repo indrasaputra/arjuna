@@ -13,7 +13,8 @@
     "sqlfluff@3.4.2"
   ],
   "env": {
-    "CGO_ENABLED": "0"
+    "CGO_ENABLED": "0",
+    "PATH": "$HOME/go/bin:$PATH"
   },
   "shell": {
     "init_hook": [
