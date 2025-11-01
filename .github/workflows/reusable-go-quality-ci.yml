@@ -51,11 +51,7 @@ jobs:
           enable-cache: "true"
           devbox-version: 0.16.0
       - name: Check import blocks
-        run: |
-          devbox shell -c "
-            make format
-            make check.import
-          "
+        run: devbox shell -c "make format && make check.import"
 
   security-check:
     name: Semgrep scan
