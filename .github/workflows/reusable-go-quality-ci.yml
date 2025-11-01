@@ -50,10 +50,12 @@ jobs:
         with:
           enable-cache: "true"
           devbox-version: 0.16.0
-      - name: Format and lint buf and proto
+      - name: Check import blocks
         run: |
-          devbox run -- make format
-          devbox run -- make check.import
+          devbox shell -c "
+            make format
+            make check.import
+          "
 
   security-check:
     name: Semgrep scan
@@ -107,7 +109,7 @@ jobs:
           restore-keys: |
             go-module-${{ github.repository }}-${{ inputs.target }}-${{ github.sha }}
       - name: Run unit test and coverage
-        run: devbox run -- make test.cover svc=${{ inputs.target }}
+        run: devbox run -- CGO_ENABLED=1 make test.cover svc=${{ inputs.target }}
       - name: Push coverage result to Codecov
         uses: codecov/codecov-action@v4
         with:
