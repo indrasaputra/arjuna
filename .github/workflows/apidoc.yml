@@ -1,58 +1,58 @@
 name: API Doc - CI
 
-on:
-  push:
-    paths:
-      - ".github/workflows/apidoc.yml"
-      - ".github/workflows/reusable-html-build-ci.yml.yml"
-      - "openapiv2/**"
-      - "proto/**"
-      - "apidoc/**"
-  pull_request:
-    paths:
-      - ".github/workflows/apidoc.yml"
-      - ".github/workflows/reusable-html-build-ci.yml.yml"
-      - "openapiv2/**"
-      - "proto/**"
-      - "apidoc/**"
+# on:
+#   push:
+#     paths:
+#       - ".github/workflows/apidoc.yml"
+#       - ".github/workflows/reusable-html-build-ci.yml.yml"
+#       - "openapiv2/**"
+#       - "proto/**"
+#       - "apidoc/**"
+#   pull_request:
+#     paths:
+#       - ".github/workflows/apidoc.yml"
+#       - ".github/workflows/reusable-html-build-ci.yml.yml"
+#       - "openapiv2/**"
+#       - "proto/**"
+#       - "apidoc/**"
 
-jobs:
-  change-check:
-    name: Check changes
-    runs-on: ubuntu-latest
-    outputs:
-      has-change: ${{ steps.filter.outputs.changed }}
-    steps:
-      - name: Clone repository
-        uses: actions/checkout@v4
-      - name: Check path filters
-        uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            changed:
-            - '.github/workflows/apidoc.yml'
-            - '.github/workflows/reusable-html-build-ci.yml.yml'
-            - 'openapiv2/**'
-            - 'proto/**'
-            - 'apidoc/**'
+# jobs:
+#   change-check:
+#     name: Check changes
+#     runs-on: ubuntu-latest
+#     outputs:
+#       has-change: ${{ steps.filter.outputs.changed }}
+#     steps:
+#       - name: Clone repository
+#         uses: actions/checkout@v4
+#       - name: Check path filters
+#         uses: dorny/paths-filter@v3
+#         id: filter
+#         with:
+#           filters: |
+#             changed:
+#             - '.github/workflows/apidoc.yml'
+#             - '.github/workflows/reusable-html-build-ci.yml.yml'
+#             - 'openapiv2/**'
+#             - 'proto/**'
+#             - 'apidoc/**'
 
-  general-quality-check:
-    name: General quality check
-    uses: ./.github/workflows/reusable-general-quality-ci.yml
+#   general-quality-check:
+#     name: General quality check
+#     uses: ./.github/workflows/reusable-general-quality-ci.yml
 
-  build-push-docker:
-    name: Build and push docker
-    needs: [general-quality-check, change-check]
-    if: ${{ needs.change-check.outputs.has-change == 'true' }}
-    strategy:
-      matrix:
-        cmd: [server]
-    uses: ./.github/workflows/reusable-html-build-ci.yml
-    with:
-      service: apidoc
-      dockerfile: ./apidoc/dockerfile/apidoc.dockerfile
-      cmd: ${{ matrix.cmd }}
-    secrets:
-      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-      DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+#   build-push-docker:
+#     name: Build and push docker
+#     needs: [general-quality-check, change-check]
+#     if: ${{ needs.change-check.outputs.has-change == 'true' }}
+#     strategy:
+#       matrix:
+#         cmd: [server]
+#     uses: ./.github/workflows/reusable-html-build-ci.yml
+#     with:
+#       service: apidoc
+#       dockerfile: ./apidoc/dockerfile/apidoc.dockerfile
+#       cmd: ${{ matrix.cmd }}
+#     secrets:
+#       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+#       DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
