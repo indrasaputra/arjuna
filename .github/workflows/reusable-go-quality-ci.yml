@@ -53,6 +53,7 @@ jobs:
       - name: Format and check imports
         run: |
           devbox shell <<'EOF'
+          set -euo pipefail
           make format
           make check.import
           EOF
