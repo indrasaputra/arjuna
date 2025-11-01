@@ -10,7 +10,8 @@
     "grpc-gateway@2.27.2",
     "protolint@0.56.4",
     "sqlc@1.30.0",
-    "sqlfluff@3.4.2"
+    "sqlfluff@3.4.2",
+    "atlas@0.37.0"
   ],
   "env": {
     "CGO_ENABLED": "0",

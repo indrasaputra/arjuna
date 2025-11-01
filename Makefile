@@ -1,5 +1,6 @@
 OUTPUT_DIR			= deploy/output
 SERVICES			= apidoc gateway auth transaction user wallet
+SERVICES_WITH_DB	= auth user transaction wallet
 
 include Makefile.help.mk
 
@@ -90,12 +91,14 @@ test.e2e: ## Run e2e test using Godog.
 
 ##@ Migration
 .PHONY: migration
-migration: ## Create database migration.
-	migrate create -ext sql -dir service/$(svc)/db/migrations $(name)
+migration: ## Create database migration using atlas.
+	for svc in $(SERVICES_WITH_DB); do \
+		tool/script/create-migration.sh $$svc; \
+	done
 
 .PHONY: migrate
 migrate: ## Run database migrations.
-	migrate -path service/$(svc)/db/migrations -database "$(url)" -verbose up
+	atlas migrate apply --dir file://service/$(svc)/db/migrations --url "postgresql://postgresuser:postgrespassword@postgres:5432/arjuna_$(svc)?sslmode=disable"
 
 .PHONY: seed
 seed: ## Run database seeder.

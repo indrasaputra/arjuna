@@ -1,6 +1,54 @@
 {
   "lockfile_version": "1",
   "packages": {
+    "atlas@0.37.0": {
+      "last_modified": "2025-10-07T08:41:47Z",
+      "resolved": "github:NixOS/nixpkgs/bce5fe2bb998488d8e7e7856315f90496723793c#atlas",
+      "source": "devbox-search",
+      "version": "0.37.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/v5wi0jd3g90pydlxgsd4534vva3vd40v-atlas-0.37.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/v5wi0jd3g90pydlxgsd4534vva3vd40v-atlas-0.37.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/nj3879096v6rjpmcmkgb4h0mgizz2yjq-atlas-0.37.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/nj3879096v6rjpmcmkgb4h0mgizz2yjq-atlas-0.37.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/4amv5d0wm45cw3501bpc7q1g563sa7d2-atlas-0.37.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/4amv5d0wm45cw3501bpc7q1g563sa7d2-atlas-0.37.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/wi1xm08yalzl8hj0rg7yin9ahd93aczc-atlas-0.37.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/wi1xm08yalzl8hj0rg7yin9ahd93aczc-atlas-0.37.0"
+        }
+      }
+    },
     "buf@1.58.0": {
       "last_modified": "2025-10-11T06:31:15Z",
       "resolved": "github:NixOS/nixpkgs/362791944032cb532aabbeed7887a441496d5e6e#buf",

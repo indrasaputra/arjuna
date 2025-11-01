@@ -1,6 +1,0 @@
-BEGIN;
-
-DROP INDEX IF EXISTS index_on_users_on_id;
-DROP TABLE IF EXISTS users;
-
-COMMIT;

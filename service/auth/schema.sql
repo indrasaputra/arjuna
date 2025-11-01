@@ -1,5 +1,3 @@
-BEGIN;
-
 CREATE TABLE IF NOT EXISTS accounts (
     id UUID PRIMARY KEY,
     user_id UUID UNIQUE NOT NULL,
@@ -19,5 +17,3 @@ CREATE TABLE IF NOT EXISTS accounts (
 CREATE INDEX IF NOT EXISTS index_on_accounts_on_email ON accounts USING btree (
     email
 );
-
-COMMIT;
