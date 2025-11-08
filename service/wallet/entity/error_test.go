@@ -48,14 +48,6 @@ func TestErrInvalidUser(t *testing.T) {
 	})
 }
 
-func TestErrMissingIdempotencyKey(t *testing.T) {
-	t.Run("success get missing idempotency key error", func(t *testing.T) {
-		err := entity.ErrMissingIdempotencyKey()
-
-		assert.Contains(t, err.Error(), "rpc error: code = InvalidArgument")
-	})
-}
-
 func TestErrInvalidAmount(t *testing.T) {
 	t.Run("success get invalid amount error", func(t *testing.T) {
 		err := entity.ErrInvalidAmount()

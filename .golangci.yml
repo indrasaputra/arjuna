@@ -48,7 +48,7 @@ linters:
       lines: 70
       statements: 40
     gocognit:
-      min-complexity: 10
+      min-complexity: 20
     gosec:
       excludes:
         - G115

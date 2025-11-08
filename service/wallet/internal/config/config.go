@@ -5,29 +5,26 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
 
+	sdkrds "github.com/indrasaputra/arjuna/pkg/sdk/cache/redis"
 	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
 )
 
 // Config holds configuration for the project.
 type Config struct {
-	Tracer            trace.Config
-	ServiceName       string `env:"SERVICE_NAME,default=wallet-server"`
-	AppEnv            string `env:"APP_ENV,default=development"`
-	Port              string `env:"PORT,default=8004"`
-	PrometheusPort    string `env:"PROMETHEUS_PORT,default=7004"`
-	Username          string `env:"USERNAME,default=wallet-user"`
-	Password          string `env:"PASSWORD,default=wallet-password"`
-	AppliedAuthBearer string `env:"APPLIED_AUTH_BEARER"`
-	AppliedAuthBasic  string `env:"APPLIED_AUTH_BASIC"`
-	SecretKey         string `env:"TOKEN_SECRET_KEY,required"`
-	Redis             Redis
-	Postgres          sdkpg.Config
-}
-
-// Redis holds configuration for Redis.
-type Redis struct {
-	Address string `env:"REDIS_ADDRESS,default=localhost:6379"`
+	Tracer             trace.Config
+	ServiceName        string `env:"SERVICE_NAME,default=wallet-server"`
+	AppEnv             string `env:"APP_ENV,default=development"`
+	Port               string `env:"PORT,default=8004"`
+	PrometheusPort     string `env:"PROMETHEUS_PORT,default=7004"`
+	Username           string `env:"USERNAME,default=wallet-user"`
+	Password           string `env:"PASSWORD,default=wallet-password"`
+	AppliedAuthBearer  string `env:"APPLIED_AUTH_BEARER"`
+	AppliedAuthBasic   string `env:"APPLIED_AUTH_BASIC"`
+	AppliedIdempotency string `env:"APPLIED_IDEMPOTENCY"`
+	SecretKey          string `env:"TOKEN_SECRET_KEY,required"`
+	Redis              sdkrds.Config
+	Postgres           sdkpg.Config
 }
 
 // NewConfig creates an instance of Config.

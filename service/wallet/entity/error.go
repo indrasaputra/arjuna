@@ -88,19 +88,6 @@ func ErrInvalidUser() error {
 	return res.Err()
 }
 
-// ErrMissingIdempotencyKey returns codes.InvalidArgument explained that the idempotency key is missing.
-func ErrMissingIdempotencyKey() error {
-	st := status.New(codes.InvalidArgument, "missing idempotency key")
-	te := &apiv1.WalletError{
-		ErrorCode: apiv1.WalletErrorCode_WALLET_ERROR_CODE_MISSING_IDEMPOTENCY_KEY,
-	}
-	res, err := st.WithDetails(te)
-	if err != nil {
-		return st.Err()
-	}
-	return res.Err()
-}
-
 // ErrInvalidAmount returns codes.InvalidArgument explained that the amount invalid.
 func ErrInvalidAmount() error {
 	st := status.New(codes.InvalidArgument, "")

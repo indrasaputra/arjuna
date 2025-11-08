@@ -5,6 +5,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
 
+	sdkrds "github.com/indrasaputra/arjuna/pkg/sdk/cache/redis"
 	sdkpg "github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/trace"
 )
@@ -23,12 +24,13 @@ type Config struct {
 	Username                    string `env:"USERNAME,default=user-user"`
 	WalletServiceUsername       string `env:"WALLET_SERVICE_USERNAME"`
 	Password                    string `env:"PASSWORD,default=user-password"`
-	Redis                       Redis
 	AppliedAuthBearer           string `env:"APPLIED_AUTH_BEARER"`
 	SecretKey                   string `env:"TOKEN_SECRET_KEY,required"`
 	WalletServicePassword       string `env:"WALLET_SERVICE_PASSWORD"`
 	AuthServiceUsername         string `env:"AUTH_SERVICE_USERNAME"`
 	AuthServicePassword         string `env:"AUTH_SERVICE_PASSWORD"`
+	AppliedIdempotency          string `env:"APPLIED_IDEMPOTENCY"`
+	Redis                       sdkrds.Config
 	Postgres                    sdkpg.Config
 	RelayerSleepTimeMillisecond int `env:"RELAYER_SLEEP_TIME_MILLISECONDS,default=1000"`
 }
@@ -36,11 +38,6 @@ type Config struct {
 // Temporal holds configuration for Temporal.
 type Temporal struct {
 	Address string `env:"TEMPORAL_ADDRESS,default=localhost:7233"`
-}
-
-// Redis holds configuration for Redis.
-type Redis struct {
-	Address string `env:"REDIS_ADDRESS,default=localhost:6379"`
 }
 
 // NewConfig creates an instance of Config.

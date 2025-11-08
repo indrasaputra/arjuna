@@ -44,18 +44,18 @@ func (m *MockRegisterUser) EXPECT() *MockRegisterUserMockRecorder {
 }
 
 // Register mocks base method.
-func (m *MockRegisterUser) Register(ctx context.Context, user *entity.User, key string) (uuid.UUID, error) {
+func (m *MockRegisterUser) Register(ctx context.Context, user *entity.User) (uuid.UUID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Register", ctx, user, key)
+	ret := m.ctrl.Call(m, "Register", ctx, user)
 	ret0, _ := ret[0].(uuid.UUID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Register indicates an expected call of Register.
-func (mr *MockRegisterUserMockRecorder) Register(ctx, user, key any) *gomock.Call {
+func (mr *MockRegisterUserMockRecorder) Register(ctx, user any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockRegisterUser)(nil).Register), ctx, user, key)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockRegisterUser)(nil).Register), ctx, user)
 }
 
 // MockRegisterUserRepository is a mock of RegisterUserRepository interface.
@@ -132,43 +132,4 @@ func (m *MockRegisterUserOutboxRepository) Insert(ctx context.Context, payload *
 func (mr *MockRegisterUserOutboxRepositoryMockRecorder) Insert(ctx, payload any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockRegisterUserOutboxRepository)(nil).Insert), ctx, payload)
-}
-
-// MockIdempotencyKeyRepository is a mock of IdempotencyKeyRepository interface.
-type MockIdempotencyKeyRepository struct {
-	isgomock struct{}
-	ctrl     *gomock.Controller
-	recorder *MockIdempotencyKeyRepositoryMockRecorder
-}
-
-// MockIdempotencyKeyRepositoryMockRecorder is the mock recorder for MockIdempotencyKeyRepository.
-type MockIdempotencyKeyRepositoryMockRecorder struct {
-	mock *MockIdempotencyKeyRepository
-}
-
-// NewMockIdempotencyKeyRepository creates a new mock instance.
-func NewMockIdempotencyKeyRepository(ctrl *gomock.Controller) *MockIdempotencyKeyRepository {
-	mock := &MockIdempotencyKeyRepository{ctrl: ctrl}
-	mock.recorder = &MockIdempotencyKeyRepositoryMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockIdempotencyKeyRepository) EXPECT() *MockIdempotencyKeyRepositoryMockRecorder {
-	return m.recorder
-}
-
-// Exists mocks base method.
-func (m *MockIdempotencyKeyRepository) Exists(ctx context.Context, key string) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Exists", ctx, key)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Exists indicates an expected call of Exists.
-func (mr *MockIdempotencyKeyRepositoryMockRecorder) Exists(ctx, key any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockIdempotencyKeyRepository)(nil).Exists), ctx, key)
 }

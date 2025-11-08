@@ -392,9 +392,11 @@ services:
       - AUTH_SERVICE_HOST=auth-api:8002
       - WALLET_SERVICE_HOST=wallet-api:8004
       - REDIS_ADDRESS=redis:6379
+      - REDIS_TTL=1h
       - TOKEN_SECRET_KEY=arjuna-secret-key
       - APPLIED_AUTH_BEARER=/api.v1.UserQueryService/GetAllUsers
       - APPLIED_AUTH_BASIC=
+      - APPLIED_IDEMPOTENCY=/api.v1.UserCommandService/RegisterUser
     profiles:
       - service
 
@@ -504,9 +506,11 @@ services:
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - REDIS_ADDRESS=redis:6379
+      - REDIS_TTL=1h
       - TOKEN_SECRET_KEY=arjuna-secret-key
       - APPLIED_AUTH_BEARER=/api.v1.TransactionCommandService/CreateTransaction
       - APPLIED_AUTH_BASIC=/api.v1.TransactionCommandService/DeleteAllTransactions
+      - APPLIED_IDEMPOTENCY=/api.v1.TransactionCommandService/CreateTransaction
     profiles:
       - service
 
@@ -550,9 +554,11 @@ services:
       - OPENTELEMETRY_COLLECTOR_ADDRESS=otel-collector:4317
       - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - REDIS_ADDRESS=redis:6379
+      - REDIS_TTL=1h
       - TOKEN_SECRET_KEY=arjuna-secret-key
       - APPLIED_AUTH_BEARER=/api.v1.WalletCommandService/TopupWallet,/api.v1.WalletCommandService/TransferBalance
       - APPLIED_AUTH_BASIC=/api.v1.WalletCommandService/CreateWallet
+      - APPLIED_IDEMPOTENCY=/api.v1.WalletCommandService/TopupWallet
     profiles:
       - service
 

@@ -23,21 +23,14 @@ type TopupWalletRepository interface {
 	AddWalletBalance(ctx context.Context, id uuid.UUID, amount decimal.Decimal) (*entity.Wallet, error)
 }
 
-// IdempotencyKeyRepository defines  interface for idempotency check flow and repository.
-type IdempotencyKeyRepository interface {
-	// Exists check if given key exists in repository.
-	Exists(ctx context.Context, key string) (bool, error)
-}
-
 // WalletTopup is responsible for topup a new wallet.
 type WalletTopup struct {
 	walletRepo TopupWalletRepository
-	keyRepo    IdempotencyKeyRepository
 }
 
 // NewWalletTopup topups an instance of WalletTopup.
-func NewWalletTopup(t TopupWalletRepository, k IdempotencyKeyRepository) *WalletTopup {
-	return &WalletTopup{walletRepo: t, keyRepo: k}
+func NewWalletTopup(t TopupWalletRepository) *WalletTopup {
+	return &WalletTopup{walletRepo: t}
 }
 
 // Topup topups wallet's balance.
@@ -45,11 +38,6 @@ func NewWalletTopup(t TopupWalletRepository, k IdempotencyKeyRepository) *Wallet
 func (wt *WalletTopup) Topup(ctx context.Context, topup *entity.TopupWallet) (*entity.Wallet, error) {
 	if topup == nil {
 		return nil, entity.ErrEmptyWallet()
-	}
-
-	if err := wt.validateIdempotencyKey(ctx, topup.IdempotencyKey); err != nil {
-		slog.ErrorContext(ctx, "[WalletTopup-Topup] fail check idempotency key", "idempotency_key", topup.IdempotencyKey, "error", err)
-		return nil, err
 	}
 
 	if err := validateTopupWallet(topup); err != nil {
@@ -63,17 +51,6 @@ func (wt *WalletTopup) Topup(ctx context.Context, topup *entity.TopupWallet) (*e
 		return nil, err
 	}
 	return wallet, nil
-}
-
-func (wt *WalletTopup) validateIdempotencyKey(ctx context.Context, key string) error {
-	res, err := wt.keyRepo.Exists(ctx, key)
-	if err != nil {
-		return err
-	}
-	if res {
-		return entity.ErrAlreadyExists()
-	}
-	return nil
 }
 
 func validateTopupWallet(topup *entity.TopupWallet) error {

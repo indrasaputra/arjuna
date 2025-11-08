@@ -17,9 +17,8 @@ import (
 type ctxKey string
 
 var (
-	testCtx            = context.Background()
-	testCtxTx          = context.WithValue(testCtx, ctxKey("tx"), true)
-	testIdempotencyKey = "key"
+	testCtx   = context.Background()
+	testCtxTx = context.WithValue(testCtx, ctxKey("tx"), true)
 )
 
 type UserRegistrarSuite struct {
@@ -27,7 +26,6 @@ type UserRegistrarSuite struct {
 	txManager      *mock_uow.MockTxManager
 	userRepo       *mock_service.MockRegisterUserRepository
 	userOutboxRepo *mock_service.MockRegisterUserOutboxRepository
-	keyRepo        *mock_service.MockIdempotencyKeyRepository
 }
 
 func TestNewUserRegistrar(t *testing.T) {
@@ -44,31 +42,10 @@ func TestUserRegistrar_Register(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	t.Run("validate idempotency key returns error", func(t *testing.T) {
-		st := createUserRegistrarSuite(ctrl)
-		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, entity.ErrInternal("error"))
-
-		id, err := st.registrar.Register(testCtx, nil, testIdempotencyKey)
-
-		assert.Error(t, err)
-		assert.Empty(t, id)
-	})
-
-	t.Run("idempotency key has been used", func(t *testing.T) {
-		st := createUserRegistrarSuite(ctrl)
-		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(true, nil)
-
-		id, err := st.registrar.Register(testCtx, nil, testIdempotencyKey)
-
-		assert.Error(t, err)
-		assert.Empty(t, id)
-	})
-
 	t.Run("empty user is prohibited", func(t *testing.T) {
 		st := createUserRegistrarSuite(ctrl)
-		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
-		id, err := st.registrar.Register(testCtx, nil, testIdempotencyKey)
+		id, err := st.registrar.Register(testCtx, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyUser(), err)
@@ -86,9 +63,8 @@ func TestUserRegistrar_Register(t *testing.T) {
 
 		for _, name := range names {
 			user := &entity.User{Name: name}
-			st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 
-			id, err := st.registrar.Register(testCtx, user, testIdempotencyKey)
+			id, err := st.registrar.Register(testCtx, user)
 
 			assert.Error(t, err)
 			assert.Equal(t, entity.ErrInvalidName(), err)
@@ -108,9 +84,7 @@ func TestUserRegistrar_Register(t *testing.T) {
 			user := createTestUser()
 			user.Email = email
 
-			st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
-
-			id, err := st.registrar.Register(testCtx, user, testIdempotencyKey)
+			id, err := st.registrar.Register(testCtx, user)
 
 			assert.Error(t, err)
 			assert.Equal(t, entity.ErrInvalidEmail(), err)
@@ -123,7 +97,6 @@ func TestUserRegistrar_Register(t *testing.T) {
 		user := createTestUser()
 		errReturn := entity.ErrInternal("")
 
-		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 		st.userRepo.EXPECT().Insert(testCtxTx, user).Return(errReturn)
 		st.txManager.EXPECT().Do(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(_ context.Context, fn func(context.Context) error) error {
@@ -131,7 +104,7 @@ func TestUserRegistrar_Register(t *testing.T) {
 				return errReturn
 			})
 
-		id, err := st.registrar.Register(testCtx, user, testIdempotencyKey)
+		id, err := st.registrar.Register(testCtx, user)
 
 		assert.Error(t, err)
 		assert.Empty(t, id)
@@ -142,7 +115,6 @@ func TestUserRegistrar_Register(t *testing.T) {
 		user := createTestUser()
 		errReturn := entity.ErrInternal("")
 
-		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 		st.userRepo.EXPECT().Insert(testCtxTx, user).Return(nil)
 		st.userOutboxRepo.EXPECT().Insert(testCtxTx, gomock.Any()).Return(errReturn)
 		st.txManager.EXPECT().Do(gomock.Any(), gomock.Any()).
@@ -151,7 +123,7 @@ func TestUserRegistrar_Register(t *testing.T) {
 				return errReturn
 			})
 
-		id, err := st.registrar.Register(testCtx, user, testIdempotencyKey)
+		id, err := st.registrar.Register(testCtx, user)
 
 		assert.Error(t, err)
 		assert.Empty(t, id)
@@ -162,7 +134,6 @@ func TestUserRegistrar_Register(t *testing.T) {
 		user := createTestUser()
 		errReturn := entity.ErrInternal("")
 
-		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 		st.userRepo.EXPECT().Insert(testCtxTx, user).Return(nil)
 		st.userOutboxRepo.EXPECT().Insert(testCtxTx, gomock.Any()).Return(nil)
 		st.txManager.EXPECT().Do(gomock.Any(), gomock.Any()).
@@ -171,7 +142,7 @@ func TestUserRegistrar_Register(t *testing.T) {
 				return errReturn
 			})
 
-		id, err := st.registrar.Register(testCtx, user, testIdempotencyKey)
+		id, err := st.registrar.Register(testCtx, user)
 
 		assert.Error(t, err)
 		assert.Empty(t, id)
@@ -181,7 +152,6 @@ func TestUserRegistrar_Register(t *testing.T) {
 		st := createUserRegistrarSuite(ctrl)
 		user := createTestUser()
 
-		st.keyRepo.EXPECT().Exists(testCtx, testIdempotencyKey).Return(false, nil)
 		st.userRepo.EXPECT().Insert(testCtxTx, user).Return(nil)
 		st.userOutboxRepo.EXPECT().Insert(testCtxTx, gomock.Any()).Return(nil)
 		st.txManager.EXPECT().Do(gomock.Any(), gomock.Any()).
@@ -190,7 +160,7 @@ func TestUserRegistrar_Register(t *testing.T) {
 				return nil
 			})
 
-		id, err := st.registrar.Register(testCtx, user, testIdempotencyKey)
+		id, err := st.registrar.Register(testCtx, user)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, id)
@@ -201,14 +171,12 @@ func createUserRegistrarSuite(ctrl *gomock.Controller) *UserRegistrarSuite {
 	m := mock_uow.NewMockTxManager(ctrl)
 	ur := mock_service.NewMockRegisterUserRepository(ctrl)
 	uor := mock_service.NewMockRegisterUserOutboxRepository(ctrl)
-	ik := mock_service.NewMockIdempotencyKeyRepository(ctrl)
-	r := service.NewUserRegistrar(m, ur, uor, ik)
+	r := service.NewUserRegistrar(m, ur, uor)
 	return &UserRegistrarSuite{
 		registrar:      r,
 		txManager:      m,
 		userRepo:       ur,
 		userOutboxRepo: uor,
-		keyRepo:        ik,
 	}
 }
 

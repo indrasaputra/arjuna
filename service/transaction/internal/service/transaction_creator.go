@@ -14,14 +14,7 @@ import (
 // CreateTransaction defines interface to create transaction.
 type CreateTransaction interface {
 	// Create creates a new transaction.
-	// It needs idempotency key.
-	Create(ctx context.Context, transaction *entity.Transaction, key string) (uuid.UUID, error)
-}
-
-// IdempotencyKeyRepository defines  interface for idempotency check flow and repository.
-type IdempotencyKeyRepository interface {
-	// Exists check if given key exists in repository.
-	Exists(ctx context.Context, key string) (bool, error)
+	Create(ctx context.Context, transaction *entity.Transaction) (uuid.UUID, error)
 }
 
 // CreateTransactionRepository defines the interface to insert transaction to repository.
@@ -33,22 +26,15 @@ type CreateTransactionRepository interface {
 // TransactionCreator is responsible for creating a new transaction.
 type TransactionCreator struct {
 	trxRepo CreateTransactionRepository
-	keyRepo IdempotencyKeyRepository
 }
 
 // NewTransactionCreator creates an instance of TransactionCreator.
-func NewTransactionCreator(t CreateTransactionRepository, k IdempotencyKeyRepository) *TransactionCreator {
-	return &TransactionCreator{trxRepo: t, keyRepo: k}
+func NewTransactionCreator(t CreateTransactionRepository) *TransactionCreator {
+	return &TransactionCreator{trxRepo: t}
 }
 
 // Create creates a new transaction.
-// It needs idempotency key.
-func (tc *TransactionCreator) Create(ctx context.Context, transaction *entity.Transaction, key string) (uuid.UUID, error) {
-	if err := tc.validateIdempotencyKey(ctx, key); err != nil {
-		slog.ErrorContext(ctx, "[TransactionCreator-Create] fail check idempotency key", "idempotency_key", key, "error", err)
-		return uuid.Nil, err
-	}
-
+func (tc *TransactionCreator) Create(ctx context.Context, transaction *entity.Transaction) (uuid.UUID, error) {
 	sanitizeTransaction(transaction)
 	if err := validateTransaction(transaction); err != nil {
 		slog.ErrorContext(ctx, "[TransactionCreator-Create] transaction is invalid", "error", err)
@@ -64,17 +50,6 @@ func (tc *TransactionCreator) Create(ctx context.Context, transaction *entity.Tr
 		return uuid.Nil, err
 	}
 	return transaction.ID, nil
-}
-
-func (tc *TransactionCreator) validateIdempotencyKey(ctx context.Context, key string) error {
-	res, err := tc.keyRepo.Exists(ctx, key)
-	if err != nil {
-		return err
-	}
-	if res {
-		return entity.ErrAlreadyExists()
-	}
-	return nil
 }
 
 func sanitizeTransaction(trx *entity.Transaction) {

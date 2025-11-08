@@ -1,9 +1,6 @@
 package builder
 
 import (
-	"context"
-
-	goredis "github.com/redis/go-redis/v9"
 	"go.temporal.io/sdk/client"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -15,7 +12,6 @@ import (
 	"github.com/indrasaputra/arjuna/service/user/internal/grpc/handler"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/db"
 	"github.com/indrasaputra/arjuna/service/user/internal/repository/postgres"
-	"github.com/indrasaputra/arjuna/service/user/internal/repository/redis"
 	"github.com/indrasaputra/arjuna/service/user/internal/service"
 	sdkwallet "github.com/indrasaputra/arjuna/service/wallet/pkg/sdk/wallet"
 )
@@ -24,7 +20,6 @@ import (
 type Dependency struct {
 	Config         *config.Config
 	TemporalClient client.Client
-	RedisClient    goredis.Cmdable
 	TxManager      uow.TxManager
 	Queries        *db.Queries
 }
@@ -33,9 +28,8 @@ type Dependency struct {
 func BuildUserCommandHandler(dep *Dependency) *handler.UserCommand {
 	pu := postgres.NewUser(dep.Queries)
 	puo := postgres.NewUserOutbox(dep.Queries)
-	ik := redis.NewIdempotencyKey(dep.RedisClient)
 
-	rg := service.NewUserRegistrar(dep.TxManager, pu, puo, ik)
+	rg := service.NewUserRegistrar(dep.TxManager, pu, puo)
 	return handler.NewUserCommand(rg)
 }
 
@@ -78,21 +72,6 @@ func BuildWalletClient(host, username, password string) (*sdkwallet.Client, erro
 		Password: password,
 	}
 	return sdkwallet.NewClient(dc)
-}
-
-// BuildRedisClient builds an instance of redis client.
-func BuildRedisClient(cfg *config.Redis) (*goredis.Client, error) {
-	opt := &goredis.Options{
-		Addr: cfg.Address,
-	}
-
-	client := goredis.NewClient(opt)
-	_, err := client.Ping(context.Background()).Result()
-	if err != nil {
-		return nil, err
-	}
-
-	return client, nil
 }
 
 // BuildQueries builds sqlc queries.

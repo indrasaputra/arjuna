@@ -106,19 +106,6 @@ func ErrInvalidAmount() error {
 	return res.Err()
 }
 
-// ErrMissingIdempotencyKey returns codes.InvalidArgument explained that the idempotency key is missing.
-func ErrMissingIdempotencyKey() error {
-	st := status.New(codes.InvalidArgument, "missing idempotency key")
-	te := &apiv1.TransactionError{
-		ErrorCode: apiv1.TransactionErrorCode_TRANSACTION_ERROR_CODE_MISSING_IDEMPOTENCY_KEY,
-	}
-	res, err := st.WithDetails(te)
-	if err != nil {
-		return st.Err()
-	}
-	return res.Err()
-}
-
 func createBadRequest(details ...*errdetails.BadRequest_FieldViolation) *errdetails.BadRequest {
 	return &errdetails.BadRequest{
 		FieldViolations: details,
