@@ -198,6 +198,6 @@ func defaultStreamServerInterceptors(logger *slog.Logger, cfg *Config) []grpc.St
 	}
 }
 
-func recoveryHandler(p interface{}) error {
+func recoveryHandler(p any) error {
 	return status.Errorf(codes.Unknown, "%v", p)
 }

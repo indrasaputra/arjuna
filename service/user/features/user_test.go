@@ -201,8 +201,8 @@ func callRestEndpoint(method, url string, body io.Reader) error {
 }
 
 func deepCompareJSON(want, have []byte) error {
-	var expected interface{}
-	var actual interface{}
+	var expected any
+	var actual any
 
 	err := json.Unmarshal(want, &expected)
 	if err != nil {
