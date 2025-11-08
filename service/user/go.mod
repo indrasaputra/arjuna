@@ -12,9 +12,7 @@ replace (
 )
 
 require (
-	github.com/alicebob/miniredis/v2 v2.35.0
 	github.com/cucumber/godog v0.15.1
-	github.com/go-redis/redismock/v9 v9.2.0
 	github.com/gogo/status v1.1.1
 	github.com/google/uuid v1.6.0
 	github.com/indrasaputra/arjuna/pkg/sdk v0.0.0-00010101000000-000000000000
@@ -26,7 +24,6 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/pashagolub/pgxmock/v4 v4.9.0
 	github.com/pkg/errors v0.9.1
-	github.com/redis/go-redis/v9 v9.16.0
 	github.com/shopspring/decimal v1.4.0
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
@@ -75,13 +72,13 @@ require (
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.66.1 // indirect
 	github.com/prometheus/procfs v0.16.1 // indirect
+	github.com/redis/go-redis/v9 v9.16.0 // indirect
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/vgarvardt/pgx-google-uuid/v5 v5.6.0 // indirect
-	github.com/yuin/gopher-lua v1.1.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.63.0 // indirect
 	go.opentelemetry.io/otel v1.38.0 // indirect

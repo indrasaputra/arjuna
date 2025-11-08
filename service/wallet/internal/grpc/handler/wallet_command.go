@@ -6,16 +6,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"google.golang.org/grpc/metadata"
 
 	"github.com/indrasaputra/arjuna/pkg/sdk/grpc/interceptor"
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/wallet/entity"
 	"github.com/indrasaputra/arjuna/service/wallet/internal/service"
-)
-
-const (
-	headerIdempotencyKey = "x-idempotency-key"
 )
 
 // WalletCommand handles HTTP/2 gRPC request for state-changing wallet.
@@ -51,15 +46,6 @@ func (wc *WalletCommand) CreateWallet(ctx context.Context, request *apiv1.Create
 
 // TopupWallet handles HTTP/2 gRPC request similar to POST in HTTP/1.1.
 func (wc *WalletCommand) TopupWallet(ctx context.Context, request *apiv1.TopupWalletRequest) (*apiv1.TopupWalletResponse, error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return nil, entity.ErrInternal("metadata not found from incoming context")
-	}
-	key := md[headerIdempotencyKey]
-	if len(key) == 0 {
-		return nil, entity.ErrMissingIdempotencyKey()
-	}
-
 	userID := ctx.Value(interceptor.HeaderKeyUserID).(uuid.UUID)
 
 	if request == nil || request.GetTopup() == nil {
@@ -68,7 +54,7 @@ func (wc *WalletCommand) TopupWallet(ctx context.Context, request *apiv1.TopupWa
 	}
 
 	amount, _ := decimal.NewFromString(request.GetTopup().GetAmount())
-	req := createTopupWalletFromTopupWalletRequest(request, userID, amount, key[0])
+	req := createTopupWalletFromTopupWalletRequest(request, userID, amount)
 
 	wallet, err := wc.topup.Topup(ctx, req)
 	if err != nil {
@@ -103,12 +89,11 @@ func createWalletFromCreateWalletRequest(request *apiv1.CreateWalletRequest, bal
 	}
 }
 
-func createTopupWalletFromTopupWalletRequest(request *apiv1.TopupWalletRequest, userID uuid.UUID, amount decimal.Decimal, key string) *entity.TopupWallet {
+func createTopupWalletFromTopupWalletRequest(request *apiv1.TopupWalletRequest, userID uuid.UUID, amount decimal.Decimal) *entity.TopupWallet {
 	return &entity.TopupWallet{
-		WalletID:       uuid.MustParse(request.GetTopup().GetWalletId()),
-		UserID:         userID,
-		Amount:         amount,
-		IdempotencyKey: key,
+		WalletID: uuid.MustParse(request.GetTopup().GetWalletId()),
+		UserID:   userID,
+		Amount:   amount,
 	}
 }
 

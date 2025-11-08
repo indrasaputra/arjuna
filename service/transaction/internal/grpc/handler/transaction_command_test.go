@@ -1,27 +1,16 @@
 package handler_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
-	"google.golang.org/grpc/metadata"
 
 	apiv1 "github.com/indrasaputra/arjuna/proto/api/v1"
 	"github.com/indrasaputra/arjuna/service/transaction/entity"
 	"github.com/indrasaputra/arjuna/service/transaction/internal/grpc/handler"
 	mock_service "github.com/indrasaputra/arjuna/service/transaction/test/mock/service"
-)
-
-const (
-	testIdempotencyKey = "key"
-)
-
-var (
-	testCtxWithValidKey   = metadata.NewIncomingContext(testCtx, metadata.Pairs("X-Idempotency-Key", testIdempotencyKey))
-	testCtxWithInvalidKey = metadata.NewIncomingContext(testCtx, metadata.Pairs("another-key", ""))
 )
 
 type TransactionCommandSuite struct {
@@ -43,30 +32,10 @@ func TestTransactionCommand_CreateTransaction(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	t.Run("metadata not found", func(t *testing.T) {
-		st := createTransactionCommandSuite(ctrl)
-
-		res, err := st.handler.CreateTransaction(context.Background(), nil)
-
-		assert.Error(t, err)
-		assert.Equal(t, entity.ErrInternal("metadata not found from incoming context"), err)
-		assert.Nil(t, res)
-	})
-
-	t.Run("idempotency key is missing", func(t *testing.T) {
-		st := createTransactionCommandSuite(ctrl)
-
-		res, err := st.handler.CreateTransaction(testCtxWithInvalidKey, nil)
-
-		assert.Error(t, err)
-		assert.Equal(t, entity.ErrMissingIdempotencyKey(), err)
-		assert.Nil(t, res)
-	})
-
 	t.Run("nil request is prohibited", func(t *testing.T) {
 		st := createTransactionCommandSuite(ctrl)
 
-		res, err := st.handler.CreateTransaction(testCtxWithValidKey, nil)
+		res, err := st.handler.CreateTransaction(testCtx, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyTransaction(), err)
@@ -76,7 +45,7 @@ func TestTransactionCommand_CreateTransaction(t *testing.T) {
 	t.Run("empty transaction is prohibited", func(t *testing.T) {
 		st := createTransactionCommandSuite(ctrl)
 
-		res, err := st.handler.CreateTransaction(testCtxWithValidKey, &apiv1.CreateTransactionRequest{})
+		res, err := st.handler.CreateTransaction(testCtx, &apiv1.CreateTransactionRequest{})
 
 		assert.Error(t, err)
 		assert.Equal(t, entity.ErrEmptyTransaction(), err)
@@ -102,9 +71,9 @@ func TestTransactionCommand_CreateTransaction(t *testing.T) {
 			assert.AnError,
 		}
 		for _, errRet := range errors {
-			st.creator.EXPECT().Create(testCtxWithValidKey, gomock.Any(), testIdempotencyKey).Return(uuid.Must(uuid.NewV7()), errRet)
+			st.creator.EXPECT().Create(testCtx, gomock.Any()).Return(uuid.Must(uuid.NewV7()), errRet)
 
-			res, err := st.handler.CreateTransaction(testCtxWithValidKey, request)
+			res, err := st.handler.CreateTransaction(testCtx, request)
 
 			assert.Error(t, err)
 			assert.Equal(t, errRet, err)
@@ -115,7 +84,7 @@ func TestTransactionCommand_CreateTransaction(t *testing.T) {
 	t.Run("success create transaction", func(t *testing.T) {
 		st := createTransactionCommandSuite(ctrl)
 		id := uuid.Must(uuid.NewV7())
-		st.creator.EXPECT().Create(testCtxWithValidKey, gomock.Any(), testIdempotencyKey).Return(id, nil)
+		st.creator.EXPECT().Create(testCtx, gomock.Any()).Return(id, nil)
 		request := &apiv1.CreateTransactionRequest{
 			Transaction: &apiv1.Transaction{
 				SenderId:   uuid.Must(uuid.NewV7()).String(),
@@ -124,7 +93,7 @@ func TestTransactionCommand_CreateTransaction(t *testing.T) {
 			},
 		}
 
-		res, err := st.handler.CreateTransaction(testCtxWithValidKey, request)
+		res, err := st.handler.CreateTransaction(testCtx, request)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, res)

@@ -45,13 +45,15 @@ type Server struct {
 
 // Config represents server's config.
 type Config struct {
-	Name                     string
-	Port                     string
-	Username                 string
-	Password                 string
-	AppliedBearerAuthMethods []string
-	AppliedBasicAuthMethods  []string
-	Secret                   []byte
+	IdempotencyStore          interceptor.IdempotencyStore
+	Name                      string
+	Port                      string
+	Username                  string
+	Password                  string
+	AppliedBearerAuthMethods  []string
+	AppliedBasicAuthMethods   []string
+	AppliedIdempotencyMethods []string
+	Secret                    []byte
 }
 
 // newGrpc creates an instance of Server.
@@ -163,18 +165,30 @@ func (gs *Server) Stop() {
 func defaultUnaryServerInterceptors(logger *slog.Logger, cfg *Config) []grpc.UnaryServerInterceptor {
 	opts := []logging.Option{logging.WithLogOnEvents(logging.StartCall, logging.FinishCall)}
 
-	return []grpc.UnaryServerInterceptor{
+	interceptors := []grpc.UnaryServerInterceptor{
 		grpcrecovery.UnaryServerInterceptor(grpcrecovery.WithRecoveryHandler(recoveryHandler)),
 		logging.UnaryServerInterceptor(interceptor.SlogLogger(logger), opts...),
 		grpc_prometheus.UnaryServerInterceptor,
 		selector.UnaryServerInterceptor(auth.UnaryServerInterceptor(interceptor.AuthBasic(cfg.Username, cfg.Password)), selector.MatchFunc(interceptor.ApplyMethod(cfg.AppliedBasicAuthMethods...))),
 		selector.UnaryServerInterceptor(auth.UnaryServerInterceptor(interceptor.AuthBearer(cfg.Secret)), selector.MatchFunc(interceptor.ApplyMethod(cfg.AppliedBearerAuthMethods...))),
 	}
+
+	if cfg.IdempotencyStore != nil && len(cfg.AppliedIdempotencyMethods) > 0 {
+		idempotencyInterceptor := selector.UnaryServerInterceptor(
+			interceptor.IdempotencyUnaryServerInterceptor(cfg.IdempotencyStore),
+			selector.MatchFunc(interceptor.ApplyMethod(cfg.AppliedIdempotencyMethods...)),
+		)
+		interceptors = append(interceptors, idempotencyInterceptor)
+	}
+
+	return interceptors
 }
 
 func defaultStreamServerInterceptors(logger *slog.Logger, cfg *Config) []grpc.StreamServerInterceptor {
 	opts := []logging.Option{logging.WithLogOnEvents(logging.StartCall, logging.FinishCall)}
 
+	// Note: Idempotency interceptor is typically only used for unary requests,
+	// not streaming requests, as streaming doesn't fit the idempotency pattern well
 	return []grpc.StreamServerInterceptor{
 		grpcrecovery.StreamServerInterceptor(grpcrecovery.WithRecoveryHandler(recoveryHandler)),
 		logging.StreamServerInterceptor(interceptor.SlogLogger(logger), opts...),

@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
+	"github.com/indrasaputra/arjuna/pkg/sdk/cache/redis"
 	"github.com/indrasaputra/arjuna/pkg/sdk/database/postgres"
 	"github.com/indrasaputra/arjuna/pkg/sdk/grpc/server"
 	sdklog "github.com/indrasaputra/arjuna/pkg/sdk/log"
@@ -53,23 +54,25 @@ func API(_ *cobra.Command, _ []string) {
 	checkError(err)
 	defer pool.Close()
 	queries := builder.BuildQueries(pool, uow.NewTxGetter())
-	redisClient, err := builder.BuildRedisClient(&cfg.Redis)
+	redisClient, err := redis.NewRedisClient(cfg.Redis)
 	checkError(err)
+	idempotencyStore := redis.NewIdempotency(redisClient, cfg.Redis.TTL)
 
 	dep := &builder.Dependency{
-		Config:      cfg,
-		RedisClient: redisClient,
-		Queries:     queries,
+		Config:  cfg,
+		Queries: queries,
 	}
 
 	c := &server.Config{
-		Name:                     cfg.ServiceName,
-		Port:                     cfg.Port,
-		Secret:                   []byte(cfg.SecretKey),
-		Username:                 cfg.Username,
-		Password:                 cfg.Password,
-		AppliedBearerAuthMethods: strings.Split(cfg.AppliedAuthBearer, ","),
-		AppliedBasicAuthMethods:  strings.Split(cfg.AppliedAuthBasic, ","),
+		Name:                      cfg.ServiceName,
+		Port:                      cfg.Port,
+		Secret:                    []byte(cfg.SecretKey),
+		Username:                  cfg.Username,
+		Password:                  cfg.Password,
+		AppliedBearerAuthMethods:  strings.Split(cfg.AppliedAuthBearer, ","),
+		AppliedBasicAuthMethods:   strings.Split(cfg.AppliedAuthBasic, ","),
+		AppliedIdempotencyMethods: strings.Split(cfg.AppliedIdempotency, ","),
+		IdempotencyStore:          idempotencyStore,
 	}
 	srv := server.NewServer(c)
 	registerGrpcService(srv, dep)
