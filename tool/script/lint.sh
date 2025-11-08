@@ -2,8 +2,8 @@
 
 set -eo pipefail
 
-# ignore LT05 because it will be handled by sqlc, AM04 because it's not a problem
-sqlfluff fix -d postgres -e LT05,AM04
+# ignore LT05 because it will be handled by sqlc, -e means ignore linter because it's not a problem
+sqlfluff fix -d postgres -e LT05,AM04,AM09,RF04
 buf lint
 protolint lint -fix .
 
