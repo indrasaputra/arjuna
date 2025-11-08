@@ -81,19 +81,19 @@ func NewTxDB(db uow.Tr, txGetter uow.TxGetter) *TxDB {
 }
 
 // Exec runs Exec with transaction if needed.
-func (d *TxDB) Exec(ctx context.Context, sql string, args ...interface{}) (pgconn.CommandTag, error) {
+func (d *TxDB) Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error) {
 	tx := d.txGetter.DefaultTrOrDB(ctx, d.db)
 	return tx.Exec(ctx, sql, args...)
 }
 
 // Query runs Query with transaction if needed.
-func (d *TxDB) Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error) {
+func (d *TxDB) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
 	tx := d.txGetter.DefaultTrOrDB(ctx, d.db)
 	return tx.Query(ctx, sql, args...)
 }
 
 // QueryRow runs QueryRow with transaction if needed.
-func (d *TxDB) QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row {
+func (d *TxDB) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
 	tx := d.txGetter.DefaultTrOrDB(ctx, d.db)
 	return tx.QueryRow(ctx, sql, args...)
 }

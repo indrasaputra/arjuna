@@ -63,7 +63,7 @@ func (c *Client) Register(ctx context.Context, account *entity.Account) error {
 
 // ParseToken parses the token.
 func ParseToken(tokenString string, secret []byte) (*entity.Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &entity.Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &entity.Claims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, entity.ErrInvalidArgument("unexpected signing method")
 		}
