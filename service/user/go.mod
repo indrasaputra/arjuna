@@ -1,6 +1,6 @@
 module github.com/indrasaputra/arjuna/service/user
 
-go 1.25.3
+go 1.25.2
 
 exclude google.golang.org/genproto v0.0.0-20180518175338-11a468237815
 
