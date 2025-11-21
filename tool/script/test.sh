@@ -4,11 +4,17 @@ set -eo pipefail
 
 # In CI, limit parallelism to reduce memory pressure from race detector
 if [ "${CI}" = "true" ] || [ "${GITHUB_ACTIONS}" = "true" ]; then
-    PARALLEL_FLAG="-p=1"
+    # -p=1: run packages sequentially, -parallel=1: run tests within package sequentially
+    PARALLEL_FLAG="-p=1 -parallel=1"
     # Enable CGO for race detector and configure TSAN for minimal memory usage
     export CGO_ENABLED=1
-    export TSAN_OPTIONS="halt_on_error=1:history_size=1:io_sync=0:flush_memory_ms=0"
+    # Ultra-aggressive TSAN options to minimize memory usage
+    export TSAN_OPTIONS="halt_on_error=1:history_size=1:io_sync=0:flush_memory_ms=0:die_after_fork=0"
     export GORACE="halt_on_error=1"
+    # Aggressive garbage collection to free memory quickly
+    export GOGC=20
+    # Reduce Go's memory limit
+    export GOMEMLIMIT=2GiB
 else
     PARALLEL_FLAG=""
 fi
