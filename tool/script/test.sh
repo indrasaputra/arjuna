@@ -2,14 +2,21 @@
 
 set -eo pipefail
 
+# In CI, limit parallelism to reduce memory pressure from race detector
+if [ "${CI}" = "true" ] || [ "${GITHUB_ACTIONS}" = "true" ]; then
+    PARALLEL_FLAG="-p=1"
+else
+    PARALLEL_FLAG=""
+fi
+
 run_tests() {
     go clean -testcache
-    go test -count=1 -failfast -v -race ./...
+    go test -count=1 -failfast -v -race ${PARALLEL_FLAG} ./...
 }
 
 run_tests_cover() {
     go clean -testcache
-    go test -count=1 -failfast -v -race -coverprofile=coverage.out $(go list ./... | grep -v /test/)
+    go test -count=1 -failfast -v -race ${PARALLEL_FLAG} -coverprofile=coverage.out $(go list ./... | grep -v /test/)
     go tool cover -html=coverage.out -o coverage.html
     go tool cover -func coverage.out
 }
