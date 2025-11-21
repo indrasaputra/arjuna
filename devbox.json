@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.16.0/.schema/devbox.schema.json",
   "packages": [
-    "go@1.25.2",
-    "golangci-lint@2.6.0",
+    "go@1.25.3",
+    "golangci-lint@2.6.2",
     "buf@1.59.0",
     "mockgen@0.6.0",
     "protoc-gen-go@1.36.10",
@@ -11,7 +11,7 @@
     "protolint@0.56.4",
     "sqlc@1.30.0",
     "sqlfluff@3.5.0",
-    "atlas@0.37.0"
+    "atlas@0.38.0"
   ],
   "env": {
     "CGO_ENABLED": "0",
