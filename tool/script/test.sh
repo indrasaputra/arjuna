@@ -5,6 +5,10 @@ set -eo pipefail
 # In CI, limit parallelism to reduce memory pressure from race detector
 if [ "${CI}" = "true" ] || [ "${GITHUB_ACTIONS}" = "true" ]; then
     PARALLEL_FLAG="-p=1"
+    # Enable CGO for race detector and configure TSAN for minimal memory usage
+    export CGO_ENABLED=1
+    export TSAN_OPTIONS="halt_on_error=1:history_size=1:io_sync=0:flush_memory_ms=0"
+    export GORACE="halt_on_error=1"
 else
     PARALLEL_FLAG=""
 fi
